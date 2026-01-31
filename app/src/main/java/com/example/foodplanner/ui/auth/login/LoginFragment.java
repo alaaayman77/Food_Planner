@@ -12,9 +12,19 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.foodplanner.R;
+import com.example.foodplanner.model.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 public class LoginFragment extends Fragment {
     private TextInputLayout usernameTextInput;
@@ -24,8 +34,9 @@ public class LoginFragment extends Fragment {
 
     private TextInputEditText passwordInput;
     private MaterialButton logInButton;
+    private FirebaseAuth mAuth;
 
-
+    private FirebaseFirestore db;
 
     public LoginFragment() {
         // Required empty public constructor
@@ -52,41 +63,93 @@ public class LoginFragment extends Fragment {
 
         usernameTextInput = view.findViewById(R.id.username_text_input_login);
         passwordTextInput = view.findViewById(R.id.password_text_input_login);
-        logInButton = view.findViewById(R.id.loginBtn);
+        logInButton = view.findViewById(R.id.signupBtn);
 
         usernameInput = (TextInputEditText) usernameTextInput.getEditText();
 
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
-
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
         logInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                handleSignUp();
+
+                handleLogin();
             }
         });
     }
-
-    private void handleSignUp() {
-        String username = usernameInput.getText().toString().trim();
+    private boolean isEmail(String input) {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches();
+    }
+    private void handleLogin() {
+        String input = usernameInput.getText().toString().trim();
 
         String password = passwordInput.getText().toString().trim();
 
 
-        if (username.isEmpty()) {
+        if (input.isEmpty()) {
             usernameInput.setError("Username is required");
             usernameInput.requestFocus();
             return;
         }
-
-
 
         if (password.isEmpty()) {
             passwordInput.setError("Password is required");
             passwordInput.requestFocus();
             return;
         }
+        if (isEmail(input)) {
+
+            loginWithEmail(input, password);
+        } else {
+
+            findUserByUsername(input, password);
+        }
+
 
 
         Toast.makeText(requireContext(), "Sign Up clicked", Toast.LENGTH_SHORT).show();
     }
+
+    private void findUserByUsername(String username, String password) {
+        CollectionReference usersRef =  db.collection("users");
+        Query usernameQuery = usersRef.whereEqualTo("username", username).limit(1);
+       usernameQuery.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+           @Override
+           public void onSuccess(QuerySnapshot query) {
+               if (!query.isEmpty()) {
+                   User user = query.getDocuments().get(0).toObject(User.class);
+                   if (user != null) {
+                       loginWithEmail(user.getEmail(), password);
+                   }
+
+                    } else {
+                        Toast.makeText(requireContext(),
+                                "Username not found",
+                                Toast.LENGTH_SHORT).show();
+                    }
+           }
+       }).addOnFailureListener(e ->
+                Toast.makeText(requireContext(),
+                        "Error fetching user: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show()
+        );
+    }
+
+
+    private void loginWithEmail(String email, String password) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(requireContext(),
+                                "Login successful",
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireContext(),
+                                "Wrong password",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
 }

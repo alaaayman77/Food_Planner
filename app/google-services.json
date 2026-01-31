@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "736743686590",
+    "project_id": "food-planner-munchly",
+    "storage_bucket": "food-planner-munchly.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:736743686590:android:b404f573681007f2e3f9ef",
+        "android_client_info": {
+          "package_name": "com.example.foodplanner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvgZbs5iZb-_9I4TLtARD-oNeKyck21rQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

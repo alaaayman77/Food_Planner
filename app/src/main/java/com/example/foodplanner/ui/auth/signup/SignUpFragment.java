@@ -1,6 +1,7 @@
 package com.example.foodplanner.ui.auth.signup;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,9 +12,21 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.foodplanner.R;
+import com.example.foodplanner.model.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 public class SignUpFragment extends Fragment {
 
@@ -23,8 +36,8 @@ public class SignUpFragment extends Fragment {
     private TextInputEditText usernameInput;
     private TextInputEditText emailInput;
     private TextInputEditText passwordInput;
-    private MaterialButton signUpButton;
-
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
     public SignUpFragment() {
         // Required empty public constructor
     }
@@ -34,6 +47,7 @@ public class SignUpFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         return inflater.inflate(R.layout.fragment_sign_up, container, false);
     }
 
@@ -44,11 +58,14 @@ public class SignUpFragment extends Fragment {
         usernameTextInput = view.findViewById(R.id.username_text_input_signup);
         emailTextInput = view.findViewById(R.id.email_text_input_signup);
         passwordTextInput = view.findViewById(R.id.password_text_input_signup);
-        signUpButton = view.findViewById(R.id.loginBtn);
+        MaterialButton signUpButton = view.findViewById(R.id.signupBtn);
 
         usernameInput = (TextInputEditText) usernameTextInput.getEditText();
         emailInput = (TextInputEditText) emailTextInput.getEditText();
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
+
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,6 +79,8 @@ public class SignUpFragment extends Fragment {
         String username = usernameInput.getText().toString().trim();
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
+
+
 
 
         if (username.isEmpty()) {
@@ -82,7 +101,75 @@ public class SignUpFragment extends Fragment {
             return;
         }
 
-
+        checkUsernameExistsAndCreateUser(username, email, password);
         Toast.makeText(requireContext(), "Sign Up clicked", Toast.LENGTH_SHORT).show();
+    }
+
+    private void checkUsernameExistsAndCreateUser(String username , String email , String password){
+        CollectionReference usersRef = db.collection("users");
+        Query usernameQuery = usersRef.whereEqualTo("username", username).limit(1);
+        usernameQuery.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+        public void onSuccess(QuerySnapshot querySnapshot) {
+            if (!querySnapshot.isEmpty()) {
+                Toast.makeText(requireContext(),
+                        "Username already taken",
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                createFirebaseUser(username, email, password);
+            }
+        }
+
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(requireContext(),
+                        "Error checking username: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+
+    }
+    private void createFirebaseUser(String username, String email, String password){
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+
+                        if (firebaseUser != null) {
+
+                            User user = new User(username, email);
+                            saveUserToFirestore(firebaseUser.getUid(), user);
+                        }
+                        Toast.makeText(requireContext(),
+                                "Sign up successful ",
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireContext(),
+                                task.getException().getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void saveUserToFirestore(String uid, User user) {
+        db.collection("users")
+                .document(uid)
+                .set(user)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(requireContext(),
+                                "Account created ",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(requireContext(),
+                                "Error saving user: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 }
