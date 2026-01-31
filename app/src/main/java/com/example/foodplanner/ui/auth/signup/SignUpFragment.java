@@ -1,64 +1,56 @@
-package com.example.foodplanner.fragments;
+package com.example.foodplanner.ui.auth.signup;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.example.foodplanner.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-public class LoginFragment extends Fragment {
-    private TextInputLayout usernameTextInput;
+public class SignUpFragment extends Fragment {
 
+    private TextInputLayout usernameTextInput;
+    private TextInputLayout emailTextInput;
     private TextInputLayout passwordTextInput;
     private TextInputEditText usernameInput;
-
+    private TextInputEditText emailInput;
     private TextInputEditText passwordInput;
-    private MaterialButton logInButton;
+    private MaterialButton signUpButton;
 
-
-
-    public LoginFragment() {
+    public SignUpFragment() {
         // Required empty public constructor
     }
 
-
-
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_login, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_sign_up, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        usernameTextInput = view.findViewById(R.id.username_text_input_login);
-        passwordTextInput = view.findViewById(R.id.password_text_input_login);
-        logInButton = view.findViewById(R.id.loginBtn);
+        usernameTextInput = view.findViewById(R.id.username_text_input_signup);
+        emailTextInput = view.findViewById(R.id.email_text_input_signup);
+        passwordTextInput = view.findViewById(R.id.password_text_input_signup);
+        signUpButton = view.findViewById(R.id.loginBtn);
 
         usernameInput = (TextInputEditText) usernameTextInput.getEditText();
-
+        emailInput = (TextInputEditText) emailTextInput.getEditText();
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
 
-        logInButton.setOnClickListener(new View.OnClickListener() {
+        signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 handleSignUp();
@@ -68,7 +60,7 @@ public class LoginFragment extends Fragment {
 
     private void handleSignUp() {
         String username = usernameInput.getText().toString().trim();
-
+        String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
 
@@ -78,7 +70,11 @@ public class LoginFragment extends Fragment {
             return;
         }
 
-
+        if (email.isEmpty()) {
+            emailInput.setError("Email is required");
+            emailInput.requestFocus();
+            return;
+        }
 
         if (password.isEmpty()) {
             passwordInput.setError("Password is required");

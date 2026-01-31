@@ -1,4 +1,4 @@
-package com.example.foodplanner.fragments;
+package com.example.foodplanner.ui.auth;
 
 import android.os.Bundle;
 
@@ -73,24 +73,24 @@ public class AuthFragment extends Fragment {
          setupTabBackground();
     }
     private void setupTabBackground() {
-        tabLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < tabLayout.getTabCount(); i++) {
-                    TabLayout.Tab tab = tabLayout.getTabAt(i);
-                    if (tab != null) {
-                        View tabView = tab.view;
-                        tabView.setBackgroundResource(R.drawable.tab_selector_background);
+        tabLayout.post(() -> {
+            for (int i = 0; i < tabLayout.getTabCount(); i++) {
+                TabLayout.Tab tab = tabLayout.getTabAt(i);
+                if (tab != null) {
+                    View tabView = tab.view;
+                    tabView.setBackgroundResource(R.drawable.tab_selector_background);
 
-                        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) tabView.getLayoutParams();
-                        params.setMarginStart(4);
-                        params.setMarginEnd(4);
-                        tabView.setLayoutParams(params);
-                    }
+                    LinearLayout.LayoutParams params =
+                            (LinearLayout.LayoutParams) tabView.getLayoutParams();
+                    params.setMarginStart(4);
+                    params.setMarginEnd(4);
+                    tabView.setLayoutParams(params);
                 }
             }
         });
     }
+
+
 
     @Override
     public void onDestroyView() {

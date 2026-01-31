@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/splash_bg"
-    tools:context=".AuthActivity">
+    tools:context=".ui.auth.AuthActivity">
 
     <ImageView
         android:id="@+id/imageView5"
@@ -30,7 +30,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainerView"
-        android:name="com.example.foodplanner.fragments.AuthFragment"
+        android:name="com.example.foodplanner.ui.auth.AuthFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
 

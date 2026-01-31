@@ -7,8 +7,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.example.foodplanner.fragments.LoginFragment;
-import com.example.foodplanner.fragments.SignUpFragment;
+import com.example.foodplanner.ui.auth.login.LoginFragment;
+import com.example.foodplanner.ui.auth.signup.SignUpFragment;
 
 public class AuthPageAdapter extends FragmentStateAdapter {
 

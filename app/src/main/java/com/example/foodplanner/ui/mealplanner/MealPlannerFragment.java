@@ -1,4 +1,4 @@
-package com.example.foodplanner.fragments;
+package com.example.foodplanner.ui.mealplanner;
 
 import android.os.Bundle;
 

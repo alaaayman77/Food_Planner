@@ -1,4 +1,4 @@
-package com.example.foodplanner;
+package com.example.foodplanner.ui.splash;
 import android.animation.ObjectAnimator;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
+
+import com.example.foodplanner.R;
 
 public class SplashActivity extends AppCompatActivity {
 Typeface tf;
