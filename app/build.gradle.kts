@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.navigation.fragment)
+    implementation("com.airbnb.android:lottie:6.4.0")
     implementation(libs.navigation.ui)
     implementation(libs.fragment)
     testImplementation(libs.junit)

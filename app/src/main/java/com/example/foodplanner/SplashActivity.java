@@ -19,7 +19,7 @@ TextView slogan;
         setContentView(R.layout.activity_splash);
 
 
-         tf = ResourcesCompat.getFont(this, R.font.fredoka_bold);
+         tf = ResourcesCompat.getFont(this, R.font.poppins_bold);
          slogan = findViewById(R.id.tv_slogan);
         if (tf != null) slogan.setTypeface(tf);
         View logo = findViewById(R.id.logo);

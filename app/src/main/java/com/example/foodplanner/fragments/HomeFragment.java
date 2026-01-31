@@ -1,4 +1,4 @@
-package com.example.foodplanner;
+package com.example.foodplanner.fragments;
 
 import android.os.Bundle;
 
@@ -8,13 +8,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class FavoritesFragment extends Fragment {
+import com.example.foodplanner.R;
+
+public class HomeFragment extends Fragment {
 
 
 
-    public FavoritesFragment() {
+    public HomeFragment() {
         // Required empty public constructor
     }
+
 
 
     @Override
@@ -27,6 +30,6 @@ public class FavoritesFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_favorites, container, false);
+        return inflater.inflate(R.layout.fragment_home, container, false);
     }
 }

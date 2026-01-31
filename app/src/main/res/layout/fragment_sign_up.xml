@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.SignUpFragment">
+
+    <TextView
+        android:id="@+id/create_account"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins_bold"
+        android:paddingTop="20dp"
+        android:text="@string/create_account"
+        android:textColor="@color/primaryColor"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <TextView
+        android:id="@+id/username_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:letterSpacing="0.05"
+        android:text="@string/username"
+        android:textColor="@color/navyBlueVariant"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@id/create_account" />
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/username_text_input_signup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:boxBackgroundColor="@color/lightGrayVariant"
+        app:boxBackgroundMode="outline"
+        app:boxCornerRadiusBottomEnd="@dimen/dp_32"
+        app:boxCornerRadiusBottomStart="@dimen/dp_32"
+        app:boxCornerRadiusTopEnd="@dimen/dp_32"
+        app:boxCornerRadiusTopStart="@dimen/dp_32"
+        app:boxStrokeColor="@color/text_input_stroke"
+        app:boxStrokeWidth="2dp"
+        app:boxStrokeWidthFocused="2dp"
+        app:hintEnabled="false"
+        app:layout_constraintEnd_toEndOf="@id/guideline_end"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@+id/username_label">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="15dp"
+            android:fontFamily="@font/poppins"
+            android:hint="@string/username_hint"
+            android:textColorHint="@color/lightGray"
+            android:textSize="14sp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <TextView
+        android:id="@+id/email_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:letterSpacing="0.05"
+        android:text="@string/email_label"
+        android:textColor="@color/navyBlueVariant"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@id/username_text_input_signup" />
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/email_text_input_signup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:boxBackgroundColor="@color/lightGrayVariant"
+        app:boxBackgroundMode="outline"
+        app:boxCornerRadiusBottomEnd="@dimen/dp_32"
+        app:boxCornerRadiusBottomStart="@dimen/dp_32"
+        app:boxCornerRadiusTopEnd="@dimen/dp_32"
+        app:boxCornerRadiusTopStart="@dimen/dp_32"
+        app:boxStrokeColor="@color/text_input_stroke"
+        app:boxStrokeWidth="2dp"
+        app:boxStrokeWidthFocused="2dp"
+        app:hintEnabled="false"
+        app:layout_constraintEnd_toEndOf="@id/guideline_end"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@+id/email_label">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/icon_email"
+            android:drawablePadding="10dp"
+            android:fontFamily="@font/poppins"
+            android:hint="@string/email_hint"
+            android:textColorHint="@color/lightGray"
+            android:textSize="14sp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/password_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:letterSpacing="0.05"
+        android:text="@string/password_label"
+        android:textColor="@color/navyBlueVariant"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@id/email_text_input_signup" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/password_text_input_signup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:boxBackgroundColor="@color/lightGrayVariant"
+        app:boxBackgroundMode="outline"
+        app:boxCornerRadiusBottomEnd="@dimen/dp_32"
+        app:boxCornerRadiusBottomStart="@dimen/dp_32"
+        app:boxCornerRadiusTopEnd="@dimen/dp_32"
+        app:boxCornerRadiusTopStart="@dimen/dp_32"
+        app:boxStrokeColor="@color/text_input_stroke"
+        app:boxStrokeWidth="2dp"
+        app:boxStrokeWidthFocused="2dp"
+        app:hintEnabled="false"
+        app:layout_constraintEnd_toEndOf="@id/guideline_end"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@+id/password_label">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/password_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/icon_password"
+            android:drawablePadding="10dp"
+            android:fontFamily="@font/poppins"
+            android:hint="@string/password_hint"
+            android:inputType="textPassword"
+            android:textColorHint="@color/lightGray"
+            android:textSize="14sp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/loginBtn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:text="@string/signup"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        app:backgroundTint="@color/primaryColor"
+        app:layout_constraintEnd_toEndOf="@id/guideline_end"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@+id/password_text_input_signup" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="35dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="35dp" />
+</androidx.constraintlayout.widget.ConstraintLayout>

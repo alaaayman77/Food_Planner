@@ -7,31 +7,31 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.foodplanner.HomeFragment"
+        android:name="com.example.foodplanner.fragments.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/searchFragment"
-        android:name="com.example.foodplanner.SearchFragment"
+        android:name="com.example.foodplanner.fragments.SearchFragment"
         android:label="fragment_search"
         tools:layout="@layout/fragment_search" />
 
     <fragment
         android:id="@+id/mealPlannerFragment"
-        android:name="com.example.foodplanner.MealPlannerFragment"
+        android:name="com.example.foodplanner.fragments.MealPlannerFragment"
         android:label="fragment_meal_planner"
         tools:layout="@layout/fragment_meal_planner" />
 
     <fragment
         android:id="@+id/favoritesFragment"
-        android:name="com.example.foodplanner.FavoritesFragment"
+        android:name="com.example.foodplanner.fragments.FavoritesFragment"
         android:label="fragment_favorites"
         tools:layout="@layout/fragment_favorites" />
 
     <fragment
         android:id="@+id/profileFragment"
-        android:name="com.example.foodplanner.ProfileFragment"
+        android:name="com.example.foodplanner.fragments.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
 </navigation>
