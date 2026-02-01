@@ -19,4 +19,5 @@
     <string name="facebook">Facebook</string>
     <string name="google">Google</string>
     <string name="forget_password">Forget Password?</string>
+    <string name="confirm_password">Confirm Password</string>
 </resources>

@@ -167,7 +167,7 @@
         android:layout_marginTop="@dimen/spacing_small"
         android:fontFamily="@font/poppins_semibold"
         android:letterSpacing="0.05"
-        android:text="@string/password_label"
+        android:text="@string/confirm_password"
         android:textColor="@color/navyBlueVariant"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
