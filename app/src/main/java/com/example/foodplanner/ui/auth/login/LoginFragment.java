@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -78,8 +79,20 @@ public class LoginFragment extends Fragment {
             }
         });
     }
+
     private boolean isEmail(String input) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches();
+    }
+    private void showLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showLoading();
+        }
+    }
+
+    private void hideLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideLoading();
+        }
     }
     private void handleLogin() {
         String input = usernameInput.getText().toString().trim();
@@ -98,6 +111,7 @@ public class LoginFragment extends Fragment {
             passwordInput.requestFocus();
             return;
         }
+        showLoading();
         if (isEmail(input)) {
 
             loginWithEmail(input, password);
@@ -124,6 +138,7 @@ public class LoginFragment extends Fragment {
                    }
 
                     } else {
+                       hideLoading();
                         Toast.makeText(requireContext(),
                                 "Username not found",
                                 Toast.LENGTH_SHORT).show();
@@ -140,6 +155,7 @@ public class LoginFragment extends Fragment {
     private void loginWithEmail(String email, String password) {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
+                    hideLoading();
                     if (task.isSuccessful()) {
                         Toast.makeText(requireContext(),
                                 "Login successful",

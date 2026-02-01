@@ -12,26 +12,38 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 
 public class MainActivity extends AppCompatActivity {
-    NavController navController;
-    BottomNavigationView bottomNavigationView;
-    FloatingActionButton mealFAB;
+    private NavController navController;
+    private View loadingOverlay;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        bottomNavigationView = findViewById(R.id.bottomNavigationView);
-        mealFAB = findViewById(R.id.mealFab);
+        loadingOverlay = findViewById(R.id.loading_overlay);
+
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.nav_host_fragment_container);
-        navController = navHostFragment.getNavController();
-        NavigationUI.setupWithNavController(bottomNavigationView, navController);
-        mealFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                bottomNavigationView.setSelectedItemId(R.id.mealPlannerFragment);
-            }
-        });
+                .findFragmentById(R.id.nav_host_fragment_main);
+
+        if (navHostFragment != null) {
+            navController = navHostFragment.getNavController();
+        }
+
+    }
+    public void showLoading() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void hideLoading() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        return navController.navigateUp() || super.onSupportNavigateUp();
     }
 }

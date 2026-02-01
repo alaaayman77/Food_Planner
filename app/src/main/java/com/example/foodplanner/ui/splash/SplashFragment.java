@@ -1,30 +1,62 @@
 package com.example.foodplanner.ui.splash;
+
 import android.animation.ObjectAnimator;
 import android.graphics.Typeface;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+
+import android.os.Handler;
+import android.os.Looper;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
-
 import com.example.foodplanner.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
-public class SplashActivity extends AppCompatActivity {
-Typeface tf;
-TextView slogan;
+
+public class SplashFragment extends Fragment {
+    private Typeface tf;
+    private TextView slogan;
+    private FirebaseAuth mAuth;
+    private static final long SPLASH_DELAY = 3000;
+    public SplashFragment() {
+        // Required empty public constructor
+    }
+
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
+    }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_splash, container, false);
+    }
 
-         tf = ResourcesCompat.getFont(this, R.font.poppins_bold);
-         slogan = findViewById(R.id.tv_slogan);
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mAuth = FirebaseAuth.getInstance();
+
+        tf = ResourcesCompat.getFont(requireContext(), R.font.poppins_bold);
+        slogan = view.findViewById(R.id.tv_slogan);
         if (tf != null) slogan.setTypeface(tf);
-        View logo = findViewById(R.id.logo);
+
+        View logo = view.findViewById(R.id.logo);
 
         logo.setScaleX(0.3f);
         logo.setScaleY(0.3f);
@@ -32,7 +64,6 @@ TextView slogan;
 
         startLogoAnimation(logo);
     }
-
     private void startLogoAnimation(View logo) {
         ObjectAnimator scaleX = ObjectAnimator.ofFloat(logo, "scaleX", 0.3f, 1.25f, 0.95f, 1f);
         ObjectAnimator scaleY = ObjectAnimator.ofFloat(logo, "scaleY", 0.3f, 1.25f, 0.95f, 1f);
@@ -58,10 +89,10 @@ TextView slogan;
             @Override
             public void onAnimationEnd(android.animation.Animator animation) {
                 startFloatingAnimation(logo);
+                navigateToNextScreen();
             }
         });
     }
-
     private void startFloatingAnimation(View view) {
         ObjectAnimator animator =
                 ObjectAnimator.ofFloat(view, "translationY", 0f, -15f, 0f);
@@ -69,5 +100,15 @@ TextView slogan;
         animator.setRepeatCount(ObjectAnimator.INFINITE);
         animator.setInterpolator(new AccelerateDecelerateInterpolator());
         animator.start();
+    }
+
+    private void navigateToNextScreen() {
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (getView() != null) {
+                NavController navController = Navigation.findNavController(getView());
+                navController.navigate(R.id.action_splashFragment_to_authFragment);
+
+            }
+        }, SPLASH_DELAY);
     }
 }
