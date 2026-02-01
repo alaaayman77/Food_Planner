@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.foodplanner.R;
 import com.example.foodplanner.model.User;
+import com.example.foodplanner.ui.auth.AuthActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -33,9 +34,12 @@ public class SignUpFragment extends Fragment {
     private TextInputLayout usernameTextInput;
     private TextInputLayout emailTextInput;
     private TextInputLayout passwordTextInput;
+    private TextInputLayout confirmPasswordTextInput;
     private TextInputEditText usernameInput;
     private TextInputEditText emailInput;
     private TextInputEditText passwordInput;
+    private TextInputEditText confirmPasswordInput;
+
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     public SignUpFragment() {
@@ -58,12 +62,14 @@ public class SignUpFragment extends Fragment {
         usernameTextInput = view.findViewById(R.id.username_text_input_signup);
         emailTextInput = view.findViewById(R.id.email_text_input_signup);
         passwordTextInput = view.findViewById(R.id.password_text_input_signup);
+        confirmPasswordTextInput = view.findViewById(R.id.confirm_password_text_input_signup);
+
         MaterialButton signUpButton = view.findViewById(R.id.signupBtn);
 
         usernameInput = (TextInputEditText) usernameTextInput.getEditText();
         emailInput = (TextInputEditText) emailTextInput.getEditText();
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
-
+        confirmPasswordInput = (TextInputEditText) confirmPasswordTextInput.getEditText();
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
@@ -74,30 +80,57 @@ public class SignUpFragment extends Fragment {
             }
         });
     }
+    private void showLoading() {
+        if (getActivity() instanceof AuthActivity) {
+            ((AuthActivity) getActivity()).showLoading();
+        }
+    }
 
+    private void hideLoading() {
+        if (getActivity() instanceof AuthActivity) {
+            ((AuthActivity) getActivity()).hideLoading();
+        }
+    }
     private void handleSignUp() {
         String username = usernameInput.getText().toString().trim();
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
+        String confirmPassword = confirmPasswordInput.getText().toString().trim();
 
-
-
+        usernameTextInput.setError(null);
+        emailTextInput.setError(null);
+        passwordTextInput.setError(null);
+        confirmPasswordTextInput.setError(null);
 
         if (username.isEmpty()) {
+            hideLoading();
             usernameInput.setError("Username is required");
             usernameInput.requestFocus();
             return;
         }
 
         if (email.isEmpty()) {
+            hideLoading();
             emailInput.setError("Email is required");
             emailInput.requestFocus();
             return;
         }
 
         if (password.isEmpty()) {
+
             passwordInput.setError("Password is required");
             passwordInput.requestFocus();
+            return;
+        }
+        if (confirmPassword.isEmpty()) {
+            confirmPasswordTextInput.setError("Please confirm your password");
+            confirmPasswordInput.requestFocus();
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            confirmPasswordTextInput.setError("Passwords do not match");
+            confirmPasswordInput.requestFocus();
             return;
         }
 
@@ -106,6 +139,7 @@ public class SignUpFragment extends Fragment {
     }
 
     private void checkUsernameExistsAndCreateUser(String username , String email , String password){
+        showLoading();
         CollectionReference usersRef = db.collection("users");
         Query usernameQuery = usersRef.whereEqualTo("username", username).limit(1);
         usernameQuery.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -140,10 +174,14 @@ public class SignUpFragment extends Fragment {
                             User user = new User(username, email);
                             saveUserToFirestore(firebaseUser.getUid(), user);
                         }
+                        else {
+                            hideLoading();
+                        }
                         Toast.makeText(requireContext(),
                                 "Sign up successful ",
                                 Toast.LENGTH_SHORT).show();
                     } else {
+                        hideLoading();
                         Toast.makeText(requireContext(),
                                 task.getException().getMessage(),
                                 Toast.LENGTH_LONG).show();
@@ -158,6 +196,7 @@ public class SignUpFragment extends Fragment {
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
+                        hideLoading();
                         Toast.makeText(requireContext(),
                                 "Account created ",
                                 Toast.LENGTH_SHORT).show();
@@ -166,6 +205,7 @@ public class SignUpFragment extends Fragment {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        hideLoading();
                         Toast.makeText(requireContext(),
                                 "Error saving user: " + e.getMessage(),
                                 Toast.LENGTH_LONG).show();
