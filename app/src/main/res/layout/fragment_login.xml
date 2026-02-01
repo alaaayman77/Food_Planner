@@ -108,6 +108,36 @@
             android:textSize="14sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/remember_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:button="@drawable/checkbox_circular"
+        android:fontFamily="@font/poppins"
+        android:paddingStart="4dp"
+        android:text="@string/remember_me"
+        android:textColor="@color/navyBlueVariant"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@+id/password_text_input_login" />
+
+    <TextView
+        android:id="@+id/forgot_password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins"
+        android:text="@string/forget_password"
+        android:textColor="@color/primaryColor"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/remember_checkbox"
+        app:layout_constraintEnd_toEndOf="@id/guideline_end"
+        app:layout_constraintTop_toTopOf="@+id/remember_checkbox" />
+
+
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/signupBtn"
         android:layout_width="0dp"
@@ -122,7 +152,97 @@
         app:backgroundTint="@color/primaryColor"
         app:layout_constraintEnd_toEndOf="@id/guideline_end"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
-        app:layout_constraintTop_toBottomOf="@+id/password_text_input_login" />
+        app:layout_constraintTop_toBottomOf="@+id/remember_checkbox" />
+    <View
+        android:id="@+id/line_left"
+        android:layout_width="60dp"
+        android:layout_height="2dp"
+        android:layout_marginEnd="5dp"
+        android:alpha="0.6"
+        android:background="@color/lightGray"
+        app:layout_constraintEnd_toStartOf="@+id/tv_slogan"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_slogan"
+        app:layout_constraintBottom_toBottomOf="@id/tv_slogan"
+        />
+
+    <TextView
+        android:id="@+id/tv_slogan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins"
+        android:text="@string/signup_with_externals"
+        android:layout_marginTop="24dp"
+        android:textColor="@color/lightGray"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@+id/line_right"
+        app:layout_constraintStart_toEndOf="@+id/line_left"
+        app:layout_constraintTop_toBottomOf="@+id/signupBtn" />
+
+    <View
+        android:id="@+id/line_right"
+        android:layout_width="60dp"
+        android:layout_height="2dp"
+        android:layout_marginStart="5dp"
+        android:alpha="0.6"
+        android:background="@color/lightGray"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tv_slogan"
+        app:layout_constraintTop_toTopOf="@id/tv_slogan"
+        app:layout_constraintBottom_toBottomOf="@id/tv_slogan" />
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/facebookBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="@string/facebook"
+        android:textAllCaps="false"
+        android:textColor="@color/navyBlueVariant"
+        android:textSize="12sp"
+        app:backgroundTint="@android:color/transparent"
+        app:cornerRadius="24dp"
+        app:icon="@drawable/icon_facebook"
+        app:iconGravity="textStart"
+        app:iconPadding="4dp"
+        app:iconSize="24dp"
+        app:iconTint="@null"
+        app:layout_constraintEnd_toStartOf="@+id/googleBtn"
+        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@+id/tv_slogan"
+        app:strokeColor="@color/lightGray"
+        app:strokeWidth="1dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/googleBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="@string/google"
+        android:textAllCaps="false"
+        android:textColor="@color/navyBlueVariant"
+        android:textSize="12sp"
+        app:backgroundTint="@android:color/transparent"
+        app:cornerRadius="24dp"
+        app:icon="@drawable/icon_google"
+        app:iconGravity="textStart"
+        app:iconPadding="4dp"
+        app:iconSize="24dp"
+        app:iconTint="@null"
+        app:layout_constraintStart_toEndOf="@+id/facebookBtn"
+
+        app:layout_constraintTop_toBottomOf="@+id/tv_slogan"
+        app:strokeColor="@color/lightGray"
+        app:strokeWidth="1dp" />
+
+
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_start"
