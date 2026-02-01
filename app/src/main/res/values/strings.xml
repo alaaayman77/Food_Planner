@@ -24,4 +24,5 @@
     <string name="meal_of_the_day">Meal Of the Day!</string>
     <string name="categories">Categories</string>
     <string name="guest">Continue as a guest?</string>
+    <string name="category_type">Beef</string>
 </resources>

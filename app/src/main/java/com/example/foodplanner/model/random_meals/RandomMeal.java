@@ -1,6 +1,8 @@
 package com.example.foodplanner.model.random_meals;
 
-public class RandomMeal {
+import java.io.Serializable;
+
+public class RandomMeal  {
     String idMeal;
     String strMeal;
     String strCategory;
