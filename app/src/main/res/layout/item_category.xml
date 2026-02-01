@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="8dp">
+
+    <!-- Circle with Icon -->
+    <FrameLayout
+        android:id="@+id/circleBackground"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/dashed_circle">
+
+        <ImageView
+            android:id="@+id/categoryIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/icon_search" />
+    </FrameLayout>
+
+    <!-- Category Name -->
+    <TextView
+        android:id="@+id/categoryName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Lunch"
+        android:textColor="#3B5998"
+        android:textSize="14sp"
+        android:fontFamily="@font/poppins"
+        android:textStyle="bold" />
+
+</LinearLayout>

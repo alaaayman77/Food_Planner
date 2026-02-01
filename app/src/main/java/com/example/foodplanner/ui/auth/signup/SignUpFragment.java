@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -36,7 +37,7 @@ public class SignUpFragment extends Fragment {
     private TextInputEditText emailInput;
     private TextInputEditText passwordInput;
     private TextInputEditText confirmPasswordInput;
-
+    private TextView guest_tv;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     public SignUpFragment() {
@@ -67,6 +68,7 @@ public class SignUpFragment extends Fragment {
         emailInput = (TextInputEditText) emailTextInput.getEditText();
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
         confirmPasswordInput = (TextInputEditText) confirmPasswordTextInput.getEditText();
+        guest_tv = view.findViewById(R.id.guest_mode);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
@@ -74,6 +76,12 @@ public class SignUpFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 handleSignUp();
+            }
+        });
+        guest_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Navigation.findNavController(requireView()).navigate(R.id.action_authFragment_to_startFragment);
             }
         });
     }

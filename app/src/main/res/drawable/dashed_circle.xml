@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generic dashed circle - color will be set programmatically -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <stroke
+        android:width="3dp"
+        android:color="#3B5998"
+        android:dashWidth="8dp"
+        android:dashGap="4dp" />
+
+    <size
+        android:width="80dp"
+        android:height="80dp" />
+
+    <solid android:color="#F5F8FF" />
+</shape>

@@ -10,6 +10,7 @@ import androidx.navigation.Navigation;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.foodplanner.MainActivity;
@@ -36,6 +37,7 @@ public class LoginFragment extends Fragment {
 
     private TextInputEditText passwordInput;
     private MaterialButton logInButton;
+    private TextView guest_tv;
     private FirebaseAuth mAuth;
 
     private FirebaseFirestore db;
@@ -66,10 +68,9 @@ public class LoginFragment extends Fragment {
         usernameTextInput = view.findViewById(R.id.username_text_input_login);
         passwordTextInput = view.findViewById(R.id.password_text_input_login);
         logInButton = view.findViewById(R.id.signupBtn);
-
         usernameInput = (TextInputEditText) usernameTextInput.getEditText();
-
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
+        guest_tv = view.findViewById(R.id.guest_mode);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         logInButton.setOnClickListener(new View.OnClickListener() {
@@ -77,6 +78,12 @@ public class LoginFragment extends Fragment {
             public void onClick(View v) {
 
                 handleLogin();
+            }
+        });
+        guest_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Navigation.findNavController(requireView()).navigate(R.id.action_authFragment_to_startFragment);
             }
         });
     }

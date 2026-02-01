@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.navigation.ui)
     implementation(libs.fragment)
     implementation(libs.cardview)
+    implementation(libs.recyclerview)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

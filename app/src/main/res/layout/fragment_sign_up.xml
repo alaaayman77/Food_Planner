@@ -262,12 +262,10 @@
         app:layout_constraintTop_toTopOf="@id/tv_slogan"
         app:layout_constraintBottom_toBottomOf="@id/tv_slogan" />
 
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/facebookBtn"
         android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginStart="24dp"
+        android:layout_height="0dp"
         android:layout_marginTop="@dimen/spacing_small"
         android:fontFamily="@font/poppins_semibold"
         android:text="@string/facebook"
@@ -282,7 +280,7 @@
         app:iconSize="24dp"
         app:iconTint="@null"
         app:layout_constraintEnd_toStartOf="@+id/googleBtn"
-        app:layout_constraintStart_toStartOf="@id/guideline_start"
+        app:layout_constraintStart_toStartOf="@id/line_left"
         app:layout_constraintTop_toBottomOf="@+id/tv_slogan"
         app:strokeColor="@color/lightGray"
         app:strokeWidth="1dp" />
@@ -290,8 +288,8 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/googleBtn"
         android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginStart="24dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/spacing_large"
         android:layout_marginTop="@dimen/spacing_small"
         android:fontFamily="@font/poppins_semibold"
         android:text="@string/google"
@@ -306,13 +304,23 @@
         app:iconSize="24dp"
         app:iconTint="@null"
         app:layout_constraintStart_toEndOf="@+id/facebookBtn"
-
+        app:layout_constraintEnd_toEndOf="@id/line_right"
         app:layout_constraintTop_toBottomOf="@+id/tv_slogan"
         app:strokeColor="@color/lightGray"
         app:strokeWidth="1dp" />
 
 
-
+    <TextView
+        android:id="@+id/guest_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_small"
+        android:fontFamily="@font/poppins"
+        android:text="@string/guest"
+        android:textColor="@color/primaryColor"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@+id/facebookBtn"
+        app:layout_constraintTop_toBottomOf="@+id/facebookBtn" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_start"

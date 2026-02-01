@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -240,7 +248,17 @@ app:layout_constraintEnd_toEndOf="@id/line_right"
         app:strokeColor="@color/lightGray"
         app:strokeWidth="1dp" />
 
-
+    <TextView
+        android:id="@+id/guest_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_small"
+        android:fontFamily="@font/poppins"
+        android:text="@string/guest"
+        android:textColor="@color/primaryColor"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@+id/facebookBtn"
+        app:layout_constraintTop_toBottomOf="@+id/facebookBtn" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_start"
@@ -256,3 +274,4 @@ app:layout_constraintEnd_toEndOf="@id/line_right"
         android:orientation="vertical"
         app:layout_constraintGuide_end="35dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
