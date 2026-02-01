@@ -20,4 +20,7 @@
     <string name="google">Google</string>
     <string name="forget_password">Forget Password?</string>
     <string name="confirm_password">Confirm Password</string>
+    <string name="welcome_user">Welcome Alaa</string>
+    <string name="meal_of_the_day">Meal Of the Day!</string>
+    <string name="categories">Categories</string>
 </resources>

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -157,6 +158,7 @@ public class LoginFragment extends Fragment {
                 .addOnCompleteListener(task -> {
                     hideLoading();
                     if (task.isSuccessful()) {
+                        Navigation.findNavController(requireView()).navigate(R.id.action_authFragment_to_startFragment);
                         Toast.makeText(requireContext(),
                                 "Login successful",
                                 Toast.LENGTH_SHORT).show();

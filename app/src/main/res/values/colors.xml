@@ -2,7 +2,7 @@
 <resources>
     <color name="primaryColor">#2D5BA1</color>
     <color name="navy">#0f172aff</color>
-    <color name="backgroundLight">#f8fafc</color>
+    <color name="backgroundLight">#FFF2D1</color>
     <color name="backgroundDark">#0f172aff</color>
     <color name="lightPeach">#FFF2D1</color>
     <color name="black">#FF000000</color>

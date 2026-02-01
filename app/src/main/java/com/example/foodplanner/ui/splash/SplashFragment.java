@@ -52,9 +52,7 @@ public class SplashFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
 
-        tf = ResourcesCompat.getFont(requireContext(), R.font.poppins_bold);
-        slogan = view.findViewById(R.id.tv_slogan);
-        if (tf != null) slogan.setTypeface(tf);
+
 
         View logo = view.findViewById(R.id.logo);
 

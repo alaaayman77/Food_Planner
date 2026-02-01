@@ -43,6 +43,7 @@ dependencies {
     implementation("com.airbnb.android:lottie:6.4.0")
     implementation(libs.navigation.ui)
     implementation(libs.fragment)
+    implementation(libs.cardview)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
@@ -52,5 +53,10 @@ dependencies {
     // Firebase libraries — no explicit versions
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    implementation("com.google.code.gson:gson:2.10.1")
 
 }
