@@ -1,0 +1,8 @@
+<style android:name="RoundedTop"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:name="cornerFamily">rounded</item>
+    <item android:name="cornerSizeTopLeft">20dp</item>
+    <item android:name="cornerSizeTopRight">20dp</item>
+    <item android:name="cornerSizeBottomLeft">0dp</item>
+    <item android:name="cornerSizeBottomRight">0dp</item>
+</style>

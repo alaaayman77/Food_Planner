@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
@@ -77,8 +78,13 @@ public class HomeFragment extends Fragment {
             Toast.makeText(getContext(),
                     "Selected: " + category.getStrCategory(),
                     Toast.LENGTH_SHORT).show();
+                    HomeFragmentDirections.ActionHomeFragmentToCategoryFragment action =
+                            HomeFragmentDirections.actionHomeFragmentToCategoryFragment(category.getStrCategory());
+                    Navigation.findNavController(view).navigate(action);
 
-        });
+        }
+        );
+
 
         getCategory();
         getRandomMeal();

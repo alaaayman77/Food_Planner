@@ -11,4 +11,5 @@
     <color name="lightGrayVariant" >#0f172aff</color>
     <color name="navyBlueVariant" >#1B2B4E</color>
     <color name="grayStroke">#E2E8F0</color>
+    <color name="yellow">#FFE082</color>
 </resources>
