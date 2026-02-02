@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="dp_32">32dp</dimen>
+    <dimen name="spacing_very_small">4dp</dimen>
     <dimen name="spacing_small">8dp</dimen>
     <dimen name="spacing_medium">16dp</dimen>
     <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_very_large">48dp</dimen>
 
-
+    <dimen name ="elevation_8">8dp</dimen>
+    <dimen name ="corner_radius_24">24dp</dimen>
 </resources>
