@@ -9,7 +9,6 @@ public class MealsByCategoryResponse {
     }
 
     public List<MealsByCategory> getMealsByCategories() {
-
         return meals;
     }
 }

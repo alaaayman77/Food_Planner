@@ -19,13 +19,11 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.foodplanner.R;
-import com.example.foodplanner.ui.category.CategoryAdapter;
 import com.example.foodplanner.data.datasource.CategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.MealNetworkResponse;
 import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
-import com.example.foodplanner.ui.category.OnCategoryClick;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -167,8 +165,8 @@ public class HomeFragment extends Fragment  implements OnCategoryClick {
         Toast.makeText(getContext(),
                 "Selected: " + category.getCategoryName(),
                 Toast.LENGTH_SHORT).show();
-        HomeFragmentDirections.ActionHomeFragmentToCategoryFragment action =
-                HomeFragmentDirections.actionHomeFragmentToCategoryFragment(category.getCategoryName());
+        HomeFragmentDirections.ActionHomeFragmentToMealsByCategoryFragment action =
+                HomeFragmentDirections.actionHomeFragmentToMealsByCategoryFragment(category.getCategoryName());
         Navigation.findNavController(requireView()).navigate(action);
     }
 }

@@ -1,8 +1,7 @@
-package com.example.foodplanner.ui.category;
+package com.example.foodplanner.ui.home;
 
 
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,11 +55,15 @@ import java.util.List;
                     .error(R.drawable.splash_bg)
                     .centerCrop()
                     .into(holder.categoryIcon);
-            holder.itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.setOnCategoryClick(category);
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null) {
+                        listener.setOnCategoryClick(category);
+                    }
                 }
             });
+
         }
 
         @Override

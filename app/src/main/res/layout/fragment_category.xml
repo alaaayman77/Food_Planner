@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/backgroundLight"
 
-    tools:context=".ui.category.CategoryFragment">
+    tools:context=".ui.meals_by_category.MealsByCategoryFragment">
 
 
 

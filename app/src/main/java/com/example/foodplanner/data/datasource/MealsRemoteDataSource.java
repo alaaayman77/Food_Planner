@@ -1,9 +1,13 @@
 package com.example.foodplanner.data.datasource;
 
+import static android.content.ContentValues.TAG;
+
 import android.util.Log;
 
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.category.CategoryResponse;
+import com.example.foodplanner.data.model.category.MealsByCategory;
+import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
 import com.example.foodplanner.data.network.MealsService;
 import com.example.foodplanner.data.network.Network;
@@ -74,5 +78,38 @@ public class MealsRemoteDataSource {
             }
         });
 
+    }
+
+    public void getMealsByCategory(String category ,MealsByCategoryNetworkResponse callback){
+        mealsService.getMealsByCategory(category).enqueue(new Callback<MealsByCategoryResponse>() {
+
+            @Override
+            public void onResponse(Call<MealsByCategoryResponse> call, Response<MealsByCategoryResponse> response) {
+
+                if(response.isSuccessful() && response.body() != null){
+                    callback.onSuccess(response.body().getMealsByCategories());
+//                    Log.d(TAG, "Meals list: " + mealsByCategoryResponse.getMealsByCategories());
+
+
+                    }
+
+                else {
+                    Log.e(TAG, "Response unsuccessful: " + response.code());
+                    Log.e(TAG, "Error body: " + response.errorBody());
+                    callback.onServerError("Server error" + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MealsByCategoryResponse> call, Throwable t) {
+                Log.e(TAG, "API call failed", t);
+                if(t instanceof IOException){
+                    callback.onFailure("Network error");
+                }
+                else{
+                    callback.onFailure("Conversion Error");
+                }
+            }
+        });
     }
 }

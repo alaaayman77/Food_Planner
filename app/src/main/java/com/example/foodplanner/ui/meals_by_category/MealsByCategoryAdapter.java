@@ -1,6 +1,5 @@
-package com.example.foodplanner.adapters;
+package com.example.foodplanner.ui.meals_by_category;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,36 +13,33 @@ import com.bumptech.glide.Glide;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.category.MealsByCategory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MealsByCategoryAdapter extends RecyclerView.Adapter<MealsByCategoryAdapter.MealsByCategoryViewHolder> {
 
-    private Context context;
-    private List<MealsByCategory> mealsByCategoriesList;
-    private MealsByCategoryAdapter.OnMealsByCategoryClickListener listener;
 
-    public interface OnMealsByCategoryClickListener {
-        void onMealsByCategoryClick(MealsByCategory mealsByCategory);
-    }
+    private List<MealsByCategory> mealsByCategoriesList;
+    private OnMealByCategoryClick listener;
+
 
     public void setMeals(List<MealsByCategory> meals) {
         this.mealsByCategoriesList = meals;
         notifyDataSetChanged();
     }
 
-    public MealsByCategoryAdapter(Context context, List<MealsByCategory> meals) {
-        this.context = context;
-        this.mealsByCategoriesList = meals;
-    }
+    public MealsByCategoryAdapter(OnMealByCategoryClick listener) {
 
-    public void setOnMealsByCategoryClickListener(MealsByCategoryAdapter.OnMealsByCategoryClickListener listener) {
+        this.mealsByCategoriesList = new ArrayList<>();
         this.listener = listener;
     }
+
+
 
     @NonNull
     @Override
     public MealsByCategoryAdapter.MealsByCategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater layoutInflater = LayoutInflater.from(context);
+        LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
         View view = layoutInflater.inflate(R.layout.item_meal_category, parent, false);
         return new MealsByCategoryAdapter.MealsByCategoryViewHolder(view);
     }
@@ -53,7 +49,7 @@ public class MealsByCategoryAdapter extends RecyclerView.Adapter<MealsByCategory
         MealsByCategory meal = mealsByCategoriesList.get(position);
         holder.mealTitle.setText(meal.getMealName());
 
-        Glide.with(context)
+        Glide.with(holder.itemView)
                 .load(meal.getMealThumbnail())
                 .placeholder(R.drawable.splash_bg)
                 .error(R.drawable.splash_bg)
@@ -61,7 +57,7 @@ public class MealsByCategoryAdapter extends RecyclerView.Adapter<MealsByCategory
                 .into(holder.mealThumb);
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onMealsByCategoryClick(meal);
+                listener.setOnMealByCategoryClick(meal);
             }
         });
     }
