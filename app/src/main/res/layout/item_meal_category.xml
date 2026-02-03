@@ -5,139 +5,83 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mealCard"
     android:layout_width="match_parent"
-    android:layout_height="200dp"
+    android:layout_height="wrap_content"
     android:layout_margin="8dp"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardCornerRadius="24dp"
-    app:cardElevation="6dp"
-    app:strokeWidth="4dp">
-
+    app:cardCornerRadius="@dimen/corner_radius_24"
+    app:cardElevation="@dimen/spacing_very_small"
+    app:strokeColor="@color/primaryColor"
+    app:strokeWidth="2dp">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
-        <!-- Meal Image with Gradient -->
-        <ImageView
+
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/mealImage_category"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="180dp"
             android:scaleType="centerCrop"
             android:src="@drawable/splash_bg"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+          />
 
-        <!-- Gradient Overlay -->
+
         <View
             android:id="@+id/gradientOverlay"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@drawable/gradient_overlay"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintBottom_toBottomOf="@id/mealImage_category"
+            app:layout_constraintTop_toTopOf="@id/mealImage_category"
+            app:layout_constraintEnd_toEndOf="@id/mealImage_category"
+            app:layout_constraintStart_toStartOf="@id/mealImage_category" />
 
-        <!-- Country Flag & Calorie Badge -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/calorieBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="3dp"
-            app:cardBackgroundColor="#FFFFFF"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="10dp"
-                android:paddingTop="6dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="6dp">
-
-                <ImageView
-                    android:id="@+id/countryFlag"
-                    android:layout_width="20dp"
-                    android:layout_height="14dp"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/ic_launcher_foreground" />
-
-                <TextView
-                    android:id="@+id/calorieText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:fontFamily="@font/poppins_bold"
-                    android:text="520CAL"
-                    android:textColor="#424242"
-                    android:textSize="11sp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Search/View Icon Button (Top Right) -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/searchIconCard"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_margin="12dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="3dp"
-            app:cardBackgroundColor="#1565C0"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/searchIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center"
-                android:src="@android:drawable/ic_menu_search"
-                app:tint="#FFFFFF" />
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Meal Icon/Emoji (Center) -->
-        <TextView
-            android:id="@+id/mealEmoji"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🍰"
-            android:textSize="64sp"
-            android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/mealTitle_category"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <!-- Meal Title -->
         <TextView
             android:id="@+id/mealTitle_category"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginStart="@dimen/spacing_medium"
+            android:layout_marginEnd="@dimen/spacing_medium"
+            android:layout_marginBottom="@dimen/spacing_medium"
             android:ellipsize="end"
-            android:fontFamily="@font/poppins_bold"
-            android:gravity="start"
+            android:fontFamily="@font/poppins_semibold"
             android:maxLines="2"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:textSize="16sp"
             android:shadowColor="#80000000"
             android:shadowDx="0"
             android:shadowDy="2"
-            android:shadowRadius="6"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:shadowRadius="4"
+            app:layout_constraintBottom_toBottomOf="@id/mealImage_category"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            tools:text="Chocolate Souffle" />
+            tools:text="Avocado Taco Salad" />
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/favoriteCard"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_margin="8dp"
+            app:cardBackgroundColor="#80FFFFFF"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/favoriteIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/icon_email"
+                app:tint="@color/primaryColor" />
+        </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

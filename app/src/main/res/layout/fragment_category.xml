@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/backgroundLight"
-    android:fitsSystemWindows="true"
+
     tools:context=".ui.category.CategoryFragment">
 
 
@@ -48,8 +48,7 @@
             style="@style/Widget.Material3.Button.IconButton.Filled"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
-            android:layout_marginTop="@dimen/spacing_medium"
+            android:layout_marginTop="@dimen/spacing_very_large"
             android:contentDescription="back"
              app:layout_constraintStart_toStartOf="@id/guideline_start"
             app:layout_constraintTop_toTopOf="parent"
@@ -145,6 +144,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
+        android:layout_marginTop="@dimen/spacing_medium"
         android:paddingStart="12dp"
         android:paddingTop="20dp"
         android:paddingEnd="12dp"
