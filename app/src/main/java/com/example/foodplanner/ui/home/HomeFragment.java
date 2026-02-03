@@ -1,7 +1,6 @@
 
 package com.example.foodplanner.ui.home;
 
-import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -21,12 +20,14 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.foodplanner.R;
 import com.example.foodplanner.adapters.CategoryAdapter;
-import com.example.foodplanner.api.RetrofitClient;
-import com.example.foodplanner.model.category.Category;
-import com.example.foodplanner.model.category.CategoryResponse;
-import com.example.foodplanner.model.random_meals.RandomMeal;
-import com.example.foodplanner.model.random_meals.RandomMealResponse;
-import com.example.foodplanner.services.RetrofitService;
+import com.example.foodplanner.data.datasource.MealNetworkResponse;
+import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
+import com.example.foodplanner.data.network.Network;
+import com.example.foodplanner.data.model.category.Category;
+import com.example.foodplanner.data.model.category.CategoryResponse;
+import com.example.foodplanner.data.model.random_meals.RandomMeal;
+import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
+import com.example.foodplanner.data.network.MealsService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,7 @@ public class HomeFragment extends Fragment {
     private RecyclerView categoriesRecyclerView;
     private CategoryAdapter categoryAdapter;
     private List<Category> categoryList;
+    private MealsRemoteDataSource mealRemoteDataSource;
     private static final String TAG = "HomeFragment";
     public HomeFragment() {
         // Required empty public constructor
@@ -70,16 +72,39 @@ public class HomeFragment extends Fragment {
         tag1 = view.findViewById(R.id.tag1);
         tag2 = view.findViewById(R.id.tag2);
         categoriesRecyclerView = view.findViewById(R.id.categories_recycler_view);
-
         categoryList = new ArrayList<>();
         categoryAdapter = new CategoryAdapter(getContext(), categoryList);
         categoriesRecyclerView.setAdapter(categoryAdapter);
+        mealRemoteDataSource = new MealsRemoteDataSource();
+        mealRemoteDataSource.getRandomMeal(new MealNetworkResponse() {
+            @Override
+            public void onSuccess(List<RandomMeal> randomMealList) {
+                RandomMeal randomMeal = randomMealList.get(0);
+                if(randomMeal!=null){
+                    displayMeal(randomMeal);
+                }
+                else{
+                    showError("No meal found");
+                }
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                showError("Network error: ");
+            }
+
+            @Override
+            public void onServerError(String errorMessage) {
+                showError("Failed to load meal");
+
+            }
+        });
         categoryAdapter.setOnCategoryClickListener(category -> {
             Toast.makeText(getContext(),
-                    "Selected: " + category.getStrCategory(),
+                    "Selected: " + category.getCategoryName(),
                     Toast.LENGTH_SHORT).show();
                     HomeFragmentDirections.ActionHomeFragmentToCategoryFragment action =
-                            HomeFragmentDirections.actionHomeFragmentToCategoryFragment(category.getStrCategory());
+                            HomeFragmentDirections.actionHomeFragmentToCategoryFragment(category.getCategoryName());
                     Navigation.findNavController(view).navigate(action);
 
         }
@@ -87,42 +112,12 @@ public class HomeFragment extends Fragment {
 
 
         getCategory();
-        getRandomMeal();
+
     }
 
-    private void getRandomMeal(){
-        RetrofitService retrofitService = RetrofitClient.getRetrofit().create(RetrofitService.class);
-        retrofitService.getRandomMeal().enqueue(new Callback<RandomMealResponse>() {
 
-            @Override
-            public void onResponse(Call<RandomMealResponse> call, Response<RandomMealResponse> response) {
-                if(response.isSuccessful() &&response.body()!=null){
-                    RandomMealResponse randomMealResponse = response.body();
-                    RandomMeal randomMeal = randomMealResponse.getRandomMeal();
-                    if(randomMeal!=null){
-                        displayMeal(randomMeal);
-                    }
-                    else{
-                        Log.e(TAG, "No meal found in response");
-                        showError("No meal found");
-                    }
-
-                }
-                else {
-                    Log.e(TAG, "Response unsuccessful: " + response.code());
-                    showError("Failed to load meal");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<RandomMealResponse> call, Throwable t) {
-                Log.e(TAG, "API call failed", t);
-                showError("Network error: " + t.getMessage());
-            }
-        });
-    }
     private void getCategory(){
-        RetrofitService service = RetrofitClient.getRetrofit().create(RetrofitService.class);
+        MealsService service =Network.getInstance().getMealsService();
         service.getCategory().enqueue(new Callback<CategoryResponse>() {
             @Override
             public void onResponse(Call<CategoryResponse> call, Response<CategoryResponse> response) {
@@ -148,11 +143,11 @@ public class HomeFragment extends Fragment {
     }
     private void displayMeal(RandomMeal meal) {
 
-        mealTitle.setText(meal.getStrMeal());
+        mealTitle.setText(meal.getMealName());
 
 
-        if (meal.getStrCategory() != null) {
-            tag1.setText(meal.getStrCategory().toUpperCase());
+        if (meal.getMealCategory() != null) {
+            tag1.setText(meal.getMealCategory().toUpperCase());
             tag1.setVisibility(View.VISIBLE);
         } else {
             tag1.setVisibility(View.GONE);
@@ -168,16 +163,16 @@ public class HomeFragment extends Fragment {
 
 
 
-        if (meal.getStrMealThumb() != null && !meal.getStrMealThumb().isEmpty()) {
+        if (meal.getMealThumbnail() != null && !meal.getMealThumbnail().isEmpty()) {
             Glide.with(this)
-                    .load(meal.getStrMealThumb())
+                    .load(meal.getMealThumbnail())
                     .placeholder(R.drawable.splash_bg)
                     .error(R.drawable.splash_bg)
                     .centerCrop()
                     .into(mealImage);
         }
 
-        Log.d(TAG, "Meal displayed: " + meal.getStrMeal());
+        Log.d(TAG, "Meal displayed: " + meal.getMealName());
     }
 
     private void showError(String message) {

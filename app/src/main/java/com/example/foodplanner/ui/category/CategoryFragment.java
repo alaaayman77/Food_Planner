@@ -14,22 +14,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.foodplanner.R;
-import com.example.foodplanner.adapters.CategoryAdapter;
 import com.example.foodplanner.adapters.MealsByCategoryAdapter;
-import com.example.foodplanner.api.RetrofitClient;
-import com.example.foodplanner.model.category.Category;
-import com.example.foodplanner.model.category.MealsByCategory;
-import com.example.foodplanner.model.category.MealsByCategoryResponse;
-import com.example.foodplanner.model.random_meals.RandomMeal;
-import com.example.foodplanner.model.random_meals.RandomMealResponse;
-import com.example.foodplanner.services.RetrofitService;
-import com.example.foodplanner.ui.home.HomeFragmentDirections;
+import com.example.foodplanner.data.network.Network;
+import com.example.foodplanner.data.model.category.MealsByCategory;
+import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
+import com.example.foodplanner.data.network.MealsService;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
@@ -97,7 +91,7 @@ public class CategoryFragment extends Fragment {
         mealByCategoriesRecyclerView.setAdapter(mealByCategoryAdapter);
         mealByCategoryAdapter.setOnMealsByCategoryClickListener(category -> {
             CategoryFragmentDirections.ActionCategoryFragmentToRecipeDetailsFragment action =
-                    CategoryFragmentDirections.actionCategoryFragmentToRecipeDetailsFragment(category.getIdMeal());
+                    CategoryFragmentDirections.actionCategoryFragmentToRecipeDetailsFragment(category.getMealId());
             Navigation.findNavController(view).navigate(action);
                 }
         );
@@ -107,8 +101,8 @@ public class CategoryFragment extends Fragment {
     }
 
     private void getMealsByCategory(){
-        RetrofitService retrofitService = RetrofitClient.getRetrofit().create(RetrofitService.class);
-        retrofitService.getMealsByCategory(category).enqueue(new Callback<MealsByCategoryResponse>() {
+        MealsService mealsService = Network.getInstance().getMealsService();
+        mealsService.getMealsByCategory(category).enqueue(new Callback<MealsByCategoryResponse>() {
 
             @Override
             public void onResponse(Call<MealsByCategoryResponse> call, Response<MealsByCategoryResponse> response) {
@@ -127,8 +121,8 @@ public class CategoryFragment extends Fragment {
                         // Log first meal details if available
                         if (!meals.isEmpty()) {
                             MealsByCategory firstMeal = meals.get(0);
-                            Log.d(TAG, "First meal name: " + firstMeal.getStrMeal());
-                            Log.d(TAG, "First meal thumb: " + firstMeal.getStrMealThumb());
+                            Log.d(TAG, "First meal name: " + firstMeal.getMealName());
+                            Log.d(TAG, "First meal thumb: " + firstMeal.getMealThumbnail());
                         }
 
                         mealByCategoryAdapter.setMeals(meals);

@@ -12,8 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.foodplanner.R;
-import com.example.foodplanner.model.category.Category;
-import com.example.foodplanner.model.category.MealsByCategory;
+import com.example.foodplanner.data.model.category.MealsByCategory;
 
 import java.util.List;
 
@@ -52,10 +51,10 @@ public class MealsByCategoryAdapter extends RecyclerView.Adapter<MealsByCategory
     @Override
     public void onBindViewHolder(@NonNull MealsByCategoryAdapter.MealsByCategoryViewHolder holder, int position) {
         MealsByCategory meal = mealsByCategoriesList.get(position);
-        holder.mealTitle.setText(meal.getStrMeal());
+        holder.mealTitle.setText(meal.getMealName());
 
         Glide.with(context)
-                .load(meal.getStrMealThumb())
+                .load(meal.getMealThumbnail())
                 .placeholder(R.drawable.splash_bg)
                 .error(R.drawable.splash_bg)
                 .centerCrop()
