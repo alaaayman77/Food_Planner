@@ -1,4 +1,4 @@
-package com.example.foodplanner.ui.home;
+package com.example.foodplanner.presentation.home.view;
 
 
 

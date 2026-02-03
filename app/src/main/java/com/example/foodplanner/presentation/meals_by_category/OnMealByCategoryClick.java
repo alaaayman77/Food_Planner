@@ -1,4 +1,4 @@
-package com.example.foodplanner.ui.meals_by_category;
+package com.example.foodplanner.presentation.meals_by_category;
 
 import com.example.foodplanner.data.model.category.MealsByCategory;
 

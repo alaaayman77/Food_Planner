@@ -1,4 +1,4 @@
-package com.example.foodplanner.ui.auth;
+package com.example.foodplanner.presentation.auth;
 
 import android.os.Bundle;
 

@@ -1,5 +1,5 @@
 
-package com.example.foodplanner.ui.home;
+package com.example.foodplanner.presentation.home.view;
 
 import android.os.Bundle;
 
@@ -24,11 +24,14 @@ import com.example.foodplanner.data.datasource.MealNetworkResponse;
 import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
+import com.example.foodplanner.presentation.home.presenter.HomePresenter;
+import com.example.foodplanner.presentation.home.presenter.HomePresenterImp;
+import com.example.foodplanner.presentation.home.view.HomeFragmentDirections;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class HomeFragment extends Fragment  implements OnCategoryClick {
+public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView {
     private ImageView mealImage;
     private TextView mealTitle;
     private TextView tag1;
@@ -37,7 +40,8 @@ public class HomeFragment extends Fragment  implements OnCategoryClick {
     private RecyclerView categoriesRecyclerView;
     private CategoryAdapter categoryAdapter;
     private List<Category> categoryList;
-    private MealsRemoteDataSource mealRemoteDataSource;
+
+    private HomePresenter homePresenter;
     private static final String TAG = "HomeFragment";
     public HomeFragment() {
         // Required empty public constructor
@@ -67,62 +71,38 @@ public class HomeFragment extends Fragment  implements OnCategoryClick {
         categoryList = new ArrayList<>();
         categoryAdapter = new CategoryAdapter(this);
         categoriesRecyclerView.setAdapter(categoryAdapter);
-        mealRemoteDataSource = new MealsRemoteDataSource();
-        mealRemoteDataSource.getRandomMeal(new MealNetworkResponse() {
-            @Override
-            public void onSuccess(List<RandomMeal> randomMealList) {
-                RandomMeal randomMeal = randomMealList.get(0);
-                if(randomMeal!=null){
-                    displayMeal(randomMeal);
-                }
-                else{
-                    showError("No meal found");
-                }
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                showError("Network error: ");
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                showError("Failed to load meal");
-
-            }
-        });
-        mealRemoteDataSource.getCategory(new CategoryNetworkResponse() {
-            @Override
-            public void onSuccess(List<Category> categoryList) {
-                List<Category> categoriesFromApi = categoryList;
-                if(categoriesFromApi != null){
-                    categoryAdapter.setCategories(categoryList);
-                }
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                showError("Network error: " );
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                showError("Failed to load categories");
-            }
-        });
-
-
-
+        homePresenter = new HomePresenterImp(this);
+        homePresenter.getRandomMeal();
+        homePresenter.getCategory();
 
 
 
     }
 
 
+    @Override
+    public void setOnCategoryClick(Category category) {
+        HomeFragmentDirections.ActionHomeFragmentToMealsByCategoryFragment action =
+            HomeFragmentDirections.actionHomeFragmentToMealsByCategoryFragment(category.getCategoryName());
+        Navigation.findNavController(requireView()).navigate(action);
+        homePresenter.onCategoryClick(category);
+    }
 
-    private void displayMeal(RandomMeal meal) {
+    @Override
+    public void setCategoryList(List<Category> categoryList) {
+        categoryAdapter.setCategories(categoryList);
+    }
 
-        mealTitle.setText(meal.getMealName());
+    @Override
+    public void showError(String errorMessage) {
+        if (getContext() != null) {
+            Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void displayMeal(RandomMeal meal) {
+                mealTitle.setText(meal.getMealName());
 
 
         if (meal.getMealCategory() != null) {
@@ -152,21 +132,15 @@ public class HomeFragment extends Fragment  implements OnCategoryClick {
         }
 
         Log.d(TAG, "Meal displayed: " + meal.getMealName());
-    }
 
-    private void showError(String message) {
-        if (getContext() != null) {
-            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override
-    public void setOnCategoryClick(Category category) {
+    public void OnCategoryClickSuccess(Category category) {
         Toast.makeText(getContext(),
                 "Selected: " + category.getCategoryName(),
                 Toast.LENGTH_SHORT).show();
-        HomeFragmentDirections.ActionHomeFragmentToMealsByCategoryFragment action =
-                HomeFragmentDirections.actionHomeFragmentToMealsByCategoryFragment(category.getCategoryName());
-        Navigation.findNavController(requireView()).navigate(action);
+
+
     }
 }

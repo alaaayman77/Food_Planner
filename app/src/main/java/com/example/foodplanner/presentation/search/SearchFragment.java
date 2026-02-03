@@ -1,4 +1,4 @@
-package com.example.foodplanner.ui.profile;
+package com.example.foodplanner.presentation.search;
 
 import android.os.Bundle;
 
@@ -10,14 +10,15 @@ import android.view.ViewGroup;
 
 import com.example.foodplanner.R;
 
-public class ProfileFragment extends Fragment {
+
+public class SearchFragment extends Fragment {
 
 
 
-
-    public ProfileFragment() {
+    public SearchFragment() {
         // Required empty public constructor
     }
+
 
 
 
@@ -31,6 +32,6 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_profile, container, false);
+        return inflater.inflate(R.layout.fragment_search, container, false);
     }
 }

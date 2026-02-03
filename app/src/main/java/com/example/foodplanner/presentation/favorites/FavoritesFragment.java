@@ -1,4 +1,4 @@
-package com.example.foodplanner.ui.favorites;
+package com.example.foodplanner.presentation.favorites;
 
 import android.os.Bundle;
 

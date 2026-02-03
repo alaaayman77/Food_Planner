@@ -1,4 +1,4 @@
-package com.example.foodplanner.ui.recipe_details;
+package com.example.foodplanner.presentation.recipe_details;
 
 import android.os.Bundle;
 

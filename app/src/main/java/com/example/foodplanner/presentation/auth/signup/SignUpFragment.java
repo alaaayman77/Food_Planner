@@ -1,4 +1,4 @@
-package com.example.foodplanner.ui.auth.signup;
+package com.example.foodplanner.presentation.auth.signup;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

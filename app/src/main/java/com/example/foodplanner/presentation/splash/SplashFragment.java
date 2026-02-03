@@ -1,4 +1,4 @@
-package com.example.foodplanner.ui.splash;
+package com.example.foodplanner.presentation.splash;
 
 import android.animation.ObjectAnimator;
 import android.graphics.Typeface;
@@ -6,7 +6,6 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -22,7 +21,6 @@ import android.widget.TextView;
 
 import com.example.foodplanner.R;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 
 public class SplashFragment extends Fragment {
