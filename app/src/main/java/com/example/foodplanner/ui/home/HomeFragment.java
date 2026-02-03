@@ -19,24 +19,18 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.foodplanner.R;
-import com.example.foodplanner.adapters.CategoryAdapter;
+import com.example.foodplanner.ui.category.CategoryAdapter;
+import com.example.foodplanner.data.datasource.CategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.MealNetworkResponse;
 import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
-import com.example.foodplanner.data.network.Network;
 import com.example.foodplanner.data.model.category.Category;
-import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
-import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
-import com.example.foodplanner.data.network.MealsService;
+import com.example.foodplanner.ui.category.OnCategoryClick;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment  implements OnCategoryClick {
     private ImageView mealImage;
     private TextView mealTitle;
     private TextView tag1;
@@ -73,7 +67,7 @@ public class HomeFragment extends Fragment {
         tag2 = view.findViewById(R.id.tag2);
         categoriesRecyclerView = view.findViewById(R.id.categories_recycler_view);
         categoryList = new ArrayList<>();
-        categoryAdapter = new CategoryAdapter(getContext(), categoryList);
+        categoryAdapter = new CategoryAdapter(this);
         categoriesRecyclerView.setAdapter(categoryAdapter);
         mealRemoteDataSource = new MealsRemoteDataSource();
         mealRemoteDataSource.getRandomMeal(new MealNetworkResponse() {
@@ -99,48 +93,35 @@ public class HomeFragment extends Fragment {
 
             }
         });
-        categoryAdapter.setOnCategoryClickListener(category -> {
-            Toast.makeText(getContext(),
-                    "Selected: " + category.getCategoryName(),
-                    Toast.LENGTH_SHORT).show();
-                    HomeFragmentDirections.ActionHomeFragmentToCategoryFragment action =
-                            HomeFragmentDirections.actionHomeFragmentToCategoryFragment(category.getCategoryName());
-                    Navigation.findNavController(view).navigate(action);
-
-        }
-        );
-
-
-        getCategory();
-
-    }
-
-
-    private void getCategory(){
-        MealsService service =Network.getInstance().getMealsService();
-        service.getCategory().enqueue(new Callback<CategoryResponse>() {
+        mealRemoteDataSource.getCategory(new CategoryNetworkResponse() {
             @Override
-            public void onResponse(Call<CategoryResponse> call, Response<CategoryResponse> response) {
-                if(response.isSuccessful() && response.body() != null){
-                    List<Category> categoriesFromApi = response.body().getCategories();
-                    if(categoriesFromApi != null){
-
-                        categoryList.addAll(categoriesFromApi);
-                        categoryAdapter.notifyDataSetChanged();
-                    }
-                } else {
-                    Log.e(TAG, "Failed to load categories: " + response.code());
-                    showError("Failed to load categories");
+            public void onSuccess(List<Category> categoryList) {
+                List<Category> categoriesFromApi = categoryList;
+                if(categoriesFromApi != null){
+                    categoryAdapter.setCategories(categoryList);
                 }
             }
 
             @Override
-            public void onFailure(Call<CategoryResponse> call, Throwable t) {
-                Log.e(TAG, "API call failed", t);
-                showError("Network error: " + t.getMessage());
+            public void onFailure(String errorMessage) {
+                showError("Network error: " );
+            }
+
+            @Override
+            public void onServerError(String errorMessage) {
+                showError("Failed to load categories");
             }
         });
+
+
+
+
+
+
     }
+
+
+
     private void displayMeal(RandomMeal meal) {
 
         mealTitle.setText(meal.getMealName());
@@ -179,5 +160,15 @@ public class HomeFragment extends Fragment {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public void setOnCategoryClick(Category category) {
+        Toast.makeText(getContext(),
+                "Selected: " + category.getCategoryName(),
+                Toast.LENGTH_SHORT).show();
+        HomeFragmentDirections.ActionHomeFragmentToCategoryFragment action =
+                HomeFragmentDirections.actionHomeFragmentToCategoryFragment(category.getCategoryName());
+        Navigation.findNavController(requireView()).navigate(action);
     }
 }

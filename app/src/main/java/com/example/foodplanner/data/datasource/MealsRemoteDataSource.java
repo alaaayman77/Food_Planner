@@ -2,7 +2,8 @@ package com.example.foodplanner.data.datasource;
 
 import android.util.Log;
 
-import com.example.foodplanner.data.model.random_meals.RandomMeal;
+import com.example.foodplanner.data.model.category.Category;
+import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
 import com.example.foodplanner.data.network.MealsService;
 import com.example.foodplanner.data.network.Network;
@@ -48,5 +49,30 @@ public class MealsRemoteDataSource {
                 }
             }
         });
+    }
+
+    public void getCategory(CategoryNetworkResponse callback){
+        mealsService.getCategory().enqueue(new Callback<CategoryResponse>() {
+            @Override
+            public void onResponse(Call<CategoryResponse> call, Response<CategoryResponse> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    callback.onSuccess(response.body().getCategories());
+
+                } else {
+                    callback.onServerError("Error code " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CategoryResponse> call, Throwable t) {
+                if(t instanceof IOException){
+                    callback.onFailure("Network error");
+                }
+                else{
+                    callback.onFailure("Conversion Error");
+                }
+            }
+        });
+
     }
 }
