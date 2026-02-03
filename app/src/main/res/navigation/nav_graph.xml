@@ -40,7 +40,7 @@
         tools:layout="@layout/fragment_profile" />
     <fragment
         android:id="@+id/mealsByCategoryFragment"
-        android:name="com.example.foodplanner.presentation.meals_by_category.MealsByCategoryFragment"
+        android:name="com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryFragment"
         android:label="fragment_category"
         tools:layout="@layout/fragment_category" >
         <argument

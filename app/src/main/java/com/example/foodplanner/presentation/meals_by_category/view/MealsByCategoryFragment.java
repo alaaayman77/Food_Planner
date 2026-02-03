@@ -1,4 +1,4 @@
-package com.example.foodplanner.presentation.meals_by_category;
+package com.example.foodplanner.presentation.meals_by_category.view;
 
 import android.os.Bundle;
 
@@ -19,13 +19,17 @@ import com.example.foodplanner.R;
 import com.example.foodplanner.data.datasource.MealsByCategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
 import com.example.foodplanner.data.model.category.MealsByCategory;
+import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByCategoryPresenter;
+import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByCategoryPresenterImp;
+import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryFragmentArgs;
+import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryFragmentDirections;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MealsByCategoryFragment extends Fragment implements OnMealByCategoryClick {
+public class MealsByCategoryFragment extends Fragment implements OnMealByCategoryClick , MealsByCategoryView {
     MaterialButton backButton;
     String category;
     private TextView category_tv;
@@ -36,8 +40,9 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
 
     private RecyclerView mealByCategoriesRecyclerView;
     private MealsByCategoryAdapter mealByCategoryAdapter;
+    private MealsByCategoryPresenter mealsByCategoryPresenter;
     private List<MealsByCategory> mealsByCategoryList;
-    MealsRemoteDataSource mealsRemoteDataSource;
+
 
     public MealsByCategoryFragment() {
         // Required empty public constructor
@@ -79,36 +84,21 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
         mealByCategoriesRecyclerView = view.findViewById(R.id.mealByCategoryRecyclerView);
 
         mealsByCategoryList = new ArrayList<>();
-       mealsRemoteDataSource = new MealsRemoteDataSource();
+
         mealByCategoryAdapter = new MealsByCategoryAdapter(this);
         mealByCategoriesRecyclerView.setAdapter(mealByCategoryAdapter);
+        mealsByCategoryPresenter = new MealsByCategoryPresenterImp(this);
+        mealsByCategoryPresenter.getMealsByCategory(category);
 
-        mealsRemoteDataSource.getMealsByCategory(category,new MealsByCategoryNetworkResponse() {
-            @Override
-            public void onSuccess(List<MealsByCategory> mealsByCategoryList) {
-                if(!mealsByCategoryList.isEmpty()){
-                    mealByCategoryAdapter.setMeals(mealsByCategoryList);
-                }
-                else{
-                   showError("No meals found for " + category);
-                }
-
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                showError(errorMessage);
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                showError(errorMessage);
-            }
-        });
 
     }
 
-    private void showError(String message) {
+    @Override
+    public void setMealByCategoryList(List<MealsByCategory> mealsByCategoryList) {
+        mealByCategoryAdapter.setMeals(mealsByCategoryList);
+    }
+   @Override
+    public void showError(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
