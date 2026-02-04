@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
 
-        tools:context=".ui.home.HomeFragment">
+        tools:context=".presentation.home.view.HomeFragment">
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline_start"

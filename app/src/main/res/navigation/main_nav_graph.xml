@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/splashFragment"
-        android:name="com.example.foodplanner.ui.splash.SplashFragment"
+        android:name="com.example.foodplanner.presentation.splash.SplashFragment"
         android:label="SplashFragment" >
         <action
             android:id="@+id/action_splashFragment_to_startFragment"
@@ -21,7 +21,7 @@
         android:label="StartFragment" />
     <fragment
         android:id="@+id/authFragment"
-        android:name="com.example.foodplanner.ui.auth.AuthFragment"
+        android:name="com.example.foodplanner.presentation.auth.AuthFragment"
         android:label="AuthFragment" >
         <action
             android:id="@+id/action_authFragment_to_startFragment"
