@@ -1,5 +1,6 @@
 package com.example.foodplanner.presentation.home.presenter;
 
+import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.datasource.CategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.MealNetworkResponse;
 import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
@@ -11,15 +12,16 @@ import java.util.List;
 
 public class HomePresenterImp implements HomePresenter{
     HomeView homeView;
-    private MealsRemoteDataSource mealRemoteDataSource;
 
-    public HomePresenterImp(HomeView homeView) {
-        this.mealRemoteDataSource = new MealsRemoteDataSource();
+    private MealsRepository mealsRepository;
+
+    public HomePresenterImp(HomeView homeView ) {
+        this.mealsRepository = new MealsRepository();
         this.homeView = homeView;
     }
 
     public void getRandomMeal() {
-        mealRemoteDataSource.getRandomMeal(new MealNetworkResponse() {
+        mealsRepository.getRandomMeal(new MealNetworkResponse() {
             @Override
             public void onSuccess(List<RandomMeal> randomMealList) {
                 RandomMeal randomMeal = randomMealList.get(0);
@@ -44,7 +46,7 @@ public class HomePresenterImp implements HomePresenter{
     }
 
     public void getCategory() {
-        mealRemoteDataSource.getCategory(new CategoryNetworkResponse() {
+         mealsRepository.getCategory(new CategoryNetworkResponse() {
             @Override
             public void onSuccess(List<Category> categoryList) {
                 List<Category> categoriesFromApi = categoryList;

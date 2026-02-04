@@ -1,5 +1,6 @@
 package com.example.foodplanner.presentation.meals_by_category.presenter;
 
+import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.datasource.MealsByCategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
 import com.example.foodplanner.data.model.category.MealsByCategory;
@@ -9,15 +10,15 @@ import java.util.List;
 
 public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
     private MealsByCategoryView mealsByCategoryView;
+    private MealsRepository mealsRepository;
 
-    private MealsRemoteDataSource mealsRemoteDataSource;
 
     public MealsByCategoryPresenterImp(MealsByCategoryView mealsByCategoryView ){
         this.mealsByCategoryView = mealsByCategoryView;
-        mealsRemoteDataSource = new MealsRemoteDataSource();
+        mealsRepository = new MealsRepository();
     }
     public void getMealsByCategory(String category){
-        mealsRemoteDataSource.getMealsByCategory(category,new MealsByCategoryNetworkResponse() {
+        mealsRepository.getMealsByCategory(category,new MealsByCategoryNetworkResponse() {
             @Override
             public void onSuccess(List<MealsByCategory> mealsByCategoryList) {
                 if(!mealsByCategoryList.isEmpty()){
