@@ -15,22 +15,27 @@ import android.widget.Toast;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.model.category.Category;
-import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.search.area.Area;
 import com.example.foodplanner.data.network.MealsService;
 import com.example.foodplanner.data.network.Network;
-import com.example.foodplanner.presentation.home.presenter.HomePresenterImp;
-import com.example.foodplanner.presentation.search.presenter.AreaPresenter;
-import com.example.foodplanner.presentation.search.presenter.AreaPresenterImp;
+import com.example.foodplanner.presentation.home.presenter.HomePresenter;
+import com.example.foodplanner.presentation.multi_filter.MultiFilterPresenter;
+import com.example.foodplanner.presentation.multi_filter.MultiFilterPresenterImp;
+import com.example.foodplanner.presentation.multi_filter.MultiFilterView;
+import com.example.foodplanner.presentation.search.presenter.area.AreaPresenter;
+import com.example.foodplanner.presentation.search.presenter.area.AreaPresenterImp;
+import com.example.foodplanner.presentation.search.presenter.category.CategoryPresenter;
+import com.example.foodplanner.presentation.search.presenter.category.CategoryPresenterImp;
+import com.example.foodplanner.presentation.search.view.area.AreaView;
+import com.example.foodplanner.presentation.search.view.area.CountryChipAdapter;
+import com.example.foodplanner.presentation.search.view.category.CategoryView;
+import com.example.foodplanner.presentation.search.view.category.ChipCategoryAdapter;
 import com.google.android.material.chip.ChipGroup;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public class SearchFragment extends Fragment implements ChipCategoryAdapter.OnCategoryChipClickListener , AreaView , CountryChipAdapter.OnCountryChipClickListener{
+public class SearchFragment extends Fragment implements ChipCategoryAdapter.OnCategoryChipClickListener , AreaView, CountryChipAdapter.OnCountryChipClickListener , MultiFilterView  , CategoryView {
 
     private Button searchButton;
     private ChipGroup categoryChipGroup;
@@ -41,6 +46,8 @@ public class SearchFragment extends Fragment implements ChipCategoryAdapter.OnCa
     private MealsRepository mealsRepository;
     private MealsService mealsService;
     private AreaPresenter areaPresenter;
+    private CategoryPresenter categoryPresenter;
+    private MultiFilterPresenter multiFilterPresenter;
 
     public SearchFragment() {
         // Required empty public constructor
@@ -68,35 +75,21 @@ public class SearchFragment extends Fragment implements ChipCategoryAdapter.OnCa
         categoryChipAdapter = new ChipCategoryAdapter(requireContext(), categoryChipGroup, this);
         countryChipAdapter = new CountryChipAdapter(requireContext() , areaChipGroup , this);
          mealsService = Network.getInstance().getMealsService();
+         categoryPresenter = new CategoryPresenterImp(this);
         areaPresenter = new AreaPresenterImp(this);
-        getCategoryForSearch();
+        multiFilterPresenter = new MultiFilterPresenterImp(this);
         areaPresenter.getArea();
-
-
-    }
-
-    private void getCategoryForSearch() {
-        mealsService.getCategory().enqueue(new Callback<CategoryResponse>() {
+        categoryPresenter.getCategory();
+        searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(Call<CategoryResponse> call, Response<CategoryResponse> response) {
-                if(response.isSuccessful() && response.body()!=null){
-                    List<Category> categoriesList = response.body().getCategories();
-                    if(categoriesList!=null){
-                        categoryChipAdapter.setCategories(categoriesList);
-                    }
-                    else{
-                        showToast("Failed to load categories");
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<CategoryResponse> call, Throwable t) {
-                showToast("Network error " + t.getMessage());
+            public void onClick(View v) {
+                performSearch();
             }
         });
 
+
     }
+
 
     @Override
     public void onChipClicked(Category category, boolean isSelected) {
@@ -111,21 +104,66 @@ public class SearchFragment extends Fragment implements ChipCategoryAdapter.OnCa
     }
 
     @Override
+    public void showLoading() {
+
+    }
+
+    @Override
+    public void hideLoading() {
+
+    }
+
+    @Override
+    public void showFilteredResults(List<String> mealIds) {
+        StringBuilder message = new StringBuilder();
+        message.append("Found ").append(mealIds.size()).append(" meals!\n\n");
+
+        int displayCount = Math.min(5, mealIds.size());
+        for (int i = 0; i < displayCount; i++) {
+            message.append("Meal ID: ").append(mealIds.get(i)).append("\n");
+        }
+
+        if (mealIds.size() > 5) {
+            message.append("... and ").append(mealIds.size() - 5).append(" more");
+        }
+
+        showError(message.toString());
+
+
+    }
+
+    @Override
+    public void setCategory(List<Category> categoryList) {
+        categoryChipAdapter.setCategories(categoryList);
+    }
+
+    @Override
     public void showError(String errorMessage) {
         Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
     }
 
-    private void showToast(String message) {
-        if (getContext() != null) {
-            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-        }
-    }
 
     @Override
     public void onCountryChipClicked(Area area, boolean isSelected) {
 
     }
 
+    private void performSearch() {
+        // Get selected filters
+        List<Category> selectedCategories = categoryChipAdapter.getSelectedCategories();
+        List<Area> selectedAreas = countryChipAdapter.getSelectedAreas();
 
+        // Convert to string lists
+        List<String> categoryNames = new ArrayList<>();
+        for (Category category : selectedCategories) {
+            categoryNames.add(category.getCategoryName());
+        }
+
+        List<String> areaNames = new ArrayList<>();
+        for (Area area : selectedAreas) {
+            areaNames.add(area.getStrArea());
+        }
+        multiFilterPresenter.searchWithFilters(categoryNames, areaNames);
+    }
 
 }

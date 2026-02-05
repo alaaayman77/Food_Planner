@@ -1,6 +1,5 @@
-package com.example.foodplanner.presentation.search.view;
+package com.example.foodplanner.presentation.search.view.area;
 
-import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.data.model.search.area.Area;
 
 import java.util.List;

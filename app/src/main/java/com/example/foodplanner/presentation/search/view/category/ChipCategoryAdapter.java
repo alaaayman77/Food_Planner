@@ -1,4 +1,4 @@
-package com.example.foodplanner.presentation.search.view;
+package com.example.foodplanner.presentation.search.view.category;
 
 import android.content.Context;
 import android.view.LayoutInflater;

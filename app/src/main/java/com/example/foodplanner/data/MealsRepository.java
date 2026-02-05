@@ -1,5 +1,6 @@
 package com.example.foodplanner.data;
 
+import com.example.foodplanner.data.datasource.AreaFilteredMealsNetworkResponse;
 import com.example.foodplanner.data.datasource.AreaNetworkResponse;
 import com.example.foodplanner.data.datasource.CategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.MealNetworkResponse;
@@ -25,6 +26,10 @@ public class MealsRepository {
 
     public void getArea( AreaNetworkResponse response){
         mealsRemoteDataSource.getArea(response);
+    }
+
+    public void getAreaFilteredMeals(String area, AreaFilteredMealsNetworkResponse response){
+        mealsRemoteDataSource.getFilteredMealsByArea(area,response);
     }
 }
 

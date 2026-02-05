@@ -1,10 +1,9 @@
-package com.example.foodplanner.presentation.search.presenter;
+package com.example.foodplanner.presentation.search.presenter.area;
 
 import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.datasource.AreaNetworkResponse;
 import com.example.foodplanner.data.model.search.area.Area;
-import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryView;
-import com.example.foodplanner.presentation.search.view.AreaView;
+import com.example.foodplanner.presentation.search.view.area.AreaView;
 
 import java.util.List;
 
@@ -31,6 +30,7 @@ public class AreaPresenterImp implements AreaPresenter{
 
             @Override
             public void onFailure(String errorMessage) {
+
                 areaView.showError(errorMessage);
             }
 

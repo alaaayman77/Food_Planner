@@ -1,4 +1,4 @@
-package com.example.foodplanner.presentation.search.view;
+package com.example.foodplanner.presentation.search.view.category;
 
 import com.example.foodplanner.data.model.category.Category;
 
