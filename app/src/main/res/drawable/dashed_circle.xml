@@ -1,17 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generic dashed circle - color will be set programmatically -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
+<!-- Alternative enhanced dashed circle with solid inner ring -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <stroke
-        android:width="3dp"
-        android:color="#3B5998"
-        android:dashWidth="8dp"
-        android:dashGap="4dp" />
+    <!-- Outer glow ring -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#15437FBF" />
+            <size
+                android:width="94dp"
+                android:height="94dp" />
+        </shape>
+    </item>
 
-    <size
-        android:width="80dp"
-        android:height="80dp" />
+    <!-- Main dashed circle -->
+    <item
+        android:top="2dp"
+        android:bottom="2dp"
+        android:left="2dp"
+        android:right="2dp">
+        <shape android:shape="oval">
+            <stroke
+                android:width="3dp"
+                android:color="#4A7BC8"
+                android:dashWidth="12dp"
+                android:dashGap="6dp" />
+            <solid android:color="#FAFBFF" />
+            <size
+                android:width="90dp"
+                android:height="90dp" />
+        </shape>
+    </item>
 
-    <solid android:color="#F5F8FF" />
-</shape>
+</layer-list>

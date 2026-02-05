@@ -3,6 +3,7 @@ package com.example.foodplanner.data.network;
 import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
+import com.example.foodplanner.data.model.search.area.AreaResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -17,4 +18,7 @@ public interface MealsService {
 
     @GET("filter.php")
     Call<MealsByCategoryResponse> getMealsByCategory(@Query("c") String category);
+
+    @GET("list.php?a=list")
+    Call<AreaResponse> getArea();
 }
