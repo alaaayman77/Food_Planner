@@ -21,8 +21,10 @@
     <string name="forget_password">Forget Password?</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="welcome_user">Welcome Alaa</string>
+    <string name="welcome_back">Welcome Back</string>
     <string name="meal_of_the_day">Meal Of the Day!</string>
     <string name="categories">Categories</string>
     <string name="guest">Continue as a guest?</string>
     <string name="category_type">Beef</string>
+    <string name="search">Search</string>
 </resources>

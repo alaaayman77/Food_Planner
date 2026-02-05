@@ -12,4 +12,32 @@
     <color name="navyBlueVariant" >#1B2B4E</color>
     <color name="grayStroke">#E2E8F0</color>
     <color name="yellow">#FFE082</color>
+
+
+    <color name="primary_blue">#2D5BA1</color>
+    <color name="primary_blue_dark">#1E3F73</color>
+    <color name="primary_blue_light">#4A7BC8</color>
+    <color name="primary_blue_lighter">#6B97D6</color>
+
+    <!-- Accent Colors -->
+    <color name="accent_blue">#3D6DB3</color>
+    <color name="accent_cyan">#5AB5DB</color>
+    <color name="accent_teal">#4A9DAD</color>
+
+    <!-- Background Colors -->
+    <color name="background_light">#F8F9FC</color>
+    <color name="background_white">#FFFFFF</color>
+    <color name="background_card">#FFFFFF</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#1A202C</color>
+    <color name="text_secondary">#718096</color>
+    <color name="text_tertiary">#A0AEC0</color>
+
+    <color name="card_dark">#1A1D26</color>
+    <color name="success">#48BB78</color>
+    <color name="warning">#ED8936</color>
+    <color name="error">#F56565</color>
+
+
 </resources>
