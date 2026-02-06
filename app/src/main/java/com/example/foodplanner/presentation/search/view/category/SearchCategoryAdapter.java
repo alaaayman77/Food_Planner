@@ -18,12 +18,16 @@ import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchCategoryAdapter extends RecyclerView.Adapter<SearchCategoryAdapter.CategoryViewHolder> {
+public class SearchCategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private static final int TYPE_SHIMMER = 0;
+    private static final int TYPE_CATEGORY = 1;
 
     private Context context;
     private List<Category> categories;
     private List<Category> selectedCategories;
     private OnCategoryClickListener listener;
+    private boolean isLoading = true;
 
     public interface OnCategoryClickListener {
         void onCategoryClicked(Category category, boolean isSelected);
@@ -45,23 +49,52 @@ public class SearchCategoryAdapter extends RecyclerView.Adapter<SearchCategoryAd
         return selectedCategories;
     }
 
-    @NonNull
-    @Override
-    public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context)
-                .inflate(R.layout.search_category_card, parent, false);
-        return new CategoryViewHolder(view);
+    public void setLoading(boolean loading) {
+        isLoading = loading;
+        notifyDataSetChanged();
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
-        Category category = categories.get(position);
-        holder.bind(category);
+    public int getItemViewType(int position) {
+        if (isLoading) return TYPE_SHIMMER;
+        return TYPE_CATEGORY;
+    }
+
+    @NonNull
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(context);
+        if (viewType == TYPE_SHIMMER) {
+            View view = inflater.inflate(R.layout.shimmer_category_card, parent, false);
+            return new ShimmerViewHolder(view);
+        } else {
+            View view = inflater.inflate(R.layout.search_category_card, parent, false);
+            return new CategoryViewHolder(view);
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof CategoryViewHolder && !isLoading) {
+            Category category = categories.get(position);
+            ((CategoryViewHolder) holder).bind(category);
+        }
+        // shimmer holder does not need binding
     }
 
     @Override
     public int getItemCount() {
+        if (isLoading) return 6; // number of shimmer placeholders
         return categories.size();
+    }
+
+    // --------------------- ViewHolders ---------------------
+
+    static class ShimmerViewHolder extends RecyclerView.ViewHolder {
+        public ShimmerViewHolder(@NonNull View itemView) {
+            super(itemView);
+            // no need to reference views for shimmer
+        }
     }
 
     class CategoryViewHolder extends RecyclerView.ViewHolder {
@@ -79,30 +112,24 @@ public class SearchCategoryAdapter extends RecyclerView.Adapter<SearchCategoryAd
         }
 
         public void bind(Category category) {
+            if (category == null) return;
+
             categoryName.setText(category.getCategoryName());
             View checkIconContainer = itemView.findViewById(R.id.checkIconContainer);
 
-
-
-            // Load category image using Glide
             Glide.with(context)
                     .load(category.getCategoryThumbnail())
                     .into(categoryImage);
 
-            // Update selection state
             boolean isSelected = selectedCategories.contains(category);
             cardView.setSelected(isSelected);
             checkIcon.setVisibility(isSelected ? View.VISIBLE : View.GONE);
             checkIconContainer.setVisibility(isSelected ? View.VISIBLE : View.GONE);
-            // Handle click
+
             cardView.setOnClickListener(v -> {
                 boolean nowSelected = !isSelected;
-
-                if (nowSelected) {
-                    selectedCategories.add(category);
-                } else {
-                    selectedCategories.remove(category);
-                }
+                if (nowSelected) selectedCategories.add(category);
+                else selectedCategories.remove(category);
 
                 notifyItemChanged(getAdapterPosition());
 

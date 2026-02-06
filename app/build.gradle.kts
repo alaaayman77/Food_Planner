@@ -61,5 +61,8 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("io.reactivex.rxjava3:rxjava:3.1.6")
+    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
 
 }

@@ -1,0 +1,11 @@
+<com.facebook.shimmer.ShimmerFrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="40dp"
+    android:layout_margin="4dp">
+
+    <View
+        android:layout_width="80dp"
+        android:layout_height="40dp"
+        android:background="@drawable/chip_background_placeholder"/>
+</com.facebook.shimmer.ShimmerFrameLayout>

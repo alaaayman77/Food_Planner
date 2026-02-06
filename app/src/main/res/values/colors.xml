@@ -38,6 +38,7 @@
     <color name="success">#48BB78</color>
     <color name="warning">#ED8936</color>
     <color name="error">#F56565</color>
+    <color name="shimmer_placeholder">#E0E0E0</color>
 
 
 </resources>

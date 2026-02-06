@@ -23,14 +23,15 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
 
     private static final int VIEW_TYPE_ITEM = 0;
     private static final int VIEW_TYPE_SEE_MORE = 1;
+    private static final int VIEW_TYPE_SHIMMER = 2;
 
     private Context context;
     private List<Ingredients> displayedIngredients;
     private List<Ingredients> selectedIngredients;
     private OnIngredientClickListener listener;
     private OnSeeMoreClickListener seeMoreListener;
-
     private boolean showSeeMoreButton = false;
+    private boolean isLoading = true;
 
     public interface OnIngredientClickListener {
         void onIngredientClicked(Ingredients ingredient, boolean isSelected);
@@ -78,8 +79,15 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
         return selectedIngredients;
     }
 
+    public void setLoading(boolean loading) {
+        isLoading = loading;
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getItemViewType(int position) {
+        if (isLoading) return VIEW_TYPE_SHIMMER;
+
         if (showSeeMoreButton && position == displayedIngredients.size()) {
             return VIEW_TYPE_SEE_MORE;
         }
@@ -89,30 +97,44 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType == VIEW_TYPE_SEE_MORE) {
-            View view = LayoutInflater.from(context)
-                    .inflate(R.layout.item_loading, parent, false);
+        LayoutInflater inflater = LayoutInflater.from(context);
+
+        if (viewType == VIEW_TYPE_SHIMMER) {
+            View view = inflater.inflate(R.layout.search_ingredient_card, parent, false);
+            return new ShimmerViewHolder(view);
+        } else if (viewType == VIEW_TYPE_SEE_MORE) {
+            View view = inflater.inflate(R.layout.item_loading, parent, false);
             return new SeeMoreViewHolder(view);
         } else {
-            View view = LayoutInflater.from(context)
-                    .inflate(R.layout.search_ingredient_card, parent, false);
+            View view = inflater.inflate(R.layout.search_ingredient_card, parent, false);
             return new IngredientViewHolder(view);
         }
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        if (holder instanceof IngredientViewHolder) {
+        if (holder instanceof IngredientViewHolder && !isLoading) {
             Ingredients ingredient = displayedIngredients.get(position);
             ((IngredientViewHolder) holder).bind(ingredient);
-        } else if (holder instanceof SeeMoreViewHolder) {
+        } else if (holder instanceof SeeMoreViewHolder && !isLoading) {
             ((SeeMoreViewHolder) holder).bind();
         }
+        // Shimmer holder does not need binding
     }
 
     @Override
     public int getItemCount() {
+        if (isLoading) return 6; // number of shimmer placeholders
         return showSeeMoreButton ? displayedIngredients.size() + 1 : displayedIngredients.size();
+    }
+
+    // --------------------- ViewHolders ---------------------
+
+    static class ShimmerViewHolder extends RecyclerView.ViewHolder {
+        public ShimmerViewHolder(@NonNull View itemView) {
+            super(itemView);
+            // no binding needed for shimmer
+        }
     }
 
     class IngredientViewHolder extends RecyclerView.ViewHolder {
@@ -132,6 +154,8 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
         }
 
         public void bind(Ingredients ingredient) {
+            if (ingredient == null) return;
+
             ingredientName.setText(ingredient.getIngredientName());
             ingredientCount.setText("Available in 500+ recipes");
 
@@ -145,11 +169,8 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
             cardView.setOnClickListener(v -> {
                 boolean nowSelected = !isSelected;
 
-                if (nowSelected) {
-                    selectedIngredients.add(ingredient);
-                } else {
-                    selectedIngredients.remove(ingredient);
-                }
+                if (nowSelected) selectedIngredients.add(ingredient);
+                else selectedIngredients.remove(ingredient);
 
                 notifyItemChanged(getAdapterPosition());
 

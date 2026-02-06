@@ -21,6 +21,7 @@ public class CountryChipAdapter {
     private OnCountryChipClickListener listener;
     private Map<String, String> countryFlags;
 
+
     public interface OnCountryChipClickListener {
         void onCountryChipClicked(Area area, boolean isSelected);
     }
