@@ -27,6 +27,8 @@ import com.example.foodplanner.data.model.random_meals.RandomMeal;
 import com.example.foodplanner.presentation.home.presenter.HomePresenter;
 import com.example.foodplanner.presentation.home.presenter.HomePresenterImp;
 import com.example.foodplanner.presentation.home.view.HomeFragmentDirections;
+import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryFragmentDirections;
+import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,11 +38,13 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
     private TextView mealTitle;
     private TextView tag1;
     private  TextView tag2;
+    private MaterialCardView randomMealCard;
 
     private RecyclerView categoriesRecyclerView;
     private CategoryAdapter categoryAdapter;
     private List<Category> categoryList;
 
+    private RandomMeal currentMeal;
     private HomePresenter homePresenter;
     private static final String TAG = "HomeFragment";
     public HomeFragment() {
@@ -67,10 +71,16 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
         mealTitle = view.findViewById(R.id.mealTitle);
         tag1 = view.findViewById(R.id.tag1);
         tag2 = view.findViewById(R.id.tag2);
+        randomMealCard = view.findViewById(R.id.random_meal);
         categoriesRecyclerView = view.findViewById(R.id.categories_recycler_view);
         categoryList = new ArrayList<>();
         categoryAdapter = new CategoryAdapter(this);
         categoriesRecyclerView.setAdapter(categoryAdapter);
+        randomMealCard.setOnClickListener(v -> {
+            HomeFragmentDirections.ActionHomeFragmentToRecipeDetailsFragment action =
+                    HomeFragmentDirections.actionHomeFragmentToRecipeDetailsFragment(currentMeal.getMealId());
+            Navigation.findNavController(requireView()).navigate(action);
+        });
         homePresenter = new HomePresenterImp(this);
         homePresenter.getRandomMeal();
         homePresenter.getCategory();
@@ -102,6 +112,7 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
 
     @Override
     public void displayMeal(RandomMeal meal) {
+        currentMeal = meal;
                 mealTitle.setText(meal.getMealName());
 
 
