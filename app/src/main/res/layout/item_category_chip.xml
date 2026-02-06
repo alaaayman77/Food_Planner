@@ -8,10 +8,10 @@
     android:fontFamily="@font/poppins_semibold"
     android:textColor="@color/chip_text_color"
     android:textSize="14sp"
-    app:checkedIcon="@drawable/icon_search"
     app:checkedIconTint="@android:color/white"
     app:chipBackgroundColor="@color/chip_background_color"
     app:chipCornerRadius="20dp"
     app:chipMinHeight="40dp"
+    app:chipIconSize="20dp"
     app:chipStrokeColor="#E0E0E0"
     app:chipStrokeWidth="1dp" />

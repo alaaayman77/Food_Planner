@@ -10,7 +10,7 @@ public class AreaResponse {
     public AreaResponse() {
     }
 
-    public List<Area> getMealsArea() {
+    public List<Area> getAreasList() {
         return areaList;
     }
 }

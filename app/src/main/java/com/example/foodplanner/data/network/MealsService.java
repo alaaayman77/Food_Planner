@@ -6,6 +6,7 @@ import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMeals;
 import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMealsResponse;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
 import com.example.foodplanner.data.model.search.area.AreaResponse;
+import com.example.foodplanner.data.model.search.ingredients.IngredientsResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -23,6 +24,10 @@ public interface MealsService {
 
     @GET("filter.php")
     Call<AreaFilteredMealsResponse> getFilteredMealsByArea(@Query("a") String area);
+
+    @GET("list.php?i=list")
+    Call<IngredientsResponse> getIngredients();
+
 
     @GET("list.php?a=list")
     Call<AreaResponse> getArea();

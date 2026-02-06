@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".presentation.search.view.SearchFragment">
 
-
+    <!-- Header -->
     <FrameLayout
         android:id="@+id/headerCard"
         android:layout_width="0dp"
@@ -106,7 +106,7 @@
                 android:layout_weight="1"
                 android:background="@null"
                 android:fontFamily="@font/poppins"
-                android:hint="Search desserts..."
+                android:hint="Search recipes..."
                 android:inputType="text"
                 android:textColor="#424242"
                 android:textColorHint="#BDBDBD"
@@ -114,20 +114,40 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Apply Filters Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/searchButton"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="Apply Filters"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="15sp"
+        app:backgroundTint="#1976D2"
+        app:cornerRadius="24dp"
+        app:icon="@drawable/icon_email"
+        app:iconGravity="textStart"
+        app:iconTint="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searchCard" />
+
+    <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-       android:paddingBottom="150dp"
-    android:clipToPadding="false"
-        android:fillViewport="true"
-        android:overScrollMode="never"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/searchCard">
+        app:layout_constraintTop_toBottomOf="@id/searchButton">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -136,47 +156,27 @@
             android:paddingBottom="16dp">
 
             <!-- Browse by Category Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="24dp"
-                android:orientation="horizontal">
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Browse by Category"
+                android:textColor="#212121"
+                android:textSize="18sp" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="Browse by Category"
-                    android:textColor="#212121"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/viewAllCategories"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="View All"
-                    android:textColor="#1976D2"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <!-- Category Chips - Will be populated dynamically from API -->
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/categoryChipGroup"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/categoryRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
                 android:layout_marginTop="12dp"
-                android:layout_marginEnd="24dp"
-                app:chipSpacingHorizontal="8dp"
-                app:chipSpacingVertical="8dp"
-                app:selectionRequired="false"
-                app:singleSelection="false">
-
-            </com.google.android.material.chip.ChipGroup>
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/search_category_card"/>
 
             <!-- Explore by Country Section -->
             <LinearLayout
@@ -206,7 +206,6 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <!-- Country Chips - Static for now (can be made dynamic later) -->
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/countryChipGroup"
                 android:layout_width="match_parent"
@@ -217,13 +216,9 @@
                 app:chipSpacingHorizontal="8dp"
                 app:chipSpacingVertical="8dp"
                 app:selectionRequired="false"
-                app:singleSelection="false">
+                app:singleSelection="false" />
 
-
-
-            </com.google.android.material.chip.ChipGroup>
-
-            <!-- Must-have Ingredients Section -->
+            <!-- Search by Ingredient Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -237,7 +232,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/poppins_semibold"
-                    android:text="Must-have Ingredients"
+                    android:text="Search by Ingredient"
                     android:textColor="#212121"
                     android:textSize="18sp" />
 
@@ -246,110 +241,24 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins_semibold"
-                    android:text="See All"
+                    android:text="Loading..."
                     android:textColor="#1976D2"
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/ingredientChipGroup"
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/ingredientRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
                 android:layout_marginTop="12dp"
-                android:layout_marginEnd="24dp"
-                app:chipSpacingHorizontal="8dp"
-                app:chipSpacingVertical="8dp"
-                app:selectionRequired="false"
-                app:singleSelection="false">
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/search_ingredient_card"/>
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipGarlic"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="Garlic"
-                    android:textColor="@color/chip_text_color"
-                    android:textSize="14sp"
-                    app:checkedIcon="@drawable/icon_search"
-                    app:checkedIconTint="@android:color/white"
-                    app:chipBackgroundColor="@color/chip_background_color"
-                    app:chipCornerRadius="20dp"
-                    app:chipMinHeight="40dp"
-                    app:chipStrokeColor="#E0E0E0"
-                    app:chipStrokeWidth="1dp" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipBasil"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="Basil"
-                    android:textColor="@color/chip_text_color"
-                    android:textSize="14sp"
-                    app:checkedIcon="@drawable/icon_search"
-                    app:checkedIconTint="@android:color/white"
-                    app:chipBackgroundColor="@color/chip_background_color"
-                    app:chipCornerRadius="20dp"
-                    app:chipMinHeight="40dp"
-                    app:chipStrokeColor="#E0E0E0"
-                    app:chipStrokeWidth="1dp" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipTomato"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="Tomato"
-                    android:textColor="@color/chip_text_color"
-                    android:textSize="14sp"
-                    app:checkedIcon="@drawable/icon_search"
-                    app:checkedIconTint="@android:color/white"
-                    app:chipBackgroundColor="@color/chip_background_color"
-                    app:chipCornerRadius="20dp"
-                    app:chipMinHeight="40dp"
-                    app:chipStrokeColor="#E0E0E0"
-                    app:chipStrokeWidth="1dp" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipChili"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="Chili"
-                    android:textColor="@color/chip_text_color"
-                    android:textSize="14sp"
-                    app:checkedIcon="@drawable/icon_search"
-                    app:checkedIconTint="@android:color/white"
-                    app:chipBackgroundColor="@color/chip_background_color"
-                    app:chipCornerRadius="20dp"
-                    app:chipMinHeight="40dp"
-                    app:chipStrokeColor="#E0E0E0"
-                    app:chipStrokeWidth="1dp" />
-            </com.google.android.material.chip.ChipGroup>
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/searchButton"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_margin="24dp"
-                android:layout_marginStart="24dp"
-                android:layout_marginEnd="24dp"
-                android:layout_marginBottom="16dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                app:backgroundTint="#1976D2"
-                app:cornerRadius="28dp"
-                android:text="Apply"/>
         </LinearLayout>
-
-        <!-- Search Button (moved before ScrollView for proper constraint reference) -->
-
     </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

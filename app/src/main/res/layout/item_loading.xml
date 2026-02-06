@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="48dp">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/seeMoreButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="See More Ingredients"
+        android:textAllCaps="false"
+        android:textColor="#1976D2"
+        android:textSize="14sp"
+        app:backgroundTint="@android:color/transparent"
+        app:icon="@drawable/icon_refresh"
+        app:iconGravity="end"
+        app:iconTint="#1976D2"
+       />
+
+</LinearLayout>
