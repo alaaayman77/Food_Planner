@@ -20,18 +20,15 @@ import java.util.List;
 
 public class FilterResultsAdapter extends RecyclerView.Adapter<FilterResultsAdapter.MealViewHolder> {
 
-    private Context context;
+
     private List<RecipeDetails> meals;
-//    private OnMealClickListener onMealClickListener;
+   private OnMealClick listener;
 
-//    public interface OnMealClickListener {
-//        void onMealClicked(RecipeDetails meal);
-//    }
 
-    public FilterResultsAdapter(Context context) {
-        this.context = context;
+    public FilterResultsAdapter( OnMealClick listener) {
+
         this.meals = new ArrayList<>();
-//        this.onMealClickListener = listener;
+         this.listener = listener;
     }
 
     public void setMeals(List<RecipeDetails> meals) {
@@ -42,14 +39,27 @@ public class FilterResultsAdapter extends RecyclerView.Adapter<FilterResultsAdap
     @NonNull
     @Override
     public MealViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_search_result, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result, parent, false);
         return new MealViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MealViewHolder holder, int position) {
         RecipeDetails meal = meals.get(position);
-        holder.bind(meal);
+        holder.mealName.setText(meal.getMealName());
+        Glide.with(holder.itemView)
+                .load(meal.getStrMealThumbnail())
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
+                .into(holder.mealThumb);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.onMealClicked(meal);
+                }
+            }
+        });
     }
 
     @Override
@@ -68,14 +78,6 @@ public class FilterResultsAdapter extends RecyclerView.Adapter<FilterResultsAdap
 
         }
 
-        public void bind(RecipeDetails meal) {
-            mealName.setText(meal.getMealName());
 
-            Glide.with(context)
-                    .load(meal.getStrMealThumbnail())
-                    .placeholder(R.drawable.ic_launcher_background)
-                    .error(R.drawable.ic_launcher_background)
-                    .into(mealThumb);
-        }
     }
 }

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,17 +21,20 @@ import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.filter_results.presenter.FilterResultsPresenterImp;
 import com.example.foodplanner.presentation.filter_results.presenter.FilteredResultsPresenter;
+import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryFragmentDirections;
+import com.google.android.material.button.MaterialButton;
 
 
 import java.util.List;
 
-public class FilterResultsFragment extends Fragment implements FilterResultsView {
+public class FilterResultsFragment extends Fragment implements FilterResultsView , OnMealClick {
     private String[] mealIds;
     private RecyclerView recyclerView;
     private FilterResultsAdapter adapter;
     private FilteredResultsPresenter presenter;
     private ProgressBar progressBar;
     private TextView emptyTextView;
+    private MaterialButton backBtn;
 
     public FilterResultsFragment() {
         // Required empty public constructor
@@ -58,11 +62,16 @@ public class FilterResultsFragment extends Fragment implements FilterResultsView
         recyclerView = view.findViewById(R.id.recyclerViewFilterResults);
         progressBar = view.findViewById(R.id.progressBar);
         emptyTextView = view.findViewById(R.id.emptyTextView);
+        backBtn = view.findViewById(R.id.back_button);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new FilterResultsAdapter(getContext());
+        adapter = new FilterResultsAdapter( this);
         presenter = new FilterResultsPresenterImp(this);
+
         recyclerView.setAdapter(adapter);
         presenter.getFilteredRecipes(mealIds);
+        backBtn.setOnClickListener(v->{
+            Navigation.findNavController(v).navigateUp();
+        });
     }
 
     @Override
@@ -96,5 +105,12 @@ public class FilterResultsFragment extends Fragment implements FilterResultsView
         recyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.VISIBLE);
         emptyTextView.setText("No meals found");
+    }
+
+    @Override
+    public void onMealClicked(RecipeDetails meal) {
+        FilterResultsFragmentDirections.ActionFilterResultsFragmentToRecipeDetailsFragment action =
+                FilterResultsFragmentDirections.actionFilterResultsFragmentToRecipeDetailsFragment(meal.getIdMeal());
+        Navigation.findNavController(requireView()).navigate(action);
     }
 }
