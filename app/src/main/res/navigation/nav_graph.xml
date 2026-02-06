@@ -21,11 +21,8 @@
         android:label="fragment_search"
         tools:layout="@layout/fragment_search" >
         <action
-            android:id="@+id/action_searchFragment_to_searchByCategoryFragment"
-            app:destination="@id/searchByCategoryFragment" />
-<!--        <argument-->
-<!--            android:name="meal_filter"-->
-<!--            app:argType="com.example.foodplanner.data.model.search.MealFilter" />-->
+            android:id="@+id/action_searchFragment_to_recipeDetailsFragment"
+            app:destination="@id/recipeDetailsFragment" />
     </fragment>
 
     <fragment
@@ -60,16 +57,11 @@
     </fragment>
     <fragment
         android:id="@+id/recipeDetailsFragment"
-        android:name="com.example.foodplanner.presentation.recipe_details.RecipeDetailsFragment"
+        android:name="com.example.foodplanner.presentation.recipe_details.view.RecipeDetailsFragment"
         android:label="fragment_recipe_details"
         tools:layout="@layout/fragment_recipe_details" >
         <argument
             android:name="idMeal"
             app:argType="string" />
     </fragment>
-    <fragment
-        android:id="@+id/searchByCategoryFragment"
-        android:name="com.example.foodplanner.presentation.searchByCategory.SearchByCategoryFragment"
-        android:label="fragment_search_by_category"
-        tools:layout="@layout/fragment_search_by_category" />
 </navigation>

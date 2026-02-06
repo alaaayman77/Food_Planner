@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/glass_tag_bg">
+
+    <!-- Step Number -->
+    <TextView
+        android:id="@+id/stepNumber"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:text="1"
+        android:textSize="18sp"
+        android:textColor="@color/primaryColor"
+        android:fontFamily="@font/poppins_bold"
+        android:gravity="center"
+        android:background="@drawable/step_bg"
+        />
+
+    <!-- Step Content -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:orientation="vertical">
+
+
+
+        <TextView
+            android:id="@+id/stepDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Whisk together honey, lemon juice, minced garlic, and soy sauce in a small bowl until the honey is fully dissolved."
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_semibold"
+            android:textColor="@color/primaryColor"
+            android:lineSpacingExtra="4dp" />
+    </LinearLayout>
+
+</LinearLayout>

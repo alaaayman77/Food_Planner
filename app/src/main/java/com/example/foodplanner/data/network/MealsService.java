@@ -6,6 +6,7 @@ import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMeals;
 import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMealsResponse;
 import com.example.foodplanner.data.model.filtered_meals.IngredientFilteredMealsResponse;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
+import com.example.foodplanner.data.model.recipe_details.RecipeDetailsResponse;
 import com.example.foodplanner.data.model.search.area.AreaResponse;
 import com.example.foodplanner.data.model.search.ingredients.IngredientsResponse;
 
@@ -34,4 +35,7 @@ public interface MealsService {
 
     @GET("list.php?a=list")
     Call<AreaResponse> getArea();
+
+    @GET("lookup.php")
+    Call<RecipeDetailsResponse> getRecipeDetails(@Query("i") String id);
 }

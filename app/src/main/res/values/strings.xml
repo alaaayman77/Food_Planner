@@ -27,4 +27,6 @@
     <string name="guest">Continue as a guest?</string>
     <string name="category_type">Beef</string>
     <string name="search">Search</string>
+    <string name="ingredients">Ingredients</string>
+    <string name="instructions">Instructions</string>
 </resources>

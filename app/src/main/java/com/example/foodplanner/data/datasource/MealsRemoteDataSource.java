@@ -9,6 +9,7 @@ import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
 import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMealsResponse;
 import com.example.foodplanner.data.model.filtered_meals.IngredientFilteredMealsResponse;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
+import com.example.foodplanner.data.model.recipe_details.RecipeDetailsResponse;
 import com.example.foodplanner.data.model.search.area.AreaResponse;
 import com.example.foodplanner.data.model.search.ingredients.IngredientsResponse;
 import com.example.foodplanner.data.network.MealsService;
@@ -221,6 +222,34 @@ public class MealsRemoteDataSource {
 
             @Override
             public void onFailure(Call<IngredientFilteredMealsResponse> call, Throwable t) {
+                Log.e(TAG, "API call failed", t);
+                if(t instanceof IOException){
+                    callback.onFailure("Network error");
+                }
+                else{
+                    callback.onFailure("Conversion Error");
+                }
+            }
+        });
+    }
+
+    public void getRecipeDetails(String id , RecipeDetailsNetworkResponse callback){
+        mealsService.getRecipeDetails(id).enqueue(new Callback<RecipeDetailsResponse>() {
+            @Override
+            public void onResponse(Call<RecipeDetailsResponse> call, Response<RecipeDetailsResponse> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    callback.onSuccess(response.body().getRecipeDetails());
+//                    Log.d(TAG, "Meals list: " + mealsByCategoryResponse.getMealsByCategories());
+                }
+                else {
+                    Log.e(TAG, "Response unsuccessful: " + response.code());
+                    Log.e(TAG, "Error body: " + response.errorBody());
+                    callback.onServerError("Server error" + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RecipeDetailsResponse> call, Throwable t) {
                 Log.e(TAG, "API call failed", t);
                 if(t instanceof IOException){
                     callback.onFailure("Network error");

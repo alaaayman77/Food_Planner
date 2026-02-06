@@ -8,6 +8,7 @@ import com.example.foodplanner.data.datasource.IngredientsNetworkResponse;
 import com.example.foodplanner.data.datasource.MealNetworkResponse;
 import com.example.foodplanner.data.datasource.MealsByCategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
+import com.example.foodplanner.data.datasource.RecipeDetailsNetworkResponse;
 
 public class MealsRepository {
 
@@ -40,6 +41,10 @@ public class MealsRepository {
 
     public void getIngredientFilteredMeals(String ingredient, IngredientFilteredMealsNetworkResponse response){
         mealsRemoteDataSource.getFilteredMealsByIngredient(ingredient,response);
+    }
+
+    public void getRecipeDetails(String id , RecipeDetailsNetworkResponse response){
+        mealsRemoteDataSource.getRecipeDetails(id , response);
     }
 }
 
