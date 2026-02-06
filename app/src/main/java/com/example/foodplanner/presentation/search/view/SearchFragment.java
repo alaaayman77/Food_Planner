@@ -16,6 +16,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -89,7 +90,7 @@ public class SearchFragment extends Fragment implements
     private IngredientsPresenter ingredientsPresenter;
     private MultiFilterPresenter multiFilterPresenter;
     private SearchPresenter searchPresenter;
-
+    private String[] mealsIds;
     private PaginationManager<Ingredients> ingredientsPaginationManager;
     private static final int INGREDIENTS_PAGE_SIZE = 15;
 
@@ -196,6 +197,8 @@ public class SearchFragment extends Fragment implements
             }
 
             multiFilterPresenter.searchWithFilters(categoryNames, areaNames, ingredientNames);
+
+
         });
 
 
@@ -306,6 +309,8 @@ public class SearchFragment extends Fragment implements
 
     @Override
     public void showFilteredResults(List<String> mealIds) {
+         this.mealsIds = mealIds.toArray(new String[0]);
+
         StringBuilder message = new StringBuilder();
         message.append("Found ").append(mealIds.size()).append(" meals!\n\n");
 
@@ -319,6 +324,10 @@ public class SearchFragment extends Fragment implements
         }
 
         showError(message.toString());
+
+        SearchFragmentDirections.ActionSearchFragmentToFilterResultsFragment action =
+                SearchFragmentDirections.actionSearchFragmentToFilterResultsFragment(mealsIds);
+        Navigation.findNavController(requireView()).navigate(action);
     }
 
     @Override

@@ -26,6 +26,9 @@
         <action
             android:id="@+id/action_searchFragment_to_recipeDetailsFragment"
             app:destination="@id/recipeDetailsFragment" />
+        <action
+            android:id="@+id/action_searchFragment_to_filterResultsFragment"
+            app:destination="@id/filterResultsFragment" />
     </fragment>
 
     <fragment
@@ -66,5 +69,18 @@
         <argument
             android:name="idMeal"
             app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/filterResultsFragment"
+        android:name="com.example.foodplanner.presentation.filter_results.view.FilterResultsFragment"
+        android:label="fragment_filter_results"
+        tools:layout="@layout/fragment_filter_results" >
+        <action
+            android:id="@+id/action_filterResultsFragment_to_recipeDetailsFragment"
+            app:destination="@id/recipeDetailsFragment" />
+        <argument
+            android:name="idMeals"
+            app:argType="string[]"
+            app:nullable="true" />
     </fragment>
 </navigation>

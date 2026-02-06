@@ -48,7 +48,7 @@ public class StartFragment extends Fragment {
         navController = navHostFragment.getNavController();
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            if (destination.getId() == R.id.mealsByCategoryFragment ||destination.getId() == R.id.recipeDetailsFragment) {
+            if (destination.getId() == R.id.mealsByCategoryFragment ||destination.getId() == R.id.recipeDetailsFragment ||destination.getId() == R.id.filterResultsFragment) {
                 bottomNavigationView.setVisibility(View.GONE);
                 bottomAppBar.setVisibility(View.GONE);
                 bottomAppBar.performHide();
