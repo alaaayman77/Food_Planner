@@ -4,6 +4,7 @@ import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
 import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMeals;
 import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMealsResponse;
+import com.example.foodplanner.data.model.filtered_meals.IngredientFilteredMealsResponse;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
 import com.example.foodplanner.data.model.search.area.AreaResponse;
 import com.example.foodplanner.data.model.search.ingredients.IngredientsResponse;
@@ -24,6 +25,8 @@ public interface MealsService {
 
     @GET("filter.php")
     Call<AreaFilteredMealsResponse> getFilteredMealsByArea(@Query("a") String area);
+    @GET("filter.php")
+    Call<IngredientFilteredMealsResponse> getFilteredMealsByIngredient(@Query("i") String ingredient);
 
     @GET("list.php?i=list")
     Call<IngredientsResponse> getIngredients();

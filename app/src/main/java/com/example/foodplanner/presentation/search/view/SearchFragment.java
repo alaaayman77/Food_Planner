@@ -84,18 +84,17 @@ public class SearchFragment extends Fragment implements
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize views
         searchButton = view.findViewById(R.id.searchButton);
         categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView);
         ingredientsRecyclerView = view.findViewById(R.id.ingredientRecyclerView);
         areaChipGroup = view.findViewById(R.id.countryChipGroup);
         seeAllIngredients = view.findViewById(R.id.seeAllIngredients);
 
-        // Setup adapters
+
         searchCategoryAdapter = new SearchCategoryAdapter(requireContext(), this);
         searchIngredientsAdapter = new SearchIngredientsAdapter(requireContext(), this);
 
-        // Setup RecyclerViews
+
         categoryRecyclerView.setAdapter(searchCategoryAdapter);
 
         LinearLayoutManager ingredientsLayoutManager = new LinearLayoutManager(requireContext());
@@ -103,55 +102,48 @@ public class SearchFragment extends Fragment implements
         ingredientsRecyclerView.setAdapter(searchIngredientsAdapter);
         ingredientsRecyclerView.setNestedScrollingEnabled(false);
 
-        // Setup See More button click listener in adapter
+
         searchIngredientsAdapter.setOnSeeMoreClickListener(() -> loadMoreIngredients());
 
         countryChipAdapter = new CountryChipAdapter(requireContext(), areaChipGroup, this);
 
-        // Initialize presenters
+
         categoryPresenter = new CategoryPresenterImp(this);
         areaPresenter = new AreaPresenterImp(this);
         ingredientsPresenter = new IngredientsPresenterImp(this);
         multiFilterPresenter = new MultiFilterPresenterImp(this);
 
-        // Load data
+
         areaPresenter.getArea();
         categoryPresenter.getCategory();
         ingredientsPresenter.getIngredients();
 
-        // Setup click listeners
+
         searchButton.setOnClickListener(v -> performSearch());
     }
 
     @Override
     public void setIngredients(List<Ingredients> ingredientsList) {
-        // Store all ingredients in pagination manager
         ingredientsPaginationManager.setAllItems(ingredientsList);
-
-        // Clear existing items
         searchIngredientsAdapter.clearIngredients();
-
-        // Load first page
         loadMoreIngredients();
-
-        // Update counter
         updateIngredientsCounter();
     }
 
     private void loadMoreIngredients() {
-        // Get next page
+
         List<Ingredients> nextPage = ingredientsPaginationManager.getNextPage();
 
-        // Add items
+
         if (!nextPage.isEmpty()) {
             searchIngredientsAdapter.addIngredients(nextPage);
         }
 
-        // Update See More button visibility
+
         boolean hasMore = ingredientsPaginationManager.hasMorePages();
         searchIngredientsAdapter.setSeeMoreVisible(hasMore);
 
-        // Update counter
+
         updateIngredientsCounter();
     }
 
@@ -212,12 +204,13 @@ public class SearchFragment extends Fragment implements
 
     @Override
     public void onCountryChipClicked(Area area, boolean isSelected) {
-        // Optional feedback
+
     }
 
     private void performSearch() {
         List<Category> selectedCategories = searchCategoryAdapter.getSelectedCategories();
         List<Area> selectedAreas = countryChipAdapter.getSelectedAreas();
+        List<Ingredients> selectedIngredients = searchIngredientsAdapter.getSelectedIngredients();
 
         List<String> categoryNames = new ArrayList<>();
         for (Category category : selectedCategories) {
@@ -228,17 +221,22 @@ public class SearchFragment extends Fragment implements
         for (Area area : selectedAreas) {
             areaNames.add(area.getStrArea());
         }
+        List<String> ingredientNames = new ArrayList<>();
+        for (Ingredients ingredients : selectedIngredients) {
+            ingredientNames.add(ingredients.getIngredientName());
+        }
 
-        multiFilterPresenter.searchWithFilters(categoryNames, areaNames);
+
+        multiFilterPresenter.searchWithFilters(categoryNames, areaNames , ingredientNames);
     }
 
     @Override
     public void onCategoryClicked(Category category, boolean isSelected) {
-        // Optional feedback
+
     }
 
     @Override
     public void onIngredientClicked(Ingredients ingredient, boolean isSelected) {
-        // Optional feedback
+
     }
 }

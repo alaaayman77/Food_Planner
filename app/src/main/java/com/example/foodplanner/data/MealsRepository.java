@@ -3,6 +3,7 @@ package com.example.foodplanner.data;
 import com.example.foodplanner.data.datasource.AreaFilteredMealsNetworkResponse;
 import com.example.foodplanner.data.datasource.AreaNetworkResponse;
 import com.example.foodplanner.data.datasource.CategoryNetworkResponse;
+import com.example.foodplanner.data.datasource.IngredientFilteredMealsNetworkResponse;
 import com.example.foodplanner.data.datasource.IngredientsNetworkResponse;
 import com.example.foodplanner.data.datasource.MealNetworkResponse;
 import com.example.foodplanner.data.datasource.MealsByCategoryNetworkResponse;
@@ -35,6 +36,10 @@ public class MealsRepository {
 
     public void getIngredients(IngredientsNetworkResponse response){
         mealsRemoteDataSource.getIngredients(response);
+    }
+
+    public void getIngredientFilteredMeals(String ingredient, IngredientFilteredMealsNetworkResponse response){
+        mealsRemoteDataSource.getFilteredMealsByIngredient(ingredient,response);
     }
 }
 
