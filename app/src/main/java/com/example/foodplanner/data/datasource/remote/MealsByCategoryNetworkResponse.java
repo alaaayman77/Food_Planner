@@ -1,7 +1,6 @@
-package com.example.foodplanner.data.datasource;
+package com.example.foodplanner.data.datasource.remote;
 
 import com.example.foodplanner.data.model.category.MealsByCategory;
-import com.example.foodplanner.data.model.random_meals.RandomMeal;
 
 import java.util.List;
 

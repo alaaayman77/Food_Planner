@@ -70,7 +70,7 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         initializeViews(view);
         setupRecyclerViews();
 
-        recipeDetailsPresenter = new RecipeDetailsPresenterImp(this);
+        recipeDetailsPresenter = new RecipeDetailsPresenterImp(this, requireContext());
         recipeDetailsPresenter.getRecipeDetails(idMeal);
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override

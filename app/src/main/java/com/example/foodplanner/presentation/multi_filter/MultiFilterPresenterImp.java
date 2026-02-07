@@ -1,9 +1,11 @@
 package com.example.foodplanner.presentation.multi_filter;
 
+import android.content.Context;
+
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.AreaFilteredMealsNetworkResponse;
-import com.example.foodplanner.data.datasource.IngredientFilteredMealsNetworkResponse;
-import com.example.foodplanner.data.datasource.MealsByCategoryNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.AreaFilteredMealsNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.IngredientFilteredMealsNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.MealsByCategoryNetworkResponse;
 import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMeals;
 import com.example.foodplanner.data.model.filtered_meals.IngredientFilteredMeals;
@@ -24,9 +26,9 @@ import java.util.Set;
         private int completedRequests = 0;
         private int totalRequests = 0;
 
-        public MultiFilterPresenterImp(MultiFilterView multiFilterView) {
+        public MultiFilterPresenterImp(MultiFilterView multiFilterView, Context context) {
             this.multiFilterView = multiFilterView;
-            this.mealsRepository = new MealsRepository();
+            this.mealsRepository = new MealsRepository(context);
         }
 
 

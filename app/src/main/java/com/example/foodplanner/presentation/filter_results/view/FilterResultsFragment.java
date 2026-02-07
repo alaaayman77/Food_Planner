@@ -17,6 +17,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.filter_results.presenter.FilterResultsPresenterImp;
@@ -65,7 +66,7 @@ public class FilterResultsFragment extends Fragment implements FilterResultsView
         backBtn = view.findViewById(R.id.back_button);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new FilterResultsAdapter( this);
-        presenter = new FilterResultsPresenterImp(this);
+        presenter = new FilterResultsPresenterImp(this , requireContext());
 
         recyclerView.setAdapter(adapter);
         presenter.getFilteredRecipes(mealIds);
@@ -76,7 +77,9 @@ public class FilterResultsFragment extends Fragment implements FilterResultsView
 
     @Override
     public void showLoading() {
-        progressBar.setVisibility(View.VISIBLE);
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showLoading();
+        }
         recyclerView.setVisibility(View.GONE);
         emptyTextView.setVisibility(View.GONE);
     }
@@ -84,6 +87,9 @@ public class FilterResultsFragment extends Fragment implements FilterResultsView
     @Override
     public void hideLoading() {
         progressBar.setVisibility(View.GONE);
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideLoading();
+        }
     }
 
     @Override

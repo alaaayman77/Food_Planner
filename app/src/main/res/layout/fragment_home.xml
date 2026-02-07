@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-   android:fillViewport="true">
+    android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -124,6 +124,20 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <!-- ADD TO PLAN BUTTON (Calendar Icon) -->
+                <ImageView
+                    android:id="@+id/btnAddToPlan"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_margin="20dp"
+                    android:padding="12dp"
+                    android:src="@drawable/icon_calender"
+                    android:background="@drawable/calendar_button_bg"
+                    android:elevation="4dp"
+                    android:contentDescription="Add to meal plan"
+                    app:tint="@color/white"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
                     android:id="@+id/mealTitle"
@@ -148,7 +162,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
-
                     android:layout_marginBottom="@dimen/spacing_large"
                     android:background="@drawable/glass_tag_bg"
                     android:elevation="2dp"

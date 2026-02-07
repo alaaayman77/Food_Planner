@@ -26,6 +26,7 @@ import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.data.model.search.area.Area;
 import com.example.foodplanner.data.model.search.ingredients.Ingredients;
 
+import com.example.foodplanner.presentation.filter_results.view.FilterResultsFragmentDirections;
 import com.example.foodplanner.presentation.multi_filter.MultiFilterPresenter;
 import com.example.foodplanner.presentation.multi_filter.MultiFilterPresenterImp;
 import com.example.foodplanner.presentation.multi_filter.MultiFilterView;
@@ -94,7 +95,7 @@ public class SearchFragment extends Fragment implements
     private PaginationManager<Ingredients> ingredientsPaginationManager;
     private static final int INGREDIENTS_PAGE_SIZE = 15;
 
-    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -164,11 +165,11 @@ public class SearchFragment extends Fragment implements
         });
 
         // Setup presenters
-        categoryPresenter = new CategoryPresenterImp(this);
-        areaPresenter = new AreaPresenterImp(this);
-        ingredientsPresenter = new IngredientsPresenterImp(this);
-        multiFilterPresenter = new MultiFilterPresenterImp(this);
-        searchPresenter = new SearchPresenterImp(this);
+        categoryPresenter = new CategoryPresenterImp(this , requireContext());
+        areaPresenter = new AreaPresenterImp(this, requireContext());
+        ingredientsPresenter = new IngredientsPresenterImp(this , requireContext());
+        multiFilterPresenter = new MultiFilterPresenterImp(this , requireContext());
+        searchPresenter = new SearchPresenterImp(this , requireContext());
 
         // Load initial data
         areaPresenter.getArea();
@@ -377,12 +378,14 @@ public class SearchFragment extends Fragment implements
     @Override
     public void onMealClicked(MealsByCategory meal) {
         Toast.makeText(getContext(), "Clicked: " + meal.getMealName(), Toast.LENGTH_SHORT).show();
-
+        SearchFragmentDirections.ActionSearchFragmentToRecipeDetailsFragment action =
+                SearchFragmentDirections.actionSearchFragmentToRecipeDetailsFragment(meal.getMealId());
+        Navigation.findNavController(requireView()).navigate(action);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        compositeDisposable.clear();
+
     }
 }

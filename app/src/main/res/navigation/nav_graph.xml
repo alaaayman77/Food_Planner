@@ -33,7 +33,7 @@
 
     <fragment
         android:id="@+id/mealPlannerFragment"
-        android:name="com.example.foodplanner.presentation.mealplanner.MealPlannerFragment"
+        android:name="com.example.foodplanner.presentation.mealplanner.view.MealPlannerFragment"
         android:label="fragment_meal_planner"
         tools:layout="@layout/fragment_meal_planner" />
 

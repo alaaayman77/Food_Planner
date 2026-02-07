@@ -1,8 +1,10 @@
 package com.example.foodplanner.presentation.search.presenter.search;
 
+import android.content.Context;
+
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.CategoryNetworkResponse;
-import com.example.foodplanner.data.datasource.MealsByCategoryNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.CategoryNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.MealsByCategoryNetworkResponse;
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.presentation.search.view.SearchView;
@@ -19,9 +21,9 @@ public class SearchPresenterImp implements SearchPresenter {
     private int completedCategoryRequests = 0;
     private int totalCategories = 0;
 
-    public SearchPresenterImp(SearchView searchView) {
+    public SearchPresenterImp(SearchView searchView , Context context) {
         this.searchView = searchView;
-        this.mealsRepository = new MealsRepository();
+        this.mealsRepository = new MealsRepository(context);
     }
 
     @Override

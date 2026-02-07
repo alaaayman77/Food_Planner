@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/spacing_large"
+    android:background="@drawable/bottom_sheet_bg">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add to Meal Plan"
+        android:textSize="24sp"
+        android:fontFamily="@font/poppins_bold"
+        android:textColor="@color/primaryColor"
+        android:layout_marginBottom="@dimen/spacing_small" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose when you want to have this meal"
+        android:textSize="14sp"
+        android:fontFamily="@font/poppins"
+        android:textColor="@color/text_secondary"
+        android:layout_marginBottom="@dimen/spacing_large" />
+
+    <!-- Date Selection -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Date"
+        android:textSize="16sp"
+        android:fontFamily="@font/poppins_semibold"
+        android:textColor="@color/primaryColor"
+        android:layout_marginBottom="@dimen/spacing_small" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/spacing_large"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:strokeColor="@color/primaryColor"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_medium">
+
+            <TextView
+                android:id="@+id/tvSelectedDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Today"
+                android:textSize="16sp"
+                android:fontFamily="@font/poppins_semibold"
+                android:textColor="@color/primaryColor"
+                android:layout_marginBottom="@dimen/spacing_small" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSelectDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Change Date"
+                android:fontFamily="@font/poppins"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:strokeColor="@color/primaryColor"
+                android:textColor="@color/primaryColor"
+                app:icon="@drawable/icon_calender"
+                app:iconTint="@color/primaryColor" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Meal Type Selection -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Meal Type"
+        android:textSize="16sp"
+        android:fontFamily="@font/poppins_semibold"
+        android:textColor="@color/primaryColor"
+        android:layout_marginBottom="@dimen/spacing_small" />
+
+    <RadioGroup
+        android:id="@+id/mealTypeRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="@dimen/spacing_large">
+
+        <RadioButton
+            android:id="@+id/rbBreakfast"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Breakfast"
+            android:fontFamily="@font/poppins"
+            android:textSize="14sp"
+            android:paddingStart="@dimen/spacing_small"
+            android:buttonTint="@color/primaryColor" />
+
+        <RadioButton
+            android:id="@+id/rbLunch"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Lunch"
+            android:fontFamily="@font/poppins"
+            android:textSize="14sp"
+            android:paddingStart="@dimen/spacing_small"
+            android:buttonTint="@color/primaryColor" />
+
+        <RadioButton
+            android:id="@+id/rbDinner"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Dinner"
+            android:fontFamily="@font/poppins"
+            android:textSize="14sp"
+            android:paddingStart="@dimen/spacing_small"
+            android:buttonTint="@color/primaryColor" />
+
+    </RadioGroup>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:fontFamily="@font/poppins_semibold"
+            android:textColor="@color/primaryColor"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_marginEnd="@dimen/spacing_small" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add to Plan"
+            android:fontFamily="@font/poppins_semibold"
+            app:backgroundTint="@color/primaryColor"
+            android:textColor="@color/white" />
+
+    </LinearLayout>
+
+</LinearLayout>

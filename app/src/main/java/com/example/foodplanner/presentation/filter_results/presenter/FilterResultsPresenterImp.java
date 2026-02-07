@@ -1,7 +1,9 @@
 package com.example.foodplanner.presentation.filter_results.presenter;
 
+import android.content.Context;
+
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.RecipeDetailsNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.filter_results.view.FilterResultsView;
 
@@ -15,8 +17,8 @@ public class FilterResultsPresenterImp implements FilteredResultsPresenter {
     private int loadedCount = 0;
     private int totalCount = 0;
 
-    public FilterResultsPresenterImp(FilterResultsView filterResultsView) {
-        this.mealsRepository = new MealsRepository();
+    public FilterResultsPresenterImp(FilterResultsView filterResultsView , Context context) {
+        this.mealsRepository = new MealsRepository(context);
         this.filterResultsView = filterResultsView;
         this.mealDetailsList = new ArrayList<>();
     }

@@ -1,7 +1,9 @@
 package com.example.foodplanner.presentation.recipe_details.presenter;
 
+import android.content.Context;
+
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.RecipeDetailsNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.recipe_details.view.RecipeDetailsView;
 
@@ -12,8 +14,8 @@ public class RecipeDetailsPresenterImp implements RecipeDetailsPresenter {
 
     private MealsRepository mealsRepository;
 
-    public RecipeDetailsPresenterImp(RecipeDetailsView  recipeDetailsView ) {
-        this.mealsRepository = new MealsRepository();
+    public RecipeDetailsPresenterImp(RecipeDetailsView  recipeDetailsView, Context context) {
+        this.mealsRepository = new MealsRepository(context);
         this.recipeDetailsView = recipeDetailsView;
     }
 

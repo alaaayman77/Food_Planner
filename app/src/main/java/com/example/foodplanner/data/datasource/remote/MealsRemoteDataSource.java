@@ -1,4 +1,4 @@
-package com.example.foodplanner.data.datasource;
+package com.example.foodplanner.data.datasource.remote;
 
 import static android.content.ContentValues.TAG;
 

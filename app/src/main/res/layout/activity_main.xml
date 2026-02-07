@@ -37,10 +37,10 @@
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/loading_animation"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
             android:layout_gravity="center"
-            app:lottie_rawRes="@raw/food_loading_animation"
+            app:lottie_rawRes="@raw/pizza_loading"
             app:lottie_autoPlay="true"
             app:lottie_loop="true" />
 

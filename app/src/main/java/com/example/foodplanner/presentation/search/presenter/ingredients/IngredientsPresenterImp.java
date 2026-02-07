@@ -1,7 +1,9 @@
 package com.example.foodplanner.presentation.search.presenter.ingredients;
 
+import android.content.Context;
+
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.IngredientsNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.IngredientsNetworkResponse;
 import com.example.foodplanner.data.model.search.ingredients.Ingredients;
 import com.example.foodplanner.presentation.search.view.ingredients.IngredientsView;
 
@@ -11,9 +13,9 @@ public class IngredientsPresenterImp implements  IngredientsPresenter{
     private IngredientsView ingredientsView;
     private MealsRepository mealsRepository;
 
-    public IngredientsPresenterImp(IngredientsView ingredientsView ){
+    public IngredientsPresenterImp(IngredientsView ingredientsView, Context context ){
         this.ingredientsView = ingredientsView;
-        mealsRepository = new MealsRepository();
+        mealsRepository = new MealsRepository(context);
     }
 
     @Override

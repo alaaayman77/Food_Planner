@@ -1,7 +1,10 @@
 package com.example.foodplanner.presentation.search.presenter.category;
 
+import android.content.Context;
+
+import com.airbnb.lottie.animation.content.Content;
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.CategoryNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.CategoryNetworkResponse;
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.presentation.search.view.category.CategoryView;
 
@@ -11,9 +14,9 @@ public class CategoryPresenterImp implements CategoryPresenter{
     private CategoryView categoryView;
     private MealsRepository mealsRepository;
 
-    public CategoryPresenterImp(CategoryView categoryView ){
+    public CategoryPresenterImp(CategoryView categoryView , Context context){
         this.categoryView = categoryView;
-        mealsRepository = new MealsRepository();
+        mealsRepository = new MealsRepository(context);
     }
 
 

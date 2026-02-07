@@ -1,6 +1,5 @@
-package com.example.foodplanner.data.datasource;
+package com.example.foodplanner.data.datasource.remote;
 
-import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMeals;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 
 import java.util.List;

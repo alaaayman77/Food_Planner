@@ -10,4 +10,6 @@ public interface HomeView {
     public void showError(String errorMessage);
     public void displayMeal(RandomMeal meal);
     public void OnCategoryClickSuccess(Category category);
+    public void onMealPlanAddedSuccess();
+    public void onMealPlanAddedFailure(String error);
 }

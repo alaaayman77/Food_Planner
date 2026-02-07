@@ -29,4 +29,6 @@
     <string name="search">Search</string>
     <string name="ingredients">Ingredients</string>
     <string name="instructions">Instructions</string>
+    <string name="weekly_planner">Weekly Planner</string>
+    <string name="slogan_2">Munch your way through the week</string>
 </resources>

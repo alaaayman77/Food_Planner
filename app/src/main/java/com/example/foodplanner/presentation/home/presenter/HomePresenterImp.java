@@ -1,10 +1,12 @@
 package com.example.foodplanner.presentation.home.presenter;
 
+import android.content.Context;
+
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.CategoryNetworkResponse;
-import com.example.foodplanner.data.datasource.MealNetworkResponse;
-import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
+import com.example.foodplanner.data.datasource.remote.CategoryNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.MealNetworkResponse;
 import com.example.foodplanner.data.model.category.Category;
+import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
 import com.example.foodplanner.presentation.home.view.HomeView;
 
@@ -15,8 +17,8 @@ public class HomePresenterImp implements HomePresenter{
 
     private MealsRepository mealsRepository;
 
-    public HomePresenterImp(HomeView homeView ) {
-        this.mealsRepository = new MealsRepository();
+    public HomePresenterImp(HomeView homeView , Context context ) {
+        this.mealsRepository = new MealsRepository(context);
         this.homeView = homeView;
     }
 
@@ -72,6 +74,12 @@ public class HomePresenterImp implements HomePresenter{
     @Override
     public void onCategoryClick(Category category) {
         homeView.OnCategoryClickSuccess(category);
+    }
+
+    @Override
+    public void addMealToPlan(MealPlan mealPlan) {
+        mealsRepository.insertMealToMealPlan(mealPlan);
+        homeView.onMealPlanAddedSuccess();
     }
 
 

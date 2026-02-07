@@ -19,15 +19,11 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.foodplanner.R;
-import com.example.foodplanner.data.datasource.CategoryNetworkResponse;
-import com.example.foodplanner.data.datasource.MealNetworkResponse;
-import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
 import com.example.foodplanner.data.model.category.Category;
+import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
 import com.example.foodplanner.presentation.home.presenter.HomePresenter;
 import com.example.foodplanner.presentation.home.presenter.HomePresenterImp;
-import com.example.foodplanner.presentation.home.view.HomeFragmentDirections;
-import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryFragmentDirections;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
@@ -46,6 +42,7 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
 
     private RandomMeal currentMeal;
     private HomePresenter homePresenter;
+    private ImageView btnAddToPlan;
     private static final String TAG = "HomeFragment";
     public HomeFragment() {
         // Required empty public constructor
@@ -73,6 +70,7 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
         tag2 = view.findViewById(R.id.tag2);
         randomMealCard = view.findViewById(R.id.random_meal);
         categoriesRecyclerView = view.findViewById(R.id.categories_recycler_view);
+        btnAddToPlan = view.findViewById(R.id.btnAddToPlan);
         categoryList = new ArrayList<>();
         categoryAdapter = new CategoryAdapter(this);
         categoriesRecyclerView.setAdapter(categoryAdapter);
@@ -81,14 +79,39 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
                     HomeFragmentDirections.actionHomeFragmentToRecipeDetailsFragment(currentMeal.getMealId());
             Navigation.findNavController(requireView()).navigate(action);
         });
-        homePresenter = new HomePresenterImp(this);
+
+        btnAddToPlan.setOnClickListener(v -> {
+            if (currentMeal != null) {
+                showAddMealPlanDialog(currentMeal);
+            } else {
+                Toast.makeText(getContext(), "No meal available", Toast.LENGTH_SHORT).show();
+            }
+        });
+        homePresenter = new HomePresenterImp(this , requireContext());
         homePresenter.getRandomMeal();
         homePresenter.getCategory();
 
 
 
     }
-
+    private void showAddMealPlanDialog(RandomMeal meal) {
+        MealPlanBottomSheet bottomSheet = MealPlanBottomSheet.newInstance(meal.getMealId());
+        bottomSheet.setOnMealPlanSelectedListener((selectedMealId, day, mealType) -> {
+            // Create MealPlan with cached meal details
+            MealPlan mealPlan = new MealPlan(
+                    meal.getMealId(),
+                    mealType,
+                    day,
+                    meal.getMealName(),
+                    meal.getMealThumbnail(),
+                    meal.getMealCategory(),
+                    meal.getStrArea(),
+                    meal.getMealInstructions()
+            );
+            homePresenter.addMealToPlan(mealPlan);
+        });
+        bottomSheet.show(getParentFragmentManager(), "AddMealPlanBottomSheet");
+    }
 
     @Override
     public void setOnCategoryClick(Category category) {
@@ -153,5 +176,19 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
                 Toast.LENGTH_SHORT).show();
 
 
+    }
+
+    @Override
+    public void onMealPlanAddedSuccess() {
+        Toast.makeText(getContext(),
+                "Meal added to your plan! 📅",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onMealPlanAddedFailure(String error) {
+        Toast.makeText(getContext(),
+                "Failed to add meal: " + error,
+                Toast.LENGTH_SHORT).show();
     }
 }

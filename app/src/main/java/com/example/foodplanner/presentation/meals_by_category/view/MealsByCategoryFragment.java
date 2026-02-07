@@ -16,13 +16,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.foodplanner.R;
-import com.example.foodplanner.data.datasource.MealsByCategoryNetworkResponse;
-import com.example.foodplanner.data.datasource.MealsRemoteDataSource;
 import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByCategoryPresenter;
 import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByCategoryPresenterImp;
-import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryFragmentArgs;
-import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryFragmentDirections;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
@@ -87,7 +83,7 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
 
         mealByCategoryAdapter = new MealsByCategoryAdapter(this);
         mealByCategoriesRecyclerView.setAdapter(mealByCategoryAdapter);
-        mealsByCategoryPresenter = new MealsByCategoryPresenterImp(this);
+        mealsByCategoryPresenter = new MealsByCategoryPresenterImp(this,requireContext());
         mealsByCategoryPresenter.getMealsByCategory(category);
 
 
