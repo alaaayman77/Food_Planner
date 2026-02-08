@@ -1,13 +1,6 @@
 package com.example.foodplanner.presentation.meals_by_category.view;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -17,8 +10,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
+import com.example.foodplanner.data.MealsRepository;
+import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.presentation.mealplanner.view.MealPlanHelper;
 import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByCategoryPresenter;
@@ -26,27 +27,32 @@ import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByC
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+public class MealsByCategoryFragment extends Fragment implements OnMealByCategoryClick, MealsByCategoryView {
 
-public class MealsByCategoryFragment extends Fragment implements OnMealByCategoryClick , MealsByCategoryView {
     MaterialButton backButton;
     String category;
     private TextView category_tv;
     private TextView emptyStateTitle;
     private TextView emptyStateSubtitle;
-
     private RecyclerView mealByCategoriesRecyclerView;
     private MealsByCategoryAdapter mealByCategoryAdapter;
     private MealsByCategoryPresenter mealsByCategoryPresenter;
+    private MealsRepository mealsRepository;
 
     private List<MealsByCategory> allMealsList = new ArrayList<>();
     private List<MealsByCategory> filteredMealsList = new ArrayList<>();
+    private Set<String> favoriteMealIds = new HashSet<>();
 
     private EditText searchEditText;
+
     public MealsByCategoryFragment() {
         // Required empty public constructor
     }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,22 +60,23 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
             MealsByCategoryFragmentArgs args = MealsByCategoryFragmentArgs.fromBundle(getArguments());
             category = args.getCategory();
         }
-
+        mealsRepository = new MealsRepository(requireContext());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_category, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         category_tv = view.findViewById(R.id.categoryTitle_tv);
         category_tv.setText(category);
-         backButton = view.findViewById(R.id.back_button);
+
+        backButton = view.findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             Navigation.findNavController(v).navigateUp();
         });
@@ -79,15 +86,27 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
         mealByCategoryAdapter = new MealsByCategoryAdapter(this);
         emptyStateTitle = view.findViewById(R.id.emptyStateTitle);
         emptyStateSubtitle = view.findViewById(R.id.emptyStateSubtitle);
+
         mealByCategoriesRecyclerView.setAdapter(mealByCategoryAdapter);
-        mealsByCategoryPresenter = new MealsByCategoryPresenterImp(this,requireContext());
+        mealsByCategoryPresenter = new MealsByCategoryPresenterImp(this, requireContext());
         mealsByCategoryPresenter.getMealsByCategory(category);
         mealByCategoryAdapter.setOnMealActionListener(this);
         searchEditText.setHint("Search " + category.toLowerCase() + "...");
 
         setupSearchFunctionality();
+        loadFavorites();
+    }
 
-
+    private void loadFavorites() {
+        mealsRepository.getAllFav().observe(getViewLifecycleOwner(), favorites -> {
+            favoriteMealIds.clear();
+            if (favorites != null) {
+                for (FavoriteMeal favorite : favorites) {
+                    favoriteMealIds.add(favorite.getMealId());
+                }
+            }
+            mealByCategoryAdapter.setFavoriteMealIds(favoriteMealIds);
+        });
     }
 
     @Override
@@ -101,21 +120,22 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
         hideLoading();
         updateUI();
     }
-   @Override
+
+    @Override
     public void showError(String message) {
-       hideLoading();
+        hideLoading();
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-       mealByCategoriesRecyclerView.setVisibility(View.GONE);
-       emptyStateTitle.setVisibility(View.VISIBLE);
-       emptyStateSubtitle.setVisibility(View.VISIBLE);
-       emptyStateTitle.setText("Error loading meals");
-       emptyStateSubtitle.setText(message);
+        mealByCategoriesRecyclerView.setVisibility(View.GONE);
+        emptyStateTitle.setVisibility(View.VISIBLE);
+        emptyStateSubtitle.setVisibility(View.VISIBLE);
+        emptyStateTitle.setText("Error loading meals");
+        emptyStateSubtitle.setText(message);
     }
+
     private void setupSearchFunctionality() {
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
@@ -125,15 +145,14 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
 
             @Override
             public void afterTextChanged(Editable s) {
-
             }
         });
     }
+
     private void filterMeals(String query) {
         filteredMealsList.clear();
 
         if (query.isEmpty()) {
-
             filteredMealsList.addAll(allMealsList);
         } else {
             String lowerCaseQuery = query.toLowerCase().trim();
@@ -150,7 +169,6 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
 
     private void updateUI() {
         if (filteredMealsList.isEmpty()) {
-
             mealByCategoriesRecyclerView.setVisibility(View.GONE);
             emptyStateTitle.setVisibility(View.VISIBLE);
             emptyStateSubtitle.setVisibility(View.VISIBLE);
@@ -163,16 +181,12 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
                 emptyStateSubtitle.setText("Try a different search term");
             }
         } else {
-
             mealByCategoriesRecyclerView.setVisibility(View.VISIBLE);
             emptyStateTitle.setVisibility(View.GONE);
             emptyStateSubtitle.setVisibility(View.GONE);
             mealByCategoryAdapter.setMeals(filteredMealsList);
         }
     }
-
-
-
 
     @Override
     public void showLoading() {
@@ -206,13 +220,25 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
     }
 
     @Override
+    public void onFavAddedSuccess() {
+        Toast.makeText(getContext(),
+                "Added to favorites! ❤️",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onFavAddedFailure(String error) {
+        Toast.makeText(getContext(),
+                "Failed to add to favorites: " + error,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     public void setOnMealClick(MealsByCategory meal) {
         MealsByCategoryFragmentDirections.ActionMealsByCategoryFragmentToRecipeDetailsFragment action =
                 MealsByCategoryFragmentDirections.actionMealsByCategoryFragmentToRecipeDetailsFragment(meal.getMealId());
         Navigation.findNavController(requireView()).navigate(action);
     }
-
-
 
     @Override
     public void onAddToPlanClick(MealsByCategory meal) {
@@ -229,6 +255,15 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
 
     @Override
     public void onFavoriteClick(MealsByCategory meal) {
+        boolean isFavorite = favoriteMealIds.contains(meal.getMealId());
 
+        if (isFavorite) {
+            // Remove from favorites
+            mealsByCategoryPresenter.removeFromFav(meal.getMealId());
+            Toast.makeText(getContext(), "Removed from favorites", Toast.LENGTH_SHORT).show();
+        } else {
+            // Fetch full recipe details and add to favorites
+            mealsByCategoryPresenter.fetchRecipeDetailsAndAddToFavorites(meal.getMealId());
+        }
     }
 }

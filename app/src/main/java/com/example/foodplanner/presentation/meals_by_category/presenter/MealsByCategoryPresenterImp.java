@@ -6,15 +6,19 @@ import android.util.Log;
 import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.MealsByCategoryNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
+import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
+import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryView;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
 
 public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
+
     private MealsByCategoryView mealsByCategoryView;
     private MealsRepository mealsRepository;
     private FirebaseAuth mAuth;
@@ -28,7 +32,6 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
 
     @Override
     public void getMealsByCategory(String category) {
-
         mealsByCategoryView.showLoading();
 
         mealsRepository.getMealsByCategory(category, new MealsByCategoryNetworkResponse() {
@@ -58,12 +61,50 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
     public void addMealToPlan(MealPlan mealPlan) {
         mealsRepository.insertMealToMealPlan(mealPlan);
         mealsByCategoryView.onMealPlanAddedSuccess();
+
         if (mAuth.getCurrentUser() != null) {
             saveMealPlanToFirestore(mealPlan);
-        } else {
-            //guest mode
         }
     }
+
+    @Override
+    public void addToFav(FavoriteMeal favoriteMeal) {
+        mealsRepository.addtoFav(favoriteMeal);
+        mealsByCategoryView.onFavAddedSuccess();
+    }
+
+    @Override
+    public void removeFromFav(String mealId) {
+        mealsRepository.deleteFav(mealId);
+
+    }
+
+    @Override
+    public void fetchRecipeDetailsAndAddToFavorites(String mealId) {
+        mealsRepository.getRecipeDetails(mealId, new RecipeDetailsNetworkResponse() {
+            @Override
+            public void onSuccess(List<RecipeDetails> recipeDetailsList) {
+                if (recipeDetailsList != null && !recipeDetailsList.isEmpty()) {
+                    RecipeDetails recipe = recipeDetailsList.get(0);
+                    FavoriteMeal favoriteMeal = FavoriteMeal.fromRecipeDetails(recipe);
+                    addToFav(favoriteMeal);
+                } else {
+                    mealsByCategoryView.onFavAddedFailure("Could not fetch recipe details");
+                }
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                mealsByCategoryView.onFavAddedFailure(errorMessage);
+            }
+
+            @Override
+            public void onServerError(String errorMessage) {
+                mealsByCategoryView.onFavAddedFailure(errorMessage);
+            }
+        });
+    }
+
     private void saveMealPlanToFirestore(MealPlan mealPlan) {
         MealPlanFirestore firestorePlan = MealPlanFirestore.fromMealPlan(mealPlan);
 
@@ -71,17 +112,14 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
             @Override
             public void onSaveSuccess() {
                 Log.d(TAG, "Meal plan synced to Firestore");
-                mealsByCategoryView.onMealPlanAddedSuccess();
             }
 
             @Override
             public void onFetchSuccess(List<MealPlanFirestore> mealPlans) {
-
             }
 
             @Override
             public void onDeleteSuccess() {
-
             }
 
             @Override

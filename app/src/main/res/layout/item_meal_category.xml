@@ -28,7 +28,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-          />
+            />
 
 
         <View
@@ -78,8 +78,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                android:src="@drawable/icon_heart"
-                app:tint="@color/primaryColor" />
+                android:src="@drawable/icon_heart" />
 
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView

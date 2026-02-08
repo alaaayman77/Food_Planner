@@ -5,15 +5,18 @@ import android.content.Context;
 import androidx.lifecycle.LiveData;
 
 import com.example.foodplanner.data.db.AppDatabase;
+import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 
 import java.util.List;
 
 
-public class MealPlanLocalDataSource {
+public class MealLocalDataSource {
     MealPlanDao mealPlanDao;
-    public MealPlanLocalDataSource(Context context){
+    FavoriteDao favoriteDao;
+    public MealLocalDataSource(Context context){
         this.mealPlanDao = AppDatabase.getInstance(context).MealPlanDao();
+        this.favoriteDao = AppDatabase.getInstance(context).FavoriteDao();
     }
     public void insertMealPlan(MealPlan mealPlan){
         new Thread(new Runnable() {
@@ -47,5 +50,27 @@ public class MealPlanLocalDataSource {
                 mealPlanDao.deleteMealPlanById(mealPlanId);
             }
         }).start();
+    }
+
+    public void addToFav(FavoriteMeal favoriteMeal){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                favoriteDao.addToFav(favoriteMeal);
+            }
+        }).start();
+    }
+
+    public void deleteFavByMealId(String mealId) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                favoriteDao.deleteFavByMealId(mealId);
+            }
+        }).start();
+    }
+
+    public LiveData<List<FavoriteMeal>> getAllFavorites(){
+        return favoriteDao.getAllFavorites();
     }
 }

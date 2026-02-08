@@ -12,4 +12,6 @@ public interface MealsByCategoryView {
     public void onMealPlanAddedSuccess();
 
     public void onMealPlanAddedFailure(String error);
+    public void onFavAddedSuccess();
+    public void onFavAddedFailure(String error);
 }

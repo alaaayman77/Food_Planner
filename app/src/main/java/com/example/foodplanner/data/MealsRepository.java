@@ -4,7 +4,7 @@ import android.content.Context;
 
 import androidx.lifecycle.LiveData;
 
-import com.example.foodplanner.data.datasource.local.MealPlanLocalDataSource;
+import com.example.foodplanner.data.datasource.local.MealLocalDataSource;
 import com.example.foodplanner.data.datasource.remote.AreaFilteredMealsNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.AreaNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.CategoryNetworkResponse;
@@ -16,6 +16,7 @@ import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkRe
 import com.example.foodplanner.data.datasource.remote.MealsByCategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.MealsRemoteDataSource;
 import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
+import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,13 +26,13 @@ import java.util.List;
 public class MealsRepository {
 
     private MealsRemoteDataSource mealsRemoteDataSource;
-    private MealPlanLocalDataSource mealPlanLocalDataSource;
+    private MealLocalDataSource mealLocalDataSource;
     private MealPlanFirestoreDatasource mealPlanFirestoreDatasource;
     private FirebaseAuth mAuth;
     public MealsRepository(Context context){
 
         mealsRemoteDataSource = new MealsRemoteDataSource();
-        mealPlanLocalDataSource = new MealPlanLocalDataSource(context);
+        mealLocalDataSource = new MealLocalDataSource(context);
         mealPlanFirestoreDatasource = new MealPlanFirestoreDatasource();
         mAuth = FirebaseAuth.getInstance();
     }
@@ -67,24 +68,24 @@ public class MealsRepository {
     }
 
     public void insertMealToMealPlan(MealPlan mealPlan){
-        mealPlanLocalDataSource.insertMealPlan(mealPlan);
+        mealLocalDataSource.insertMealPlan(mealPlan);
     }
 
 
     public LiveData<List<MealPlan>> getAllMealPlans(){
-        return mealPlanLocalDataSource.getAllMealPlans();
+        return mealLocalDataSource.getAllMealPlans();
     }
 
     public LiveData<List<MealPlan>> getMealPlansByDay(String day){
-        return  mealPlanLocalDataSource.getMealPlansByDay(day);
+        return  mealLocalDataSource.getMealPlansByDay(day);
     }
 
 
     public void deleteAllMealPlans(){
-        mealPlanLocalDataSource.deleteAllMealPlans();
+        mealLocalDataSource.deleteAllMealPlans();
     }
     public void deleteMealPlanById(int mealPlanId) {
-        mealPlanLocalDataSource.deleteMealPlanById(mealPlanId);
+        mealLocalDataSource.deleteMealPlanById(mealPlanId);
     }
 
     public void saveMealPlanToFirestore(MealPlanFirestore mealPlan, MealPlanFirestoreNetworkResponse callback) {
@@ -102,5 +103,15 @@ public class MealsRepository {
     public void deleteAllMealPlansFromFirestore(MealPlanFirestoreNetworkResponse callback) {
         mealPlanFirestoreDatasource.deleteAllMealPlans(callback);
     }
+    public void addtoFav(FavoriteMeal favoriteMeal){
+        mealLocalDataSource.addToFav(favoriteMeal);
+    }
+    public LiveData<List<FavoriteMeal>> getAllFav(){
+        return mealLocalDataSource.getAllFavorites();
+    }
+    public void deleteFav(String mealId) {
+        mealLocalDataSource.deleteFavByMealId(mealId);
+    }
+
 }
 
