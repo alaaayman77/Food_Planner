@@ -8,15 +8,19 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.category.MealsByCategory;
+import com.example.foodplanner.presentation.mealplanner.view.MealPlanHelper;
 import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByCategoryPresenter;
 import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByCategoryPresenterImp;
 import com.google.android.material.button.MaterialButton;
@@ -29,24 +33,20 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
     MaterialButton backButton;
     String category;
     private TextView category_tv;
-    private ImageView mealImage;
-    private TextView mealTitle;
-    private TextView tag1;
-    private  TextView tag2;
+    private TextView emptyStateTitle;
+    private TextView emptyStateSubtitle;
 
     private RecyclerView mealByCategoriesRecyclerView;
     private MealsByCategoryAdapter mealByCategoryAdapter;
     private MealsByCategoryPresenter mealsByCategoryPresenter;
-    private List<MealsByCategory> mealsByCategoryList;
 
+    private List<MealsByCategory> allMealsList = new ArrayList<>();
+    private List<MealsByCategory> filteredMealsList = new ArrayList<>();
 
+    private EditText searchEditText;
     public MealsByCategoryFragment() {
         // Required empty public constructor
     }
-
-
-
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,17 +74,18 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
             Navigation.findNavController(v).navigateUp();
         });
 
-        mealImage = view.findViewById(R.id.mealImage_category);
-        mealTitle = view.findViewById(R.id.mealFab);
-
         mealByCategoriesRecyclerView = view.findViewById(R.id.mealByCategoryRecyclerView);
-
-        mealsByCategoryList = new ArrayList<>();
-
+        searchEditText = view.findViewById(R.id.searchEditText);
         mealByCategoryAdapter = new MealsByCategoryAdapter(this);
+        emptyStateTitle = view.findViewById(R.id.emptyStateTitle);
+        emptyStateSubtitle = view.findViewById(R.id.emptyStateSubtitle);
         mealByCategoriesRecyclerView.setAdapter(mealByCategoryAdapter);
         mealsByCategoryPresenter = new MealsByCategoryPresenterImp(this,requireContext());
         mealsByCategoryPresenter.getMealsByCategory(category);
+        mealByCategoryAdapter.setOnMealActionListener(this);
+        searchEditText.setHint("Search " + category.toLowerCase() + "...");
+
+        setupSearchFunctionality();
 
 
     }
@@ -92,17 +93,142 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
     @Override
     public void setMealByCategoryList(List<MealsByCategory> mealsByCategoryList) {
         mealByCategoryAdapter.setMeals(mealsByCategoryList);
+        allMealsList.clear();
+        allMealsList.addAll(mealsByCategoryList);
+
+        filteredMealsList.clear();
+        filteredMealsList.addAll(mealsByCategoryList);
+        hideLoading();
+        updateUI();
     }
    @Override
     public void showError(String message) {
+       hideLoading();
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+       mealByCategoriesRecyclerView.setVisibility(View.GONE);
+       emptyStateTitle.setVisibility(View.VISIBLE);
+       emptyStateSubtitle.setVisibility(View.VISIBLE);
+       emptyStateTitle.setText("Error loading meals");
+       emptyStateSubtitle.setText(message);
+    }
+    private void setupSearchFunctionality() {
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterMeals(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+    }
+    private void filterMeals(String query) {
+        filteredMealsList.clear();
+
+        if (query.isEmpty()) {
+
+            filteredMealsList.addAll(allMealsList);
+        } else {
+            String lowerCaseQuery = query.toLowerCase().trim();
+            for (MealsByCategory meal : allMealsList) {
+                if (meal.getMealName() != null &&
+                        meal.getMealName().toLowerCase().contains(lowerCaseQuery)) {
+                    filteredMealsList.add(meal);
+                }
+            }
+        }
+
+        updateUI();
+    }
+
+    private void updateUI() {
+        if (filteredMealsList.isEmpty()) {
+
+            mealByCategoriesRecyclerView.setVisibility(View.GONE);
+            emptyStateTitle.setVisibility(View.VISIBLE);
+            emptyStateSubtitle.setVisibility(View.VISIBLE);
+
+            if (searchEditText.getText().toString().trim().isEmpty()) {
+                emptyStateTitle.setText("No meals found");
+                emptyStateSubtitle.setText("This category has no meals");
+            } else {
+                emptyStateTitle.setText("No results found");
+                emptyStateSubtitle.setText("Try a different search term");
+            }
+        } else {
+
+            mealByCategoriesRecyclerView.setVisibility(View.VISIBLE);
+            emptyStateTitle.setVisibility(View.GONE);
+            emptyStateSubtitle.setVisibility(View.GONE);
+            mealByCategoryAdapter.setMeals(filteredMealsList);
+        }
     }
 
 
+
+
     @Override
-    public void setOnMealByCategoryClick(MealsByCategory meal) {
+    public void showLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showLoading();
+        }
+        mealByCategoriesRecyclerView.setVisibility(View.GONE);
+        emptyStateTitle.setVisibility(View.GONE);
+        emptyStateSubtitle.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void hideLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideLoading();
+        }
+    }
+
+    @Override
+    public void onMealPlanAddedSuccess() {
+        Toast.makeText(getContext(),
+                "Meal added to your plan! 📅",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onMealPlanAddedFailure(String error) {
+        Toast.makeText(getContext(),
+                "Failed to add meal: " + error,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void setOnMealClick(MealsByCategory meal) {
         MealsByCategoryFragmentDirections.ActionMealsByCategoryFragmentToRecipeDetailsFragment action =
                 MealsByCategoryFragmentDirections.actionMealsByCategoryFragmentToRecipeDetailsFragment(meal.getMealId());
         Navigation.findNavController(requireView()).navigate(action);
+    }
+
+
+
+    @Override
+    public void onAddToPlanClick(MealsByCategory meal) {
+        MealPlanHelper.showAddMealPlanDialog(
+                getParentFragmentManager(),
+                meal.getMealId(),
+                meal.getMealName(),
+                meal.getMealThumbnail(),
+                mealPlan -> {
+                    mealsByCategoryPresenter.addMealToPlan(mealPlan);
+                }
+        );
+    }
+
+    @Override
+    public void onFavoriteClick(MealsByCategory meal) {
+
     }
 }

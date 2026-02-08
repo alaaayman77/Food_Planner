@@ -10,5 +10,15 @@ public interface MealPlannerView {
     void hideBreakfastMeal();
     void hideLunchMeal();
     void hideDinnerMeal();
+    void showBreakfastMeals(List<MealPlan> breakfastMeals);
+    void showLunchMeals(List<MealPlan> lunchMeals);
+    void showDinnerMeals(List<MealPlan> dinnerMeals);
+
     void showError(String message);
+    void showLoading();
+    void hideLoading();
+    void onMealPlanDeletedSuccess();
+    void onMealPlanDeletedFailure(String errorMessage);
+    void onSyncSuccess();
+
 }

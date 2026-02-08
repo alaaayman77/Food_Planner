@@ -8,11 +8,11 @@ import androidx.room.PrimaryKey;
         private int id;
 
         private String mealId;
-        private String mealType; // "BREAKFAST", "LUNCH", "DINNER"
-        private String dayOfWeek; // "MONDAY", "TUESDAY", etc.
+        private String mealType;
+        private String dayOfWeek;
         private long timestamp;
 
-        // Cached meal details to avoid network calls
+
         private String mealName;
         private String mealThumbnail;
         private String mealCategory;
@@ -36,7 +36,7 @@ import androidx.room.PrimaryKey;
             this.timestamp = System.currentTimeMillis();
         }
 
-        // Getters and Setters
+
         public int getId() {
             return id;
         }

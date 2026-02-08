@@ -11,10 +11,14 @@ import com.example.foodplanner.data.datasource.remote.CategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.IngredientFilteredMealsNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.IngredientsNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.MealNetworkResponse;
+import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreDatasource;
+import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.MealsByCategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.MealsRemoteDataSource;
 import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
+import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
 
@@ -22,10 +26,14 @@ public class MealsRepository {
 
     private MealsRemoteDataSource mealsRemoteDataSource;
     private MealPlanLocalDataSource mealPlanLocalDataSource;
+    private MealPlanFirestoreDatasource mealPlanFirestoreDatasource;
+    private FirebaseAuth mAuth;
     public MealsRepository(Context context){
 
         mealsRemoteDataSource = new MealsRemoteDataSource();
         mealPlanLocalDataSource = new MealPlanLocalDataSource(context);
+        mealPlanFirestoreDatasource = new MealPlanFirestoreDatasource();
+        mAuth = FirebaseAuth.getInstance();
     }
     public void getRandomMeal(MealNetworkResponse response) {
         mealsRemoteDataSource.getRandomMeal(response);
@@ -77,6 +85,22 @@ public class MealsRepository {
     }
     public void deleteMealPlanById(int mealPlanId) {
         mealPlanLocalDataSource.deleteMealPlanById(mealPlanId);
+    }
+
+    public void saveMealPlanToFirestore(MealPlanFirestore mealPlan, MealPlanFirestoreNetworkResponse callback) {
+        mealPlanFirestoreDatasource.saveMealPlan(mealPlan, callback);
+    }
+
+    public void getAllMealPlansFromFirestore(MealPlanFirestoreNetworkResponse callback) {
+        mealPlanFirestoreDatasource.getAllMealPlans(callback);
+    }
+
+    public void deleteMealPlanFromFirestore(String mealId, String dayOfWeek, String mealType, MealPlanFirestoreNetworkResponse callback) {
+        mealPlanFirestoreDatasource.deleteMealPlan(mealId, dayOfWeek, mealType, callback);
+    }
+
+    public void deleteAllMealPlansFromFirestore(MealPlanFirestoreNetworkResponse callback) {
+        mealPlanFirestoreDatasource.deleteAllMealPlans(callback);
     }
 }
 

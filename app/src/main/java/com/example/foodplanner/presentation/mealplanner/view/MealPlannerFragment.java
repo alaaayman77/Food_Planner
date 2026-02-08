@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,11 +18,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
-
 import com.example.foodplanner.data.model.meal_plan.DateItem;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
-
 import com.example.foodplanner.presentation.mealplanner.presenter.MealPlannerPresenter;
 import com.example.foodplanner.presentation.mealplanner.presenter.MealPlannerPresenterImp;
 
@@ -40,17 +40,18 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
     private TextView tvCurrentDate;
     private TextView tvEmptyState;
     private ImageView btnCalendarPicker;
-    //breakfast
+
+    // Breakfast
     private LinearLayout breakfastSection;
     private RecyclerView rvBreakfast;
     private MealItemAdapter breakfastAdapter;
 
-    // lunch
+    // Lunch
     private LinearLayout lunchSection;
     private RecyclerView rvLunch;
     private MealItemAdapter lunchAdapter;
 
-    // dinner
+    // Dinner
     private LinearLayout dinnerSection;
     private RecyclerView rvDinner;
     private MealItemAdapter dinnerAdapter;
@@ -105,7 +106,7 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
     }
 
     private void setupPresenter() {
-        presenter = new MealPlannerPresenterImp(this, requireContext(), getViewLifecycleOwner());
+        presenter = new MealPlannerPresenterImp(this, requireContext(),getViewLifecycleOwner());
     }
 
     private void setupAdapters() {
@@ -114,12 +115,10 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
         rvBreakfast.setNestedScrollingEnabled(false);
         rvBreakfast.setAdapter(breakfastAdapter);
 
-
         lunchAdapter = new MealItemAdapter(this);
         rvLunch.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvLunch.setNestedScrollingEnabled(false);
         rvLunch.setAdapter(lunchAdapter);
-
 
         dinnerAdapter = new MealItemAdapter(this);
         rvDinner.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -144,14 +143,11 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
     }
 
     private void showDatePickerDialog() {
-        Calendar today = Calendar.getInstance();
-
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 requireContext(),
                 (view, year, month, dayOfMonth) -> {
                     Calendar selected = Calendar.getInstance();
                     selected.set(year, month, dayOfMonth);
-
                     jumpToDate(selected);
                 },
                 currentSelectedCalendar.get(Calendar.YEAR),
@@ -167,6 +163,7 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
         Calendar lastDate = dateItemList.get(dateItemList.size() - 1).getCalendar();
 
         if (isDateInRange(targetDate, firstDate, lastDate)) {
+            // Date is within current range - just select it
             for (int i = 0; i < dateItemList.size(); i++) {
                 if (isSameDay(dateItemList.get(i).getCalendar(), targetDate)) {
                     dateSelectorAdapter.setSelectedPosition(i);
@@ -176,6 +173,7 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
                 }
             }
         } else {
+            // Date is outside current range - regenerate dates
             dateItemList = generateDatesFromDate(targetDate);
             dateSelectorAdapter.setDates(dateItemList);
             dateSelectorAdapter.setSelectedPosition(0);
@@ -309,6 +307,8 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
         presenter.loadMealPlansForDay(currentSelectedDay);
     }
 
+    // ============ MealPlannerView Implementation ============
+
     @Override
     public void displayMealPlans(List<MealPlan> mealPlans) {
         if (breakfastSection.getVisibility() == View.GONE &&
@@ -320,8 +320,7 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
         }
     }
 
-
-
+    @Override
     public void showBreakfastMeals(List<MealPlan> meals) {
         if (meals != null && !meals.isEmpty()) {
             breakfastSection.setVisibility(View.VISIBLE);
@@ -332,8 +331,7 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
         }
     }
 
-
-
+    @Override
     public void showLunchMeals(List<MealPlan> meals) {
         if (meals != null && !meals.isEmpty()) {
             lunchSection.setVisibility(View.VISIBLE);
@@ -344,8 +342,7 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
         }
     }
 
-
-
+    @Override
     public void showDinnerMeals(List<MealPlan> meals) {
         if (meals != null && !meals.isEmpty()) {
             dinnerSection.setVisibility(View.VISIBLE);
@@ -393,6 +390,45 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
     }
 
     @Override
+    public void showLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showLoading();
+        }
+    }
+
+    @Override
+    public void hideLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideLoading();
+        }
+    }
+
+    @Override
+    public void onMealPlanDeletedSuccess() {
+        Toast.makeText(requireContext(), "Meal removed ✓", Toast.LENGTH_SHORT).show();
+        // Reload meals for current day to refresh the UI
+        presenter.loadMealPlansForDay(currentSelectedDay);
+    }
+
+    @Override
+    public void onMealPlanDeletedFailure(String errorMessage) {
+        Toast.makeText(requireContext(),
+                "Failed to remove meal: " + errorMessage,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onSyncSuccess() {
+        Toast.makeText(requireContext(),
+                "Meal plans synced successfully!",
+                Toast.LENGTH_SHORT).show();
+        // Reload current day's meals after sync
+        presenter.loadMealPlansForDay(currentSelectedDay);
+    }
+
+    // ============ MealItemAdapter.OnMealItemClickListener Implementation ============
+
+    @Override
     public void onMealClick(MealPlan mealPlan) {
         navigateToRecipeDetails(mealPlan.getMealId());
     }
@@ -407,15 +443,24 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
                 .setTitle("Remove Meal")
                 .setMessage("Do you want to remove " + mealPlan.getMealName() + " from your plan?")
                 .setPositiveButton("Remove", (dialog, which) -> {
-                    // Delete by unique ID instead of day and type
-                    presenter.deleteMealPlanById(mealPlan.getId());
-                    Toast.makeText(requireContext(), "Meal removed ✓", Toast.LENGTH_SHORT).show();
+                    presenter.deleteMealPlanById(mealPlan);
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
     private void navigateToRecipeDetails(String mealId) {
-        Toast.makeText(requireContext(), "Opening recipe details for: " + mealId, Toast.LENGTH_SHORT).show();
+        // Navigate to recipe details using Navigation component
+        // Assuming you have a navigation action setup
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload meals when returning to this fragment
+        if (currentSelectedDay != null) {
+            presenter.loadMealPlansForDay(currentSelectedDay);
+        }
     }
 }

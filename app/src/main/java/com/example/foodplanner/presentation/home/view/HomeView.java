@@ -11,5 +11,7 @@ public interface HomeView {
     public void displayMeal(RandomMeal meal);
     public void OnCategoryClickSuccess(Category category);
     public void onMealPlanAddedSuccess();
+    public void showLoading();
+    public void hideLoading();
     public void onMealPlanAddedFailure(String error);
 }

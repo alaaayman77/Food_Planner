@@ -61,13 +61,12 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:text="Avocado Taco Salad" />
-
-
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/favoriteCard"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="8dp"
+            android:layout_marginEnd="@dimen/spacing_very_large"
             app:cardBackgroundColor="#80FFFFFF"
             app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
@@ -79,8 +78,30 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                android:src="@drawable/icon_email"
+                android:src="@drawable/icon_heart"
                 app:tint="@color/primaryColor" />
+
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/mealPlanCard"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_margin="8dp"
+            android:layout_marginEnd="@dimen/spacing_very_large"
+            app:cardBackgroundColor="#80FFFFFF"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:layout_constraintEnd_toStartOf="@id/favoriteCard"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/mealPlanIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/icon_calender"
+                app:tint="@color/primaryColor" />
+
         </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

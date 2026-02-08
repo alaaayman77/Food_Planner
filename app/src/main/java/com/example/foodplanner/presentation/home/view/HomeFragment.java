@@ -1,6 +1,9 @@
 
 package com.example.foodplanner.presentation.home.view;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -18,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
@@ -43,6 +47,9 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
     private RandomMeal currentMeal;
     private HomePresenter homePresenter;
     private ImageView btnAddToPlan;
+    private TextView categoriesHeader;
+    private TextView categoriesSubtitle;
+
     private static final String TAG = "HomeFragment";
     public HomeFragment() {
         // Required empty public constructor
@@ -71,6 +78,8 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
         randomMealCard = view.findViewById(R.id.random_meal);
         categoriesRecyclerView = view.findViewById(R.id.categories_recycler_view);
         btnAddToPlan = view.findViewById(R.id.btnAddToPlan);
+        categoriesHeader= view.findViewById(R.id.categoriesHeader);
+        categoriesSubtitle = view.findViewById(R.id.categoriesSubtitle);
         categoryList = new ArrayList<>();
         categoryAdapter = new CategoryAdapter(this);
         categoriesRecyclerView.setAdapter(categoryAdapter);
@@ -141,17 +150,17 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
 
         if (meal.getMealCategory() != null) {
             tag1.setText(meal.getMealCategory().toUpperCase());
-            tag1.setVisibility(View.VISIBLE);
+            tag1.setVisibility(VISIBLE);
         } else {
-            tag1.setVisibility(View.GONE);
+            tag1.setVisibility(GONE);
         }
 
 
         if (meal.getStrArea() != null) {
             tag2.setText(meal.getStrArea().toUpperCase());
-            tag2.setVisibility(View.VISIBLE);
+            tag2.setVisibility(VISIBLE);
         } else {
-            tag2.setVisibility(View.GONE);
+            tag2.setVisibility(GONE);
         }
 
 
@@ -183,6 +192,28 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
         Toast.makeText(getContext(),
                 "Meal added to your plan! 📅",
                 Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void showLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showLoading();
+        }
+        randomMealCard.setVisibility(GONE);
+        categoriesHeader.setVisibility(GONE);
+        categoriesSubtitle.setVisibility(GONE);
+        categoriesRecyclerView.setVisibility(GONE);
+    }
+
+    @Override
+    public void hideLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideLoading();
+        }
+        randomMealCard.setVisibility(VISIBLE);
+        categoriesHeader.setVisibility(VISIBLE);
+        categoriesSubtitle.setVisibility(VISIBLE);
+        categoriesRecyclerView.setVisibility(VISIBLE);
     }
 
     @Override

@@ -164,19 +164,17 @@ public class SearchFragment extends Fragment implements
             }
         });
 
-        // Setup presenters
         categoryPresenter = new CategoryPresenterImp(this , requireContext());
         areaPresenter = new AreaPresenterImp(this, requireContext());
         ingredientsPresenter = new IngredientsPresenterImp(this , requireContext());
         multiFilterPresenter = new MultiFilterPresenterImp(this , requireContext());
         searchPresenter = new SearchPresenterImp(this , requireContext());
 
-        // Load initial data
         areaPresenter.getArea();
         categoryPresenter.getCategory();
         ingredientsPresenter.getIngredients();
 
-        // Search button click for filters
+        // search button click for filters
         searchButton.setOnClickListener(v -> {
             List<Category> selectedCategories = searchCategoryAdapter.getSelectedCategories();
             List<Area> selectedAreas = countryChipAdapter.getSelectedAreas();
@@ -214,7 +212,7 @@ public class SearchFragment extends Fragment implements
                         clearSearchButton.setVisibility(View.VISIBLE);
                     } else {
                         clearSearchButton.setVisibility(View.GONE);
-                        // Show filters, hide search results
+
                         browseByCategoryTitle.setVisibility(View.VISIBLE);
                         categoryRecyclerView.setVisibility(View.VISIBLE);
                         exploreByCountryTitle.setVisibility(View.VISIBLE);
@@ -239,7 +237,7 @@ public class SearchFragment extends Fragment implements
                 .filter(query -> query.length() > 0)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(query -> {
-                    // Hide filters
+
                     browseByCategoryTitle.setVisibility(View.GONE);
                     categoryRecyclerView.setVisibility(View.GONE);
                     exploreByCountryTitle.setVisibility(View.GONE);
@@ -250,10 +248,10 @@ public class SearchFragment extends Fragment implements
                     ingredientsRecyclerView.setVisibility(View.GONE);
                     searchButton.setVisibility(View.GONE);
 
-                    // Show search results
+
                     searchResultsRecyclerView.setVisibility(View.VISIBLE);
 
-                    // Perform search
+
                     searchPresenter.searchMealsByName(query);
                 }, error -> {
                     Log.e("SearchFragment", "Error in search observable", error);
@@ -261,7 +259,7 @@ public class SearchFragment extends Fragment implements
 
 
 
-        // Clear search button
+
         clearSearchButton.setOnClickListener(v -> {
             searchEditText.setText("");
             searchResultsAdapter.clearMeals();
@@ -344,17 +342,17 @@ public class SearchFragment extends Fragment implements
 
     @Override
     public void onCountryChipClicked(Area area, boolean isSelected) {
-        // Handle country chip selection
+
     }
 
     @Override
     public void onCategoryClicked(Category category, boolean isSelected) {
-        // Handle category selection
+
     }
 
     @Override
     public void onIngredientClicked(Ingredients ingredient, boolean isSelected) {
-        // Handle ingredient selection
+
     }
 
     @Override
