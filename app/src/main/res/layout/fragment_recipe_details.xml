@@ -10,7 +10,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingBottom="24dp">
 
         <ImageView
             android:id="@+id/mealImage_Details"
@@ -189,7 +190,74 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false"
+                    android:layout_marginBottom="32dp"
                     tools:listitem="@layout/instruction_item" />
+
+                <!-- Enhanced Video Section Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/icon_video"
+                        android:tint="@color/primaryColor"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="video icon"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Video Tutorial"
+                        android:textSize="20sp"
+                        android:textColor="@color/primaryColor"
+                        android:fontFamily="@font/poppins_bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Watch Now"
+                        android:textSize="12sp"
+                        android:textColor="#999999"
+                        android:fontFamily="@font/poppins_semibold" />
+                </LinearLayout>
+
+                <!-- Enhanced Video Player Card -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/videoCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="8dp"
+                    app:cardUseCompatPadding="true">
+
+                    <com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+                        android:id="@+id/youtube_player_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp"
+                        app:videoId="S0Q4gqBUs7c"
+                        app:autoPlay="false"
+                       />
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- Optional: Video Description -->
+                <TextView
+                    android:id="@+id/videoDescriptionText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Follow along with our step-by-step video guide to make this delicious recipe perfectly every time!"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:fontFamily="@font/poppins"
+                    android:lineSpacingExtra="4dp"
+                    android:layout_marginTop="16dp"
+                    android:paddingHorizontal="4dp" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

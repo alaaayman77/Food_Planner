@@ -75,5 +75,6 @@ dependencies {
     implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
     implementation ("androidx.room:room-rxjava2:$room_version")
     implementation("androidx.room:room-rxjava3:2.6.1")
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
 
 }

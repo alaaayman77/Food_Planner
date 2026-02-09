@@ -33,6 +33,9 @@ import com.example.foodplanner.presentation.home.view.MealPlanBottomSheet;
 import com.example.foodplanner.presentation.recipe_details.presenter.RecipeDetailsPresenter;
 import com.example.foodplanner.presentation.recipe_details.presenter.RecipeDetailsPresenterImp;
 import com.google.android.material.button.MaterialButton;
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer;
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener;
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView;
 
 
 import java.util.ArrayList;
@@ -54,8 +57,8 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
     private RecipeDetailsPresenter recipeDetailsPresenter;
     private MaterialButton backBtn;
     private MaterialButton addToMealPlanButton;
+    private YouTubePlayerView youTubePlayerView;
 
-    // Store the current recipe details
     private RecipeDetails currentRecipeDetails;
 
     public RecipeDetailsFragment() {
@@ -113,6 +116,8 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         itemCountTextView = view.findViewById(R.id.itemCountTextView);
         ingredientsRecyclerView = view.findViewById(R.id.ingredientsRecyclerView);
         instructionsRecyclerView = view.findViewById(R.id.instructionsRecyclerView);
+        youTubePlayerView = view.findViewById(R.id.youtube_player_view);
+        getLifecycle().addObserver(youTubePlayerView);
     }
 
     private void setupRecyclerViews() {
@@ -154,6 +159,83 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
 
         List<InstructionStep> instructions = parseInstructions(recipeDetails.getMealInstructions());
         instructionsAdapter.setInstructions(instructions);
+
+
+        setupYouTubePlayer(recipeDetails.getStrYoutube());
+    }
+
+  /**
+     * - https://www.youtube.com/watch?v=VIDEO_ID
+     * - https://youtu.be/VIDEO_ID
+     * - https://m.youtube.com/watch?v=VIDEO_ID
+     */
+    private void setupYouTubePlayer(String youtubeUrl) {
+        if (youtubeUrl == null || youtubeUrl.isEmpty()) {
+            youTubePlayerView.setVisibility(GONE);
+            return;
+        }
+
+        String videoId = extractVideoIdFromUrl(youtubeUrl);
+
+        if (videoId != null && !videoId.isEmpty()) {
+            youTubePlayerView.setVisibility(VISIBLE);
+            youTubePlayerView.addYouTubePlayerListener(new AbstractYouTubePlayerListener() {
+                @Override
+                public void onReady(@NonNull YouTubePlayer youTubePlayer) {
+                    youTubePlayer.cueVideo(videoId, 0);
+                }
+            });
+        } else {
+            youTubePlayerView.setVisibility(GONE);
+            Toast.makeText(getContext(), "Invalid YouTube URL", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    private String extractVideoIdFromUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return null;
+        }
+
+        String videoId = null;
+
+        try {
+            // Format: https://www.youtube.com/watch?v=VIDEO_ID
+            if (url.contains("youtube.com/watch?v=")) {
+                int startIndex = url.indexOf("v=") + 2;
+                int endIndex = url.indexOf("&", startIndex);
+                if (endIndex == -1) {
+                    videoId = url.substring(startIndex);
+                } else {
+                    videoId = url.substring(startIndex, endIndex);
+                }
+            }
+            // Format: https://youtu.be/VIDEO_ID
+            else if (url.contains("youtu.be/")) {
+                int startIndex = url.indexOf("youtu.be/") + 9;
+                int endIndex = url.indexOf("?", startIndex);
+                if (endIndex == -1) {
+                    videoId = url.substring(startIndex);
+                } else {
+                    videoId = url.substring(startIndex, endIndex);
+                }
+            }
+            // Format: https://m.youtube.com/watch?v=VIDEO_ID
+            else if (url.contains("m.youtube.com/watch?v=")) {
+                int startIndex = url.indexOf("v=") + 2;
+                int endIndex = url.indexOf("&", startIndex);
+                if (endIndex == -1) {
+                    videoId = url.substring(startIndex);
+                } else {
+                    videoId = url.substring(startIndex, endIndex);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return videoId;
     }
 
     private List<InstructionStep> parseInstructions(String instructionsText) {
