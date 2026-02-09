@@ -6,6 +6,7 @@
     android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp"
+    android:backgroundTint="@color/lightPeach"
     app:strokeWidth="0dp">
 
     <LinearLayout
@@ -49,12 +50,7 @@
 
         </LinearLayout>
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/icon_heart"
-            app:tint="#BDBDBD" />
+
 
     </LinearLayout>
 

@@ -38,7 +38,11 @@
         android:id="@+id/mealPlannerFragment"
         android:name="com.example.foodplanner.presentation.mealplanner.view.MealPlannerFragment"
         android:label="fragment_meal_planner"
-        tools:layout="@layout/fragment_meal_planner" />
+        tools:layout="@layout/fragment_meal_planner" >
+        <action
+            android:id="@+id/action_mealPlannerFragment_to_recipeDetailsFragment"
+            app:destination="@id/recipeDetailsFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/favoritesFragment"

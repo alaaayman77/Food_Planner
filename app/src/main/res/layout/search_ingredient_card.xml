@@ -7,6 +7,7 @@
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
     android:clickable="true"
+    android:backgroundTint="@color/lightPeach"
     android:focusable="true"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
@@ -42,14 +43,7 @@
                 android:textSize="14sp"
                 android:textColor="#212121" />
 
-            <TextView
-                android:id="@+id/ingredientCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins"
-                android:textSize="12sp"
-                android:textColor="#757575"
-                android:text="Available in 500+ recipes" />
+
         </LinearLayout>
 
         <ImageView

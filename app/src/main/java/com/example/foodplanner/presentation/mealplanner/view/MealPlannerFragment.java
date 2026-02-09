@@ -24,6 +24,7 @@ import com.example.foodplanner.data.model.meal_plan.DateItem;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.presentation.mealplanner.presenter.MealPlannerPresenter;
 import com.example.foodplanner.presentation.mealplanner.presenter.MealPlannerPresenterImp;
+import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryFragmentDirections;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -163,7 +164,6 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
         Calendar lastDate = dateItemList.get(dateItemList.size() - 1).getCalendar();
 
         if (isDateInRange(targetDate, firstDate, lastDate)) {
-            // Date is within current range - just select it
             for (int i = 0; i < dateItemList.size(); i++) {
                 if (isSameDay(dateItemList.get(i).getCalendar(), targetDate)) {
                     dateSelectorAdapter.setSelectedPosition(i);
@@ -173,7 +173,6 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
                 }
             }
         } else {
-            // Date is outside current range - regenerate dates
             dateItemList = generateDatesFromDate(targetDate);
             dateSelectorAdapter.setDates(dateItemList);
             dateSelectorAdapter.setSelectedPosition(0);
@@ -307,7 +306,7 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
         presenter.loadMealPlansForDay(currentSelectedDay);
     }
 
-    // ============ MealPlannerView Implementation ============
+
 
     @Override
     public void displayMealPlans(List<MealPlan> mealPlans) {
@@ -406,7 +405,6 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
     @Override
     public void onMealPlanDeletedSuccess() {
         Toast.makeText(requireContext(), "Meal removed ✓", Toast.LENGTH_SHORT).show();
-        // Reload meals for current day to refresh the UI
         presenter.loadMealPlansForDay(currentSelectedDay);
     }
 
@@ -422,15 +420,16 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
         Toast.makeText(requireContext(),
                 "Meal plans synced successfully!",
                 Toast.LENGTH_SHORT).show();
-        // Reload current day's meals after sync
         presenter.loadMealPlansForDay(currentSelectedDay);
     }
 
-    // ============ MealItemAdapter.OnMealItemClickListener Implementation ============
+
 
     @Override
     public void onMealClick(MealPlan mealPlan) {
-        navigateToRecipeDetails(mealPlan.getMealId());
+        MealPlannerFragmentDirections.ActionMealPlannerFragmentToRecipeDetailsFragment action =
+                MealPlannerFragmentDirections.actionMealPlannerFragmentToRecipeDetailsFragment(mealPlan.getMealId());
+        Navigation.findNavController(requireView()).navigate(action);
     }
 
     @Override
@@ -450,15 +449,15 @@ public class MealPlannerFragment extends Fragment implements MealPlannerView,
     }
 
     private void navigateToRecipeDetails(String mealId) {
-        // Navigate to recipe details using Navigation component
-        // Assuming you have a navigation action setup
+        MealPlannerFragmentDirections.ActionMealPlannerFragmentToRecipeDetailsFragment action =
+                MealPlannerFragmentDirections.actionMealPlannerFragmentToRecipeDetailsFragment(mealId);
+        Navigation.findNavController(requireView()).navigate(action);
 
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Reload meals when returning to this fragment
         if (currentSelectedDay != null) {
             presenter.loadMealPlansForDay(currentSelectedDay);
         }

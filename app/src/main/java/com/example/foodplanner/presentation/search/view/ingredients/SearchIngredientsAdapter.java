@@ -119,21 +119,21 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
         } else if (holder instanceof SeeMoreViewHolder && !isLoading) {
             ((SeeMoreViewHolder) holder).bind();
         }
-        // Shimmer holder does not need binding
+
     }
 
     @Override
     public int getItemCount() {
-        if (isLoading) return 6; // number of shimmer placeholders
+        if (isLoading) return 6;
         return showSeeMoreButton ? displayedIngredients.size() + 1 : displayedIngredients.size();
     }
 
-    // --------------------- ViewHolders ---------------------
+
 
     static class ShimmerViewHolder extends RecyclerView.ViewHolder {
         public ShimmerViewHolder(@NonNull View itemView) {
             super(itemView);
-            // no binding needed for shimmer
+
         }
     }
 
@@ -149,7 +149,6 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
             cardView = itemView.findViewById(R.id.ingredientCard);
             ingredientImage = itemView.findViewById(R.id.ingredientImage);
             ingredientName = itemView.findViewById(R.id.ingredientName);
-            ingredientCount = itemView.findViewById(R.id.ingredientCount);
             addButton = itemView.findViewById(R.id.addButton);
         }
 
@@ -157,7 +156,6 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
             if (ingredient == null) return;
 
             ingredientName.setText(ingredient.getIngredientName());
-            ingredientCount.setText("Available in 500+ recipes");
 
             Glide.with(context)
                     .load(ingredient.getIngredientThumbnail())
