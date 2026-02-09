@@ -35,9 +35,12 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.OAuthProvider;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -60,7 +63,7 @@ public class LoginFragment extends Fragment {
     private FirebaseFirestore db;
     private MealsRepository mealsRepository;
     private GoogleSignInClient googleSignInClient;
-
+private MaterialButton twitterBtn;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     public LoginFragment() {
@@ -70,8 +73,6 @@ public class LoginFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Initialize Google Sign-In launcher
         googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -110,6 +111,7 @@ public class LoginFragment extends Fragment {
         googleBtn = view.findViewById(R.id.googleBtn);
         usernameInput = (TextInputEditText) usernameTextInput.getEditText();
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
+        twitterBtn = view.findViewById(R.id.facebookBtn);
         guest_tv = view.findViewById(R.id.guest_mode);
     }
 
@@ -146,13 +148,84 @@ public class LoginFragment extends Fragment {
             Log.d(TAG, "Google Sign-In button clicked");
             signInWithGoogle();
         });
+        twitterBtn.setOnClickListener(v -> {
+            Log.d(TAG, "Twitter Sign-In button clicked");
+            signInWithTwitter();
+        });
 
         guest_tv.setOnClickListener(v ->
                 Navigation.findNavController(requireView())
                         .navigate(R.id.action_authFragment_to_startFragment)
         );
     }
+    private void signInWithTwitter() {
+        showLoading();
+        Log.d(TAG, "Starting Twitter Sign-In flow");
 
+        OAuthProvider.Builder provider = OAuthProvider.newBuilder("twitter.com");
+
+        Task<AuthResult> pendingResultTask = mAuth.getPendingAuthResult();
+
+        if (pendingResultTask != null) {
+            pendingResultTask
+                    .addOnSuccessListener(authResult -> {
+                        Log.d(TAG, "Twitter sign-in successful (pending)");
+                        handleTwitterAuthResult(authResult);
+                    })
+                    .addOnFailureListener(e -> {
+                        hideLoading();
+                        handleTwitterAuthError(e);
+                    });
+        } else {
+            mAuth.startActivityForSignInWithProvider(requireActivity(), provider.build())
+                    .addOnSuccessListener(authResult -> {
+                        Log.d(TAG, "Twitter sign-in successful");
+                        handleTwitterAuthResult(authResult);
+                    })
+                    .addOnFailureListener(e -> {
+                        hideLoading();
+                        handleTwitterAuthError(e);
+                    });
+        }
+    }
+    private void handleTwitterAuthResult(AuthResult authResult) {
+        FirebaseUser firebaseUser = authResult.getUser();
+
+        if (firebaseUser != null) {
+            Log.d(TAG, "Twitter user authenticated: " + firebaseUser.getEmail());
+            checkAndCreateUserInFirestore(firebaseUser);
+            syncMealPlans();
+        } else {
+            hideLoading();
+            Toast.makeText(requireContext(),
+                    "Authentication failed",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleTwitterAuthError(Exception e) {
+        Log.e(TAG, "Twitter sign-in failed", e);
+
+        String errorMessage;
+        if (e instanceof FirebaseAuthException) {
+            FirebaseAuthException authException = (FirebaseAuthException) e;
+            String errorCode = authException.getErrorCode();
+
+            switch (errorCode) {
+                case "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL":
+                    errorMessage = "An account already exists with the same email. Try a different sign-in method.";
+                    break;
+                case "ERROR_WEB_CONTEXT_CANCELED":
+                    return; // User cancelled
+                default:
+                    errorMessage = "Twitter sign-in failed: " + authException.getMessage();
+            }
+        } else {
+            errorMessage = "Twitter sign-in failed. Please try again.";
+        }
+
+        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show();
+    }
     private void signInWithGoogle() {
         showLoading();
         Log.d(TAG, "Starting Google Sign-In flow");

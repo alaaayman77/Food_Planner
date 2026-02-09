@@ -29,9 +29,11 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.OAuthProvider;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -51,10 +53,11 @@ public class SignUpFragment extends Fragment {
     private TextInputEditText confirmPasswordInput;
     private TextView guest_tv;
     private MaterialButton googleBtn;
-
+    private MaterialButton twitterBtn;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private GoogleSignInClient googleSignInClient;
+    OAuthProvider.Builder provider;
 
     private ActivityResultLauncher<Intent> googleSignInLauncher;
 
@@ -97,6 +100,7 @@ public class SignUpFragment extends Fragment {
         initializeViews(view);
         initializeFirebase();
         setupGoogleSignIn();
+        setupTwitterSignIn();
         setupClickListeners();
     }
 
@@ -107,7 +111,7 @@ public class SignUpFragment extends Fragment {
         confirmPasswordTextInput = view.findViewById(R.id.confirm_password_text_input_signup);
         googleBtn = view.findViewById(R.id.googleBtn);
         guest_tv = view.findViewById(R.id.guest_mode);
-
+twitterBtn = view.findViewById(R.id.facebookBtn);
         usernameInput = (TextInputEditText) usernameTextInput.getEditText();
         emailInput = (TextInputEditText) emailTextInput.getEditText();
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
@@ -118,7 +122,9 @@ public class SignUpFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
     }
-
+    private void setupTwitterSignIn() {
+        provider = OAuthProvider.newBuilder("twitter.com");
+    }
     private void setupGoogleSignIn() {
         try {
             String webClientId = getString(R.string.client_id);
@@ -153,6 +159,58 @@ public class SignUpFragment extends Fragment {
                 Navigation.findNavController(requireView())
                         .navigate(R.id.action_authFragment_to_startFragment)
         );
+        twitterBtn.setOnClickListener(v -> {
+            Log.d(TAG, "Twitter Sign-In button clicked");
+            signInWithTwitter();
+        });
+    }
+    private void signInWithTwitter() {
+        showLoading();
+        Log.d(TAG, "Starting Twitter Sign-In flow");
+
+        Task<AuthResult> pendingResultTask = mAuth.getPendingAuthResult();
+        if (pendingResultTask != null) {
+            // There's a pending auth operation
+            pendingResultTask
+                    .addOnSuccessListener(authResult -> {
+                        Log.d(TAG, "Twitter sign-in successful");
+                        handleTwitterAuthSuccess(authResult);
+                    })
+                    .addOnFailureListener(e -> {
+                        hideLoading();
+                        Log.e(TAG, "Twitter sign-in failed", e);
+                        Toast.makeText(requireContext(),
+                                "Twitter sign-in failed: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    });
+        } else {
+            // Start new Twitter sign-in flow
+            mAuth.startActivityForSignInWithProvider(requireActivity(), provider.build())
+                    .addOnSuccessListener(authResult -> {
+                        Log.d(TAG, "Twitter sign-in successful");
+                        handleTwitterAuthSuccess(authResult);
+                    })
+                    .addOnFailureListener(e -> {
+                        hideLoading();
+                        Log.e(TAG, "Twitter sign-in failed", e);
+                        Toast.makeText(requireContext(),
+                                "Twitter sign-in failed: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    });
+        }
+    }
+    private void handleTwitterAuthSuccess(AuthResult authResult) {
+        FirebaseUser firebaseUser = authResult.getUser();
+
+        if (firebaseUser != null) {
+            // Check if user exists in Firestore
+            checkUserExistsAndSave(firebaseUser);
+        } else {
+            hideLoading();
+            Toast.makeText(requireContext(),
+                    "Authentication failed",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void signInWithGoogle() {

@@ -32,4 +32,6 @@
     <string name="weekly_planner">Weekly Planner</string>
     <string name="slogan_2">Munch your way through the week</string>
     <string name="client_id">736743686590-49spjmtljt66g2jda88sn4o4gbpchd1q.apps.googleusercontent.com</string>
+    <string name="twitter_consumer_key">uUEcLe4WAnY4EP8HdzGX74Ahk</string>
+    <string name="twitter_consumer_secret">XZyJ8YTMmxVwZcz3MAsmSxubqPkCstLZerUCLTvXYjDNqGGPY2</string>
 </resources>
