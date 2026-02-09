@@ -35,7 +35,7 @@ public interface MealsService {
     Call<IngredientFilteredMealsResponse> getFilteredMealsByIngredient(@Query("i") String ingredient);
 
     @GET("list.php?i=list")
-    Call<IngredientsResponse> getIngredients();
+    Observable<IngredientsResponse> getIngredients();
 
 
     @GET("list.php?a=list")

@@ -27,6 +27,7 @@ import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
 import com.example.foodplanner.data.model.search.area.AreaResponse;
+import com.example.foodplanner.data.model.search.ingredients.IngredientsResponse;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
@@ -67,8 +68,8 @@ public class MealsRepository {
         return mealsRemoteDataSource.getFilteredMealsByArea(area);
     }
 
-    public void getIngredients(IngredientsNetworkResponse response){
-        mealsRemoteDataSource.getIngredients(response);
+    public Observable<IngredientsResponse> getIngredients(){
+        return mealsRemoteDataSource.getIngredients();
     }
 
     public void getIngredientFilteredMeals(String ingredient, IngredientFilteredMealsNetworkResponse response){
