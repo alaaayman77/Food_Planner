@@ -25,7 +25,9 @@ public class RecipeDetailsPresenterImp implements RecipeDetailsPresenter {
         this.recipeDetailsView = recipeDetailsView;
         this.mAuth = FirebaseAuth.getInstance();
     }
-
+    private boolean isUserSignedIn() {
+        return mAuth.getCurrentUser() != null;
+    }
 
 
     @Override
@@ -53,6 +55,13 @@ public class RecipeDetailsPresenterImp implements RecipeDetailsPresenter {
 
     @Override
     public void addMealToPlan(MealPlan mealPlan) {
+        if (!isUserSignedIn()) {
+            recipeDetailsView.showSignInPrompt(
+                    "Save Meal Plan",
+                    "Sign in to save your meal plans and access them from any device!"
+            );
+            return;
+        }
         mealsRepository.insertMealToMealPlan(mealPlan);
         recipeDetailsView.onMealPlanAddedSuccess();
 

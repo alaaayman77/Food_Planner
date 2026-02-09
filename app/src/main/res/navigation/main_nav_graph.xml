@@ -18,7 +18,11 @@
     <fragment
         android:id="@+id/startFragment"
         android:name="com.example.foodplanner.StartFragment"
-        android:label="StartFragment" />
+        android:label="StartFragment" >
+        <action
+            android:id="@+id/action_startFragment_to_authFragment"
+            app:destination="@id/authFragment" />
+    </fragment>
     <fragment
         android:id="@+id/authFragment"
         android:name="com.example.foodplanner.presentation.auth.AuthFragment"

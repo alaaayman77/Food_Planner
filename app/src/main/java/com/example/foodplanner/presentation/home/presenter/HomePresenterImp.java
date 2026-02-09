@@ -6,11 +6,9 @@ import android.util.Log;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.example.foodplanner.data.MealsRepository;
-
 import com.example.foodplanner.data.datasource.remote.CategoryNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.MealNetworkResponse;
 import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkResponse;
-
 import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.category.Category;
@@ -52,6 +50,11 @@ public class HomePresenterImp implements HomePresenter {
                 }
             }
         });
+    }
+
+
+    private boolean isUserSignedIn() {
+        return mAuth.getCurrentUser() != null;
     }
 
     @Override
@@ -113,12 +116,21 @@ public class HomePresenterImp implements HomePresenter {
 
     @Override
     public void addMealToPlan(MealPlan mealPlan) {
+
+        if (!isUserSignedIn()) {
+            homeView.showSignInPrompt(
+                    "Save Meal Plan",
+                    "Sign in to save your meal plans and access them from any device!"
+            );
+            return;
+        }
+
         mealsRepository.insertMealToMealPlan(mealPlan);
         homeView.onMealPlanAddedSuccess();
-
         if (mAuth.getCurrentUser() != null) {
             saveMealPlanToFirestore(mealPlan);
         }
+
     }
 
     @Override
@@ -135,13 +147,20 @@ public class HomePresenterImp implements HomePresenter {
 
     @Override
     public void onFavoriteClick(RandomMeal meal) {
+        // Check if user is signed in
+        if (!isUserSignedIn()) {
+            homeView.showSignInPrompt(
+                    "Save to Favorites",
+                    "Sign in to save your favorite meals and sync them across devices!"
+            );
+            return;
+        }
+
         boolean isFavorite = favoriteMealIds.contains(meal.getMealId());
 
         if (isFavorite) {
-
             removeFromFav(meal.getMealId());
         } else {
-
             fetchRecipeDetailsAndAddToFavorites(meal.getMealId());
         }
     }
@@ -186,8 +205,6 @@ public class HomePresenterImp implements HomePresenter {
             }
         });
     }
-
-
 
     private void saveMealPlanToFirestore(MealPlan mealPlan) {
         MealPlanFirestore firestorePlan = MealPlanFirestore.fromMealPlan(mealPlan);

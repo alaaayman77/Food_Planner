@@ -7,4 +7,5 @@ public interface RecipeDetailsView {
     public void showError(String errorMessage);
     void  onMealPlanAddedSuccess();
     void onMealPlanAddedFailure(String error);
+    void showSignInPrompt(String featureName, String message);
 }

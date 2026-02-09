@@ -10,7 +10,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
@@ -27,6 +29,7 @@ import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
+import com.example.foodplanner.presentation.auth.SignInPromptDialog;
 import com.example.foodplanner.presentation.home.presenter.HomePresenter;
 import com.example.foodplanner.presentation.home.presenter.HomePresenterImp;
 import com.google.android.material.card.MaterialCardView;
@@ -288,6 +291,33 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
                 favoriteIcon.setImageResource(R.drawable.icon_heart);
             }
         }
+    }
+
+    @Override
+    public void showSignInPrompt(String featureName, String message) {
+        SignInPromptDialog dialog = SignInPromptDialog.newInstance(featureName, message);
+        dialog.setListener(new SignInPromptDialog.SignInPromptListener() {
+            @Override
+            public void onSignInClicked() {
+                NavController navController =
+                        NavHostFragment.findNavController(
+                                requireActivity()
+                                        .getSupportFragmentManager()
+                                        .findFragmentById(R.id.nav_host_fragment_main)
+                        );
+
+                navController.navigate(R.id.authFragment);
+            }
+
+            @Override
+            public void onContinueAsGuestClicked() {
+
+                Toast.makeText(getContext(),
+                        "Continuing as guest. Your data won't be saved.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+        dialog.show(getParentFragmentManager(), "SignInPromptDialog");
     }
 
     private void animateHeart(ImageView heartIcon) {

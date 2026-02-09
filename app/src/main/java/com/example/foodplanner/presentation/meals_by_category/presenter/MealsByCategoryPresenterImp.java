@@ -30,6 +30,10 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
         this.mAuth = FirebaseAuth.getInstance();
     }
 
+    private boolean isUserSignedIn() {
+        return mAuth.getCurrentUser() != null;
+    }
+
     @Override
     public void getMealsByCategory(String category) {
         mealsByCategoryView.showLoading();
@@ -59,12 +63,17 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
 
     @Override
     public void addMealToPlan(MealPlan mealPlan) {
+        if (!isUserSignedIn()) {
+            mealsByCategoryView.showSignInPrompt(
+                    "Save Meal Plan",
+                    "Sign in to save your meal plans and access them from any device!"
+            );
+            return;
+        }
         mealsRepository.insertMealToMealPlan(mealPlan);
         mealsByCategoryView.onMealPlanAddedSuccess();
 
-        if (mAuth.getCurrentUser() != null) {
-            saveMealPlanToFirestore(mealPlan);
-        }
+        saveMealPlanToFirestore(mealPlan);
     }
 
     @Override
@@ -75,12 +84,21 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
 
     @Override
     public void removeFromFav(String mealId) {
+        // No guest check needed - if user isn't signed in, there won't be favorites to remove
         mealsRepository.deleteFav(mealId);
 
     }
 
     @Override
     public void fetchRecipeDetailsAndAddToFavorites(String mealId) {
+        if (!isUserSignedIn()) {
+            mealsByCategoryView.showSignInPrompt(
+                    "Save to Favorites",
+                    "Sign in to save your favorite meals and sync them across devices!"
+            );
+            return;
+        }
+
         mealsRepository.getRecipeDetails(mealId, new RecipeDetailsNetworkResponse() {
             @Override
             public void onSuccess(List<RecipeDetails> recipeDetailsList) {

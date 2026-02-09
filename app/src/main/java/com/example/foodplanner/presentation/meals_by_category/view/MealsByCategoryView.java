@@ -14,4 +14,5 @@ public interface MealsByCategoryView {
     public void onMealPlanAddedFailure(String error);
     public void onFavAddedSuccess();
     public void onFavAddedFailure(String error);
+    void showSignInPrompt(String featureName, String message);
 }

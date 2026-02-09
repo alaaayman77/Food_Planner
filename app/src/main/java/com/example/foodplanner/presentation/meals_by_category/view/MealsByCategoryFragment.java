@@ -13,7 +13,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.foodplanner.MainActivity;
@@ -21,6 +23,7 @@ import com.example.foodplanner.R;
 import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.category.MealsByCategory;
+import com.example.foodplanner.presentation.auth.SignInPromptDialog;
 import com.example.foodplanner.presentation.mealplanner.view.MealPlanHelper;
 import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByCategoryPresenter;
 import com.example.foodplanner.presentation.meals_by_category.presenter.MealsByCategoryPresenterImp;
@@ -234,6 +237,34 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
     }
 
     @Override
+    public void showSignInPrompt(String featureName, String message) {
+        SignInPromptDialog dialog = SignInPromptDialog.newInstance(featureName, message);
+        dialog.setListener(new SignInPromptDialog.SignInPromptListener() {
+            @Override
+            public void onSignInClicked() {
+
+                NavController navController =
+                        NavHostFragment.findNavController(
+                                requireActivity()
+                                        .getSupportFragmentManager()
+                                        .findFragmentById(R.id.nav_host_fragment_main)
+                        );
+
+                navController.navigate(R.id.authFragment);
+            }
+
+            @Override
+            public void onContinueAsGuestClicked() {
+
+                Toast.makeText(getContext(),
+                        "Continuing as guest. Your data won't be saved.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+        dialog.show(getParentFragmentManager(), "SignInPromptDialog");
+    }
+
+    @Override
     public void setOnMealClick(MealsByCategory meal) {
         MealsByCategoryFragmentDirections.ActionMealsByCategoryFragmentToRecipeDetailsFragment action =
                 MealsByCategoryFragmentDirections.actionMealsByCategoryFragmentToRecipeDetailsFragment(meal.getMealId());
@@ -258,11 +289,11 @@ public class MealsByCategoryFragment extends Fragment implements OnMealByCategor
         boolean isFavorite = favoriteMealIds.contains(meal.getMealId());
 
         if (isFavorite) {
-            // Remove from favorites
+
             mealsByCategoryPresenter.removeFromFav(meal.getMealId());
             Toast.makeText(getContext(), "Removed from favorites", Toast.LENGTH_SHORT).show();
         } else {
-            // Fetch full recipe details and add to favorites
+
             mealsByCategoryPresenter.fetchRecipeDetailsAndAddToFavorites(meal.getMealId());
         }
     }

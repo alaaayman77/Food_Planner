@@ -18,4 +18,5 @@ public interface HomeView {
     public void onFavAddedFailure(String error);
     public void onFavRemovedSuccess();
     void updateFavoriteIcon(boolean isFavorite);
+    void showSignInPrompt(String featureName, String message);
 }
