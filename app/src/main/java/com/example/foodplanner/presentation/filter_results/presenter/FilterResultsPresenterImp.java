@@ -1,81 +1,101 @@
 package com.example.foodplanner.presentation.filter_results.presenter;
 
 import android.content.Context;
+import android.net.http.HttpException;
+import android.util.Log;
 
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.filter_results.view.FilterResultsView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
+
 public class FilterResultsPresenterImp implements FilteredResultsPresenter {
+    private static final String TAG = "FilterResultsPresenter";
+
     private FilterResultsView filterResultsView;
     private MealsRepository mealsRepository;
-    private List<RecipeDetails> mealDetailsList;
-    private int loadedCount = 0;
-    private int totalCount = 0;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private List<RecipeDetails> mealDetailsList = new ArrayList<>();
 
-    public FilterResultsPresenterImp(FilterResultsView filterResultsView , Context context) {
+    public FilterResultsPresenterImp(FilterResultsView filterResultsView, Context context) {
         this.mealsRepository = new MealsRepository(context);
         this.filterResultsView = filterResultsView;
-        this.mealDetailsList = new ArrayList<>();
     }
+
     @Override
     public void getFilteredRecipes(String[] mealIds) {
+
         if (mealIds == null || mealIds.length == 0) {
             filterResultsView.showEmptyState();
             return;
         }
 
         filterResultsView.showLoading();
-        totalCount = mealIds.length;
-        loadedCount = 0;
         mealDetailsList.clear();
 
-        // Fetch details for each meal ID
-        for (String mealId : mealIds) {
-            mealsRepository.getRecipeDetails(mealId, new RecipeDetailsNetworkResponse() {
+        compositeDisposable.add(
+                Observable.fromArray(mealIds)
+                        .flatMap(mealId ->
+                                mealsRepository.getRecipeDetails(mealId)
+                                        .subscribeOn(Schedulers.io())
+                                        .map(response -> {
+                                            List<RecipeDetails> recipeDetails = response.getRecipeDetails();
+                                            return (recipeDetails == null || recipeDetails.isEmpty())
+                                                    ? null
+                                                    : recipeDetails.get(0);
+                                        })
+
+                        )
+                        .filter(meal -> meal != null)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                        //progressive loading
+                                meal -> {
+                                    mealDetailsList.add(meal);
+                                    filterResultsView.displayMeals(new ArrayList<>(mealDetailsList));
+                                },
+
+                                error -> {
+                                    filterResultsView.hideLoading();
+                                    handleError(error);
+                                },
+
+                                () -> {
+                                    filterResultsView.hideLoading();
+
+                                    if (mealDetailsList.isEmpty()) {
+                                        filterResultsView.showEmptyState();
+                                    }
+                                }
+                        )
+        );
+    }
 
 
-                @Override
-                public void onSuccess(List<RecipeDetails> recipeDetailsList) {
-                    if (recipeDetailsList != null) {
-                        mealDetailsList.add(recipeDetailsList.get(0));
-                    }
-                    loadedCount++;
+    private void handleError(Throwable error) {
+        Log.e(TAG, "Error loading filtered recipes", error);
 
+        if (error instanceof IOException) {
+            filterResultsView.showError("Network error: " + error.getMessage());
+        } else if (error instanceof HttpException) {
+            filterResultsView.showError("Server error: " + error.getMessage());
+        } else {
+            filterResultsView.showError("Error loading recipes: " + error.getMessage());
+        }
+    }
 
-                    if (loadedCount == totalCount) {
-                        filterResultsView.hideLoading();
-                        if (mealDetailsList.isEmpty()) {
-                            filterResultsView.showEmptyState();
-                        } else {
-                            filterResultsView.displayMeals(mealDetailsList);
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(String errorMsg) {
-                    loadedCount++;
-
-                    if (loadedCount == totalCount) {
-                        filterResultsView.hideLoading();
-                        if (mealDetailsList.isEmpty()) {
-                            filterResultsView.showError(errorMsg);
-                        } else {
-                            filterResultsView.displayMeals(mealDetailsList);
-                        }
-                    }
-                }
-
-                @Override
-                public void onServerError(String errorMessage) {
-                    filterResultsView.showError(errorMessage);
-                }
-            });
+    public void onDestroy() {
+        if (compositeDisposable != null && !compositeDisposable.isDisposed()) {
+            compositeDisposable.clear();
         }
     }
 }

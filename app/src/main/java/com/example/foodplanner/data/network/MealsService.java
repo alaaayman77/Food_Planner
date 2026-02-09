@@ -41,5 +41,5 @@ public interface MealsService {
     Observable<AreaResponse> getArea();
 
     @GET("lookup.php")
-    Call<RecipeDetailsResponse> getRecipeDetails(@Query("i") String id);
+    Observable<RecipeDetailsResponse> getRecipeDetails(@Query("i") String id);
 }

@@ -1,5 +1,8 @@
 package com.example.foodplanner.presentation.recipe_details.view;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -19,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.recipe_details.IngredientWithMeasure;
@@ -223,6 +227,25 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
             }
         });
         dialog.show(getParentFragmentManager(), "SignInPromptDialog");
+    }
+
+    @Override
+    public void hideLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideLoading();
+        }
+        mealImage.setVisibility(VISIBLE);
+        mealTitle.setVisibility(VISIBLE);
+
+    }
+
+    @Override
+    public void showLoading() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showLoading();
+        }
+        mealImage.setVisibility(GONE);
+        mealTitle.setVisibility(GONE);
     }
 
 

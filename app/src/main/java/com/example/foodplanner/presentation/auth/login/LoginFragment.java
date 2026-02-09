@@ -19,12 +19,6 @@ import androidx.navigation.Navigation;
 import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkResponse;
-import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
-import com.example.foodplanner.data.model.User;
-import com.example.foodplanner.data.model.meal_plan.MealPlan;
-import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
-import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -34,22 +28,14 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.OAuthProvider;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 
-import java.util.List;
-
-public class LoginFragment extends Fragment {
+public class LoginFragment extends Fragment implements LoginView {
 
     private static final String TAG = "LoginFragment";
+
 
     private TextInputLayout usernameTextInput;
     private TextInputLayout passwordTextInput;
@@ -57,13 +43,12 @@ public class LoginFragment extends Fragment {
     private TextInputEditText passwordInput;
     private MaterialButton logInButton;
     private MaterialButton googleBtn;
+    private MaterialButton twitterBtn;
     private TextView guest_tv;
+    private LoginPresenter presenter;
 
     private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
-    private MealsRepository mealsRepository;
     private GoogleSignInClient googleSignInClient;
-private MaterialButton twitterBtn;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     public LoginFragment() {
@@ -73,6 +58,8 @@ private MaterialButton twitterBtn;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -100,6 +87,7 @@ private MaterialButton twitterBtn;
 
         initializeViews(view);
         initializeFirebase();
+        initializePresenter();
         setupGoogleSignIn();
         setupClickListeners();
     }
@@ -109,16 +97,19 @@ private MaterialButton twitterBtn;
         passwordTextInput = view.findViewById(R.id.password_text_input_login);
         logInButton = view.findViewById(R.id.signupBtn);
         googleBtn = view.findViewById(R.id.googleBtn);
-        usernameInput = (TextInputEditText) usernameTextInput.getEditText();
-        passwordInput = (TextInputEditText) passwordTextInput.getEditText();
         twitterBtn = view.findViewById(R.id.facebookBtn);
         guest_tv = view.findViewById(R.id.guest_mode);
+        usernameInput = (TextInputEditText) usernameTextInput.getEditText();
+        passwordInput = (TextInputEditText) passwordTextInput.getEditText();
     }
 
     private void initializeFirebase() {
         mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-        mealsRepository = new MealsRepository(requireContext());
+    }
+
+    private void initializePresenter() {
+        MealsRepository mealsRepository = new MealsRepository(requireContext());
+        presenter = new LoginPresenterImp(this, mealsRepository);
     }
 
     private void setupGoogleSignIn() {
@@ -135,100 +126,28 @@ private MaterialButton twitterBtn;
             Log.d(TAG, "GoogleSignInClient initialized successfully");
         } catch (Exception e) {
             Log.e(TAG, "Error setting up Google Sign-In", e);
-            Toast.makeText(requireContext(),
-                    "Google Sign-In setup failed. Check your configuration.",
-                    Toast.LENGTH_LONG).show();
+            showError("Google Sign-In setup failed. Check your configuration.");
         }
     }
 
     private void setupClickListeners() {
-        logInButton.setOnClickListener(v -> handleLogin());
+        logInButton.setOnClickListener(v -> presenter.handleLogin());
 
         googleBtn.setOnClickListener(v -> {
             Log.d(TAG, "Google Sign-In button clicked");
             signInWithGoogle();
         });
+
         twitterBtn.setOnClickListener(v -> {
             Log.d(TAG, "Twitter Sign-In button clicked");
             signInWithTwitter();
         });
 
-        guest_tv.setOnClickListener(v ->
-                Navigation.findNavController(requireView())
-                        .navigate(R.id.action_authFragment_to_startFragment)
-        );
-    }
-    private void signInWithTwitter() {
-        showLoading();
-        Log.d(TAG, "Starting Twitter Sign-In flow");
-
-        OAuthProvider.Builder provider = OAuthProvider.newBuilder("twitter.com");
-
-        Task<AuthResult> pendingResultTask = mAuth.getPendingAuthResult();
-
-        if (pendingResultTask != null) {
-            pendingResultTask
-                    .addOnSuccessListener(authResult -> {
-                        Log.d(TAG, "Twitter sign-in successful (pending)");
-                        handleTwitterAuthResult(authResult);
-                    })
-                    .addOnFailureListener(e -> {
-                        hideLoading();
-                        handleTwitterAuthError(e);
-                    });
-        } else {
-            mAuth.startActivityForSignInWithProvider(requireActivity(), provider.build())
-                    .addOnSuccessListener(authResult -> {
-                        Log.d(TAG, "Twitter sign-in successful");
-                        handleTwitterAuthResult(authResult);
-                    })
-                    .addOnFailureListener(e -> {
-                        hideLoading();
-                        handleTwitterAuthError(e);
-                    });
-        }
-    }
-    private void handleTwitterAuthResult(AuthResult authResult) {
-        FirebaseUser firebaseUser = authResult.getUser();
-
-        if (firebaseUser != null) {
-            Log.d(TAG, "Twitter user authenticated: " + firebaseUser.getEmail());
-            checkAndCreateUserInFirestore(firebaseUser);
-            syncMealPlans();
-        } else {
-            hideLoading();
-            Toast.makeText(requireContext(),
-                    "Authentication failed",
-                    Toast.LENGTH_SHORT).show();
-        }
+        guest_tv.setOnClickListener(v -> presenter.handleGuestMode());
     }
 
-    private void handleTwitterAuthError(Exception e) {
-        Log.e(TAG, "Twitter sign-in failed", e);
-
-        String errorMessage;
-        if (e instanceof FirebaseAuthException) {
-            FirebaseAuthException authException = (FirebaseAuthException) e;
-            String errorCode = authException.getErrorCode();
-
-            switch (errorCode) {
-                case "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL":
-                    errorMessage = "An account already exists with the same email. Try a different sign-in method.";
-                    break;
-                case "ERROR_WEB_CONTEXT_CANCELED":
-                    return; // User cancelled
-                default:
-                    errorMessage = "Twitter sign-in failed: " + authException.getMessage();
-            }
-        } else {
-            errorMessage = "Twitter sign-in failed. Please try again.";
-        }
-
-        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show();
-    }
     private void signInWithGoogle() {
-        showLoading();
-        Log.d(TAG, "Starting Google Sign-In flow");
+        presenter.handleGoogleSignIn();
 
         // Sign out first to always show account picker
         googleSignInClient.signOut().addOnCompleteListener(task -> {
@@ -241,247 +160,100 @@ private MaterialButton twitterBtn;
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             Log.d(TAG, "Google sign in successful: " + account.getEmail());
-            firebaseAuthWithGoogle(account.getIdToken());
+            presenter.onGoogleSignInResult(account.getIdToken());
         } catch (ApiException e) {
-            hideLoading();
-            Log.e(TAG, "Google sign in failed. Status code: " + e.getStatusCode(), e);
-
-            String errorMessage;
-            switch (e.getStatusCode()) {
-                case 7:
-                    errorMessage = "Network error. Please check your internet connection.";
-                    break;
-                case 10:
-                    errorMessage = "Developer error. Please add SHA-1 certificate to Firebase Console.";
-                    break;
-                case 12500:
-                    errorMessage = "Google Play Services not available. Please update.";
-                    break;
-                case 12501:
-                    errorMessage = "Sign-in cancelled.";
-                    break;
-                default:
-                    errorMessage = "Google sign-in failed. Error code: " + e.getStatusCode();
-            }
-
-            Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show();
+            presenter.onGoogleSignInError(e.getStatusCode());
         }
     }
 
-    private void firebaseAuthWithGoogle(String idToken) {
-        Log.d(TAG, "Authenticating with Firebase using Google token");
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+    private void signInWithTwitter() {
+        presenter.handleTwitterSignIn();
 
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(requireActivity(), task -> {
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "Firebase authentication successful");
-                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        OAuthProvider.Builder provider = OAuthProvider.newBuilder("twitter.com");
+        Task<AuthResult> pendingResultTask = mAuth.getPendingAuthResult();
 
-                        if (firebaseUser != null) {
-                            // Check if user exists in Firestore, if not create one
-                            checkAndCreateUserInFirestore(firebaseUser);
-                            // Sync meal plans
-                            syncMealPlans();
-                        }
-                    } else {
-                        hideLoading();
-                        Log.e(TAG, "Firebase authentication failed", task.getException());
-                        Toast.makeText(requireContext(),
-                                "Authentication failed",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+        if (pendingResultTask != null) {
+            pendingResultTask
+                    .addOnSuccessListener(authResult -> {
+                        Log.d(TAG, "Twitter sign-in successful (pending)");
+                        presenter.onTwitterSignInResult(authResult);
+                    })
+                    .addOnFailureListener(e -> presenter.onTwitterSignInError(e));
+        } else {
+            mAuth.startActivityForSignInWithProvider(requireActivity(), provider.build())
+                    .addOnSuccessListener(authResult -> {
+                        Log.d(TAG, "Twitter sign-in successful");
+                        presenter.onTwitterSignInResult(authResult);
+                    })
+                    .addOnFailureListener(e -> presenter.onTwitterSignInError(e));
+        }
     }
 
-    private void checkAndCreateUserInFirestore(FirebaseUser firebaseUser) {
-        db.collection("users")
-                .document(firebaseUser.getUid())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (!documentSnapshot.exists()) {
-                        // User doesn't exist, create new user
-                        String email = firebaseUser.getEmail();
-                        String username = firebaseUser.getDisplayName() != null
-                                ? firebaseUser.getDisplayName()
-                                : email.split("@")[0];
 
-                        User user = new User(username, email);
-                        db.collection("users")
-                                .document(firebaseUser.getUid())
-                                .set(user);
-                    }
-                });
-    }
 
-    private boolean isEmail(String input) {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches();
-    }
-
-    private void showLoading() {
+    @Override
+    public void showLoading() {
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).showLoading();
         }
     }
 
-    private void hideLoading() {
+    @Override
+    public void hideLoading() {
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).hideLoading();
         }
     }
 
-    private void handleLogin() {
-        String input = usernameInput.getText().toString().trim();
-        String password = passwordInput.getText().toString().trim();
+    @Override
+    public void showError(String message) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+    }
 
-        if (input.isEmpty()) {
-            usernameInput.setError("Username is required");
-            usernameInput.requestFocus();
-            return;
+    @Override
+    public void showSuccess(String message) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void navigateToHome() {
+        Navigation.findNavController(requireView())
+                .navigate(R.id.action_authFragment_to_startFragment);
+    }
+
+    @Override
+    public void setUsernameError(String error) {
+        usernameInput.setError(error);
+        usernameInput.requestFocus();
+    }
+
+    @Override
+    public void setPasswordError(String error) {
+        passwordInput.setError(error);
+        passwordInput.requestFocus();
+    }
+
+    @Override
+    public void clearErrors() {
+        usernameInput.setError(null);
+        passwordInput.setError(null);
+    }
+
+    @Override
+    public String getUsername() {
+        return usernameInput.getText() != null ? usernameInput.getText().toString() : "";
+    }
+
+    @Override
+    public String getPassword() {
+        return passwordInput.getText() != null ? passwordInput.getText().toString() : "";
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (presenter != null) {
+            presenter.onDestroy();
         }
-
-        if (password.isEmpty()) {
-            passwordInput.setError("Password is required");
-            passwordInput.requestFocus();
-            return;
-        }
-
-        showLoading();
-
-        if (isEmail(input)) {
-            loginWithEmail(input, password);
-        } else {
-            findUserByUsername(input, password);
-        }
-    }
-
-    private void findUserByUsername(String username, String password) {
-        CollectionReference usersRef = db.collection("users");
-        Query usernameQuery = usersRef.whereEqualTo("username", username).limit(1);
-
-        usernameQuery.get().addOnSuccessListener(query -> {
-            if (!query.isEmpty()) {
-                User user = query.getDocuments().get(0).toObject(User.class);
-                if (user != null) {
-                    loginWithEmail(user.getEmail(), password);
-                }
-            } else {
-                hideLoading();
-                Toast.makeText(requireContext(),
-                        "Username not found",
-                        Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(e -> {
-            hideLoading();
-            Toast.makeText(requireContext(),
-                    "Error fetching user: " + e.getMessage(),
-                    Toast.LENGTH_LONG).show();
-        });
-    }
-
-    private void loginWithEmail(String email, String password) {
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        syncMealPlans();
-                    } else {
-                        hideLoading();
-                        Toast.makeText(requireContext(),
-                                "Wrong password",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    private void syncMealPlans() {
-        mealsRepository.getAllMealPlansFromFirestore(new MealPlanFirestoreNetworkResponse() {
-            @Override
-            public void onSaveSuccess() {
-            }
-
-            @Override
-            public void onFetchSuccess(List<MealPlanFirestore> firestorePlans) {
-                if (firestorePlans.isEmpty()) {
-                    hideLoading();
-                    Toast.makeText(requireContext(),
-                            "Login successful",
-                            Toast.LENGTH_SHORT).show();
-                    Navigation.findNavController(requireView())
-                            .navigate(R.id.action_authFragment_to_startFragment);
-                    return;
-                }
-
-                int totalPlans = firestorePlans.size();
-                final int[] syncedCount = {0};
-
-                for (MealPlanFirestore firestorePlan : firestorePlans) {
-                    fetchAndSaveMealPlan(firestorePlan, () -> {
-                        syncedCount[0]++;
-                        if (syncedCount[0] == totalPlans) {
-                            hideLoading();
-                            Toast.makeText(requireContext(),
-                                    "Login successful & " + totalPlans + " meals synced",
-                                    Toast.LENGTH_SHORT).show();
-                            Navigation.findNavController(requireView())
-                                    .navigate(R.id.action_authFragment_to_startFragment);
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onDeleteSuccess() {
-            }
-
-            @Override
-            public void onFailure(String error) {
-                hideLoading();
-                Toast.makeText(requireContext(),
-                        "Login successful but sync failed: " + error,
-                        Toast.LENGTH_SHORT).show();
-                Navigation.findNavController(requireView())
-                        .navigate(R.id.action_authFragment_to_startFragment);
-            }
-        });
-    }
-
-    private void fetchAndSaveMealPlan(MealPlanFirestore firestorePlan, SyncCallback callback) {
-        mealsRepository.getRecipeDetails(firestorePlan.getMealId(), new RecipeDetailsNetworkResponse() {
-            @Override
-            public void onSuccess(List<RecipeDetails> recipeDetailsList) {
-                if (!recipeDetailsList.isEmpty()) {
-                    RecipeDetails details = recipeDetailsList.get(0);
-
-                    MealPlan mealPlan = new MealPlan(
-                            details.getIdMeal(),
-                            firestorePlan.getMealType(),
-                            firestorePlan.getDayOfWeek(),
-                            details.getMealName(),
-                            details.getStrMealThumbnail(),
-                            details.getMealCategory(),
-                            details.getMealArea(),
-                            details.getMealInstructions()
-                    );
-                    mealPlan.setTimestamp(firestorePlan.getTimestamp());
-
-                    mealsRepository.insertMealToMealPlan(mealPlan);
-                }
-                callback.onComplete();
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                callback.onComplete();
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                callback.onComplete();
-            }
-        });
-    }
-
-    private interface SyncCallback {
-        void onComplete();
     }
 }

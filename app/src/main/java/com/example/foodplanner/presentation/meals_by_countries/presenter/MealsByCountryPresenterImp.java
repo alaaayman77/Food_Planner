@@ -142,28 +142,38 @@ public class MealsByCountryPresenterImp implements MealsByCountryPresenter {
             return;
         }
 
-        mealsRepository.getRecipeDetails(mealId, new RecipeDetailsNetworkResponse() {
-            @Override
-            public void onSuccess(List<RecipeDetails> recipeDetailsList) {
-                if (recipeDetailsList != null && !recipeDetailsList.isEmpty()) {
-                    RecipeDetails recipe = recipeDetailsList.get(0);
-                    FavoriteMeal favoriteMeal = FavoriteMeal.fromRecipeDetails(recipe);
-                    addToFav(favoriteMeal);
-                } else {
-                    mealsByCountryView.onFavAddedFailure("Could not fetch recipe details");
-                }
-            }
+        compositeDisposable.add(
+                mealsRepository.getRecipeDetails(mealId)
+                        .subscribeOn(Schedulers.io())
+                        .map(response -> {
+                            List<RecipeDetails> recipeDetails = response.getRecipeDetails();
+                            if (recipeDetails == null || recipeDetails.isEmpty()) {
+                                throw new Exception("Could not fetch recipe details");
+                            }
+                            return recipeDetails.get(0);
+                        })
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                recipe -> {
+                                    FavoriteMeal favoriteMeal = FavoriteMeal.fromRecipeDetails(recipe);
+                                    addToFav(favoriteMeal);
+                                },
+                                error -> {
+                                    Log.e(TAG, "Error fetching recipe details", error);
 
-            @Override
-            public void onFailure(String errorMessage) {
-                mealsByCountryView.onFavAddedFailure(errorMessage);
-            }
+                                    String errorMessage;
+                                    if (error instanceof IOException) {
+                                        errorMessage = "Network error: " + error.getMessage();
+                                    } else if (error instanceof HttpException) {
+                                        errorMessage = "Server error: " + error.getMessage();
+                                    } else {
+                                        errorMessage = error.getMessage();
+                                    }
 
-            @Override
-            public void onServerError(String errorMessage) {
-                mealsByCountryView.onFavAddedFailure(errorMessage);
-            }
-        });
+                                    mealsByCountryView.onFavAddedFailure(errorMessage);
+                                }
+                        )
+        );
     }
 
     private void saveMealPlanToFirestore(MealPlan mealPlan) {

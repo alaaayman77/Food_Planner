@@ -1,6 +1,7 @@
 package com.example.foodplanner.presentation.mealplanner.presenter;
 
 import android.content.Context;
+import android.net.http.HttpException;
 import android.util.Log;
 
 import androidx.lifecycle.LifecycleOwner;
@@ -15,8 +16,13 @@ import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.mealplanner.view.MealPlannerView;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class MealPlannerPresenterImp implements MealPlannerPresenter {
     private static final String TAG = "MealPlannerPresenter";
@@ -25,7 +31,7 @@ public class MealPlannerPresenterImp implements MealPlannerPresenter {
     private MealsRepository repository;
     private LifecycleOwner lifecycleOwner;
     private FirebaseAuth mAuth;
-
+    CompositeDisposable compositeDisposable = new CompositeDisposable();
     public MealPlannerPresenterImp(MealPlannerView view, Context context, LifecycleOwner lifecycleOwner) {
         this.view = view;
         this.repository = new MealsRepository(context);
@@ -176,40 +182,84 @@ public class MealPlannerPresenterImp implements MealPlannerPresenter {
             }
         });
     }
-
     private void fetchAndSaveMealPlan(MealPlanFirestore firestorePlan) {
-        repository.getRecipeDetails(firestorePlan.getMealId(), new RecipeDetailsNetworkResponse() {
-            @Override
-            public void onSuccess(List<RecipeDetails> recipeDetailsList) {
-                if (!recipeDetailsList.isEmpty()) {
-                    RecipeDetails details = recipeDetailsList.get(0);
+        compositeDisposable.add(
+                repository.getRecipeDetails(firestorePlan.getMealId())
+                        .subscribeOn(Schedulers.io())
+                        .map(response -> {
+                            List<RecipeDetails> recipeDetails = response.getRecipeDetails();
+                            if (recipeDetails == null || recipeDetails.isEmpty()) {
+                                throw new Exception("No recipe details found");
+                            }
+                            return recipeDetails.get(0);
+                        })
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                details -> {
+                                    MealPlan mealPlan = new MealPlan(
+                                            details.getIdMeal(),
+                                            firestorePlan.getMealType(),
+                                            firestorePlan.getDayOfWeek(),
+                                            details.getMealName(),
+                                            details.getStrMealThumbnail(),
+                                            details.getMealCategory(),
+                                            details.getMealArea(),
+                                            details.getMealInstructions()
+                                    );
+                                    mealPlan.setTimestamp(firestorePlan.getTimestamp());
 
-                    MealPlan mealPlan = new MealPlan(
-                            details.getIdMeal(),
-                            firestorePlan.getMealType(),
-                            firestorePlan.getDayOfWeek(),
-                            details.getMealName(),
-                            details.getStrMealThumbnail(),
-                            details.getMealCategory(),
-                            details.getMealArea(),
-                            details.getMealInstructions()
-                    );
-                    mealPlan.setTimestamp(firestorePlan.getTimestamp());
+                                    repository.insertMealToMealPlan(mealPlan);
+                                    Log.d(TAG, "Meal plan synced to Room: " + details.getMealName());
+                                },
+                                error -> {
+                                    Log.e(TAG, "Failed to fetch meal details", error);
+                                    if (error instanceof IOException) {
+                                        view.showError("Network error: " + error.getMessage());
+                                    } else if (error instanceof HttpException) {
+                                        HttpException httpException = (HttpException) error;
+                                        view.showError("Server error: " + error.getMessage());
+                                    } else {
+                                        view.showError(error.getMessage());
+                                    }
 
-                    repository.insertMealToMealPlan(mealPlan);
-                    Log.d(TAG, "Meal plan synced to Room: " + details.getMealName());
-                }
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                Log.e(TAG, "Failed to fetch meal details: " + errorMessage);
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                Log.e(TAG, "Server error: " + errorMessage);
-            }
-        });
+                                }
+                        )
+        );
     }
+
+//    private void fetchAndSaveMealPlan(MealPlanFirestore firestorePlan) {
+//        repository.getRecipeDetails(firestorePlan.getMealId(), new RecipeDetailsNetworkResponse() {
+//            @Override
+//            public void onSuccess(List<RecipeDetails> recipeDetailsList) {
+//                if (!recipeDetailsList.isEmpty()) {
+//                    RecipeDetails details = recipeDetailsList.get(0);
+//
+//                    MealPlan mealPlan = new MealPlan(
+//                            details.getIdMeal(),
+//                            firestorePlan.getMealType(),
+//                            firestorePlan.getDayOfWeek(),
+//                            details.getMealName(),
+//                            details.getStrMealThumbnail(),
+//                            details.getMealCategory(),
+//                            details.getMealArea(),
+//                            details.getMealInstructions()
+//                    );
+//                    mealPlan.setTimestamp(firestorePlan.getTimestamp());
+//
+//                    repository.insertMealToMealPlan(mealPlan);
+//                    Log.d(TAG, "Meal plan synced to Room: " + details.getMealName());
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(String errorMessage) {
+//                Log.e(TAG, "Failed to fetch meal details: " + errorMessage);
+//            }
+//
+//            @Override
+//            public void onServerError(String errorMessage) {
+//                Log.e(TAG, "Server error: " + errorMessage);
+//            }
+//        });
+//    }
 }

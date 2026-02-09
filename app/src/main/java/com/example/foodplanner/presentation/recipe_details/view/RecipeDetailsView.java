@@ -8,4 +8,6 @@ public interface RecipeDetailsView {
     void  onMealPlanAddedSuccess();
     void onMealPlanAddedFailure(String error);
     void showSignInPrompt(String featureName, String message);
+    void hideLoading();
+    void showLoading();
 }
