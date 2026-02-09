@@ -160,7 +160,37 @@ public class MultiFilterPresenterImp implements MultiFilterPresenter {
 
         compositeDisposable.add(disposable);
     }
+    private void fetchMealsByIngredient(String ingredient) {
+        Disposable disposable = mealsRepository.getIngredientFilteredMeals(ingredient)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        response -> {
+                            // Success
+                            List<IngredientFilteredMeals> meals = response.getMealsFilteredByIngredient();
+                            if (meals != null) {
+                                for (IngredientFilteredMeals meal : meals) {
+                                    ingredientsMealIds.add(meal.getIdMeal());
+                                }
+                            }
+                            completedRequests++;
+                            checkAndShowResults();
+                        },
+                        error -> {
+                            // Error
+                            multiFilterView.hideLoading();
+                            if (error instanceof IOException) {
+                                multiFilterView.showError("Network error fetching category meals");
+                            } else if (error instanceof HttpException) {
+                                multiFilterView.showError("Server error: " + ((HttpException) error).getMessage());
+                            } else {
+                                multiFilterView.showError("Error fetching category meals: " + error.getMessage());
+                            }
+                        }
+                );
 
+        compositeDisposable.add(disposable);
+    }
 //        private void fetchMealsByArea(String area) {
 //            mealsRepository.getAreaFilteredMeals(area, new AreaFilteredMealsNetworkResponse() {
 //                @Override
@@ -186,30 +216,30 @@ public class MultiFilterPresenterImp implements MultiFilterPresenter {
 //            });
 //        }
 
-        private void fetchMealsByIngredient(String ingredient){
-            mealsRepository.getIngredientFilteredMeals(ingredient, new IngredientFilteredMealsNetworkResponse() {
-                @Override
-                public void onSuccess(List<IngredientFilteredMeals> ingredientFilteredMealsList) {
-                    for (IngredientFilteredMeals meal : ingredientFilteredMealsList) {
-                        ingredientsMealIds.add(meal.getIdMeal());
-                    }
-                    completedRequests++;
-                    checkAndShowResults();
-                }
-
-                @Override
-                public void onFailure(String errorMessage) {
-                    multiFilterView.hideLoading();
-                    multiFilterView.showError("Error fetching area meals: " + errorMessage);
-                }
-
-                @Override
-                public void onServerError(String errorMessage) {
-                    multiFilterView.hideLoading();
-                    multiFilterView.showError("Server error: " + errorMessage);
-                }
-            });
-        }
+//        private void fetchMealsByIngredient(String ingredient){
+//            mealsRepository.getIngredientFilteredMeals(ingredient, new IngredientFilteredMealsNetworkResponse() {
+//                @Override
+//                public void onSuccess(List<IngredientFilteredMeals> ingredientFilteredMealsList) {
+//                    for (IngredientFilteredMeals meal : ingredientFilteredMealsList) {
+//                        ingredientsMealIds.add(meal.getIdMeal());
+//                    }
+//                    completedRequests++;
+//                    checkAndShowResults();
+//                }
+//
+//                @Override
+//                public void onFailure(String errorMessage) {
+//                    multiFilterView.hideLoading();
+//                    multiFilterView.showError("Error fetching area meals: " + errorMessage);
+//                }
+//
+//                @Override
+//                public void onServerError(String errorMessage) {
+//                    multiFilterView.hideLoading();
+//                    multiFilterView.showError("Server error: " + errorMessage);
+//                }
+//            });
+//        }
 
         private void checkAndShowResults() {
 

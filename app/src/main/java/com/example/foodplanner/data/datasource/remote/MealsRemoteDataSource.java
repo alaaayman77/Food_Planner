@@ -50,6 +50,9 @@ public Single<RandomMealResponse> getRandomMeal(){
     public Observable<AreaFilteredMealsResponse> getFilteredMealsByArea(String area){
         return mealsService.getFilteredMealsByArea(area);
     }
+    public Observable<IngredientFilteredMealsResponse> getFilteredMealsByIngredient(String ingredient){
+        return mealsService.getFilteredMealsByIngredient(ingredient);
+    }
 //    public void getRandomMeal(MealNetworkResponse callback){
 //        mealsService.getRandomMeal().enqueue(new Callback<RandomMealResponse>() {
 //
@@ -227,33 +230,33 @@ public Single<RandomMealResponse> getRandomMeal(){
 //        });
 //    }
 
-    public void getFilteredMealsByIngredient(String ingredient , IngredientFilteredMealsNetworkResponse callback){
-        mealsService.getFilteredMealsByIngredient(ingredient).enqueue(new Callback<IngredientFilteredMealsResponse>() {
-            @Override
-            public void onResponse(Call<IngredientFilteredMealsResponse> call, Response<IngredientFilteredMealsResponse> response) {
-                if(response.isSuccessful() && response.body() != null){
-                    callback.onSuccess(response.body().getMealsFilteredByIngredient());
-//                    Log.d(TAG, "Meals list: " + mealsByCategoryResponse.getMealsByCategories());
-                }
-                else {
-                    Log.e(TAG, "Response unsuccessful: " + response.code());
-                    Log.e(TAG, "Error body: " + response.errorBody());
-                    callback.onServerError("Server error" + response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<IngredientFilteredMealsResponse> call, Throwable t) {
-                Log.e(TAG, "API call failed", t);
-                if(t instanceof IOException){
-                    callback.onFailure("Network error");
-                }
-                else{
-                    callback.onFailure("Conversion Error");
-                }
-            }
-        });
-    }
+//    public void getFilteredMealsByIngredient(String ingredient , IngredientFilteredMealsNetworkResponse callback){
+//        mealsService.getFilteredMealsByIngredient(ingredient).enqueue(new Callback<IngredientFilteredMealsResponse>() {
+//            @Override
+//            public void onResponse(Call<IngredientFilteredMealsResponse> call, Response<IngredientFilteredMealsResponse> response) {
+//                if(response.isSuccessful() && response.body() != null){
+//                    callback.onSuccess(response.body().getMealsFilteredByIngredient());
+////                    Log.d(TAG, "Meals list: " + mealsByCategoryResponse.getMealsByCategories());
+//                }
+//                else {
+//                    Log.e(TAG, "Response unsuccessful: " + response.code());
+//                    Log.e(TAG, "Error body: " + response.errorBody());
+//                    callback.onServerError("Server error" + response.code());
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<IngredientFilteredMealsResponse> call, Throwable t) {
+//                Log.e(TAG, "API call failed", t);
+//                if(t instanceof IOException){
+//                    callback.onFailure("Network error");
+//                }
+//                else{
+//                    callback.onFailure("Conversion Error");
+//                }
+//            }
+//        });
+//    }
 
     public void getRecipeDetails(String id , RecipeDetailsNetworkResponse callback){
         mealsService.getRecipeDetails(id).enqueue(new Callback<RecipeDetailsResponse>() {

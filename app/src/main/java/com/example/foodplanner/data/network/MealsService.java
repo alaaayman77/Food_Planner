@@ -32,11 +32,10 @@ public interface MealsService {
     @GET("filter.php")
     Observable<AreaFilteredMealsResponse> getFilteredMealsByArea(@Query("a") String area);
     @GET("filter.php")
-    Call<IngredientFilteredMealsResponse> getFilteredMealsByIngredient(@Query("i") String ingredient);
+    Observable<IngredientFilteredMealsResponse> getFilteredMealsByIngredient(@Query("i") String ingredient);
 
     @GET("list.php?i=list")
     Observable<IngredientsResponse> getIngredients();
-
 
     @GET("list.php?a=list")
     Observable<AreaResponse> getArea();

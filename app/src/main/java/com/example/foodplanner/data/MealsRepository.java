@@ -22,6 +22,7 @@ import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
 import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMealsResponse;
+import com.example.foodplanner.data.model.filtered_meals.IngredientFilteredMealsResponse;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
@@ -72,8 +73,8 @@ public class MealsRepository {
         return mealsRemoteDataSource.getIngredients();
     }
 
-    public void getIngredientFilteredMeals(String ingredient, IngredientFilteredMealsNetworkResponse response){
-        mealsRemoteDataSource.getFilteredMealsByIngredient(ingredient,response);
+    public Observable<IngredientFilteredMealsResponse> getIngredientFilteredMeals(String ingredient){
+       return  mealsRemoteDataSource.getFilteredMealsByIngredient(ingredient);
     }
 
     public void getRecipeDetails(String id , RecipeDetailsNetworkResponse response){
