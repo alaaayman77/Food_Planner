@@ -57,8 +57,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                android:src="@drawable/icon_heart"
-                app:tint="#FF0000" />
+                android:src="@drawable/icon_heart_filled" />
 
         </com.google.android.material.card.MaterialCardView>
 

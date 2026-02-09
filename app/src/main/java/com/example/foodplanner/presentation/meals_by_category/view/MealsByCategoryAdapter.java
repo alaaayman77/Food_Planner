@@ -104,10 +104,10 @@ public class MealsByCategoryAdapter extends RecyclerView.Adapter<MealsByCategory
 
     private void updateFavoriteIcon(ImageView icon, boolean isFavorite) {
         if (isFavorite) {
-            // Use filled heart drawable
-            icon.setImageResource(R.drawable.icon_tick);
+
+            icon.setImageResource(R.drawable.icon_heart_filled);
         } else {
-            // Use outline heart drawable
+
             icon.setImageResource(R.drawable.icon_heart);
         }
     }

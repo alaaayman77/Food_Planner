@@ -1,7 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.google.gms.google.services)
+
     id("androidx.navigation.safeargs")
+    id("com.google.gms.google-services")
 
 }
 
@@ -68,5 +69,6 @@ dependencies {
 
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 
 }

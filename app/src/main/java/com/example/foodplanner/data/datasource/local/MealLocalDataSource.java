@@ -9,6 +9,7 @@ import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 
 public class MealLocalDataSource {
@@ -72,5 +73,11 @@ public class MealLocalDataSource {
 
     public LiveData<List<FavoriteMeal>> getAllFavorites(){
         return favoriteDao.getAllFavorites();
+    }
+    public void isFavorite(String mealId, Consumer<Boolean> callback){
+        new Thread(() -> {
+            boolean result = favoriteDao.isMealFavorited(mealId);
+            callback.accept(result);
+        }).start();
     }
 }

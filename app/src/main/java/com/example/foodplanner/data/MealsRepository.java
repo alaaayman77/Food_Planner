@@ -2,7 +2,9 @@ package com.example.foodplanner.data;
 
 import android.content.Context;
 
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 
 import com.example.foodplanner.data.datasource.local.MealLocalDataSource;
 import com.example.foodplanner.data.datasource.remote.AreaFilteredMealsNetworkResponse;
@@ -22,6 +24,7 @@ import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class MealsRepository {
 
@@ -112,6 +115,16 @@ public class MealsRepository {
     public void deleteFav(String mealId) {
         mealLocalDataSource.deleteFavByMealId(mealId);
     }
+    public void isFavorite(String mealId, Consumer<Boolean> callback){
+        mealLocalDataSource.isFavorite(mealId, callback);
+    }
+    public void observeFavorites(
+            LifecycleOwner owner,
+            Observer<List<FavoriteMeal>> observer) {
+
+        mealLocalDataSource.getAllFavorites().observe(owner, observer);
+    }
+
 
 }
 

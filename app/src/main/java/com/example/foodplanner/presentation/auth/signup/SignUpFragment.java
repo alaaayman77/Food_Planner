@@ -1,12 +1,16 @@
 package com.example.foodplanner.presentation.auth.signup;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -15,19 +19,27 @@ import androidx.navigation.Navigation;
 import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.User;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 public class SignUpFragment extends Fragment {
+
+    private static final String TAG = "SignUpFragment";
 
     private TextInputLayout usernameTextInput;
     private TextInputLayout emailTextInput;
@@ -38,10 +50,36 @@ public class SignUpFragment extends Fragment {
     private TextInputEditText passwordInput;
     private TextInputEditText confirmPasswordInput;
     private TextView guest_tv;
+    private MaterialButton googleBtn;
+
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private GoogleSignInClient googleSignInClient;
+
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
+
     public SignUpFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Initialize Google Sign-In launcher
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    Log.d(TAG, "Google Sign-In result received. Result code: " + result.getResultCode());
+                    if (result.getData() != null) {
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                        handleGoogleSignInResult(task);
+                    } else {
+                        hideLoading();
+                        Toast.makeText(requireContext(), "Sign-in cancelled", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
     }
 
     @Nullable
@@ -49,7 +87,6 @@ public class SignUpFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
         return inflater.inflate(R.layout.fragment_sign_up, container, false);
     }
 
@@ -57,34 +94,166 @@ public class SignUpFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        initializeViews(view);
+        initializeFirebase();
+        setupGoogleSignIn();
+        setupClickListeners();
+    }
+
+    private void initializeViews(View view) {
         usernameTextInput = view.findViewById(R.id.username_text_input_signup);
         emailTextInput = view.findViewById(R.id.email_text_input_signup);
         passwordTextInput = view.findViewById(R.id.password_text_input_signup);
         confirmPasswordTextInput = view.findViewById(R.id.confirm_password_text_input_signup);
-
-        MaterialButton signUpButton = view.findViewById(R.id.signupBtn);
+        googleBtn = view.findViewById(R.id.googleBtn);
+        guest_tv = view.findViewById(R.id.guest_mode);
 
         usernameInput = (TextInputEditText) usernameTextInput.getEditText();
         emailInput = (TextInputEditText) emailTextInput.getEditText();
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
         confirmPasswordInput = (TextInputEditText) confirmPasswordTextInput.getEditText();
-        guest_tv = view.findViewById(R.id.guest_mode);
+    }
+
+    private void initializeFirebase() {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+    }
 
-        signUpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                handleSignUp();
-            }
+    private void setupGoogleSignIn() {
+        try {
+            String webClientId = getString(R.string.client_id);
+            Log.d(TAG, "Web Client ID loaded successfully");
+
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(webClientId)
+                    .requestEmail()
+                    .build();
+
+            googleSignInClient = GoogleSignIn.getClient(requireContext(), gso);
+            Log.d(TAG, "GoogleSignInClient initialized successfully");
+        } catch (Exception e) {
+            Log.e(TAG, "Error setting up Google Sign-In", e);
+            Toast.makeText(requireContext(),
+                    "Google Sign-In setup failed. Check your configuration.",
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void setupClickListeners() {
+        MaterialButton signUpButton = requireView().findViewById(R.id.signupBtn);
+
+        signUpButton.setOnClickListener(v -> handleSignUp());
+
+        googleBtn.setOnClickListener(v -> {
+            Log.d(TAG, "Google Sign-In button clicked");
+            signInWithGoogle();
         });
-        guest_tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(requireView()).navigate(R.id.action_authFragment_to_startFragment);
-            }
+
+        guest_tv.setOnClickListener(v ->
+                Navigation.findNavController(requireView())
+                        .navigate(R.id.action_authFragment_to_startFragment)
+        );
+    }
+
+    private void signInWithGoogle() {
+        showLoading();
+        Log.d(TAG, "Starting Google Sign-In flow");
+
+        // Sign out first to always show account picker
+        googleSignInClient.signOut().addOnCompleteListener(task -> {
+            Intent signInIntent = googleSignInClient.getSignInIntent();
+            googleSignInLauncher.launch(signInIntent);
         });
     }
+
+    private void handleGoogleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+            Log.d(TAG, "Google sign in successful: " + account.getEmail());
+            firebaseAuthWithGoogle(account.getIdToken());
+        } catch (ApiException e) {
+            hideLoading();
+            Log.e(TAG, "Google sign in failed. Status code: " + e.getStatusCode(), e);
+
+            String errorMessage;
+            switch (e.getStatusCode()) {
+                case 7:
+                    errorMessage = "Network error. Please check your internet connection.";
+                    break;
+                case 10:
+                    errorMessage = "Developer error. Please add SHA-1 certificate to Firebase Console.";
+                    break;
+                case 12500:
+                    errorMessage = "Google Play Services not available. Please update.";
+                    break;
+                case 12501:
+                    errorMessage = "Sign-in cancelled.";
+                    break;
+                default:
+                    errorMessage = "Google sign-in failed. Error code: " + e.getStatusCode();
+            }
+
+            Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void firebaseAuthWithGoogle(String idToken) {
+        Log.d(TAG, "Authenticating with Firebase using Google token");
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(requireActivity(), task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Firebase authentication successful");
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+
+                        if (firebaseUser != null) {
+                            // Check if user already exists in Firestore
+                            checkUserExistsAndSave(firebaseUser);
+                        }
+                    } else {
+                        hideLoading();
+                        Log.e(TAG, "Firebase authentication failed", task.getException());
+                        Toast.makeText(requireContext(),
+                                "Authentication failed: " + task.getException().getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void checkUserExistsAndSave(FirebaseUser firebaseUser) {
+        db.collection("users")
+                .document(firebaseUser.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // User already exists
+                        hideLoading();
+                        Toast.makeText(requireContext(),
+                                "Already signed in! Redirecting...",
+                                Toast.LENGTH_SHORT).show();
+                        Navigation.findNavController(requireView())
+                                .navigate(R.id.action_authFragment_to_startFragment);
+                    } else {
+
+                        String email = firebaseUser.getEmail();
+                        String username = firebaseUser.getDisplayName() != null
+                                ? firebaseUser.getDisplayName()
+                                : email.split("@")[0];
+
+                        User user = new User(username, email);
+                        saveUserToFirestore(firebaseUser.getUid(), user);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    hideLoading();
+                    Log.e(TAG, "Error checking user existence", e);
+                    Toast.makeText(requireContext(),
+                            "Error: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                });
+    }
+
     private void showLoading() {
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).showLoading();
@@ -96,6 +265,7 @@ public class SignUpFragment extends Fragment {
             ((MainActivity) getActivity()).hideLoading();
         }
     }
+
     private void handleSignUp() {
         String username = usernameInput.getText().toString().trim();
         String email = emailInput.getText().toString().trim();
@@ -108,25 +278,23 @@ public class SignUpFragment extends Fragment {
         confirmPasswordTextInput.setError(null);
 
         if (username.isEmpty()) {
-            hideLoading();
             usernameInput.setError("Username is required");
             usernameInput.requestFocus();
             return;
         }
 
         if (email.isEmpty()) {
-            hideLoading();
             emailInput.setError("Email is required");
             emailInput.requestFocus();
             return;
         }
 
         if (password.isEmpty()) {
-
             passwordInput.setError("Password is required");
             passwordInput.requestFocus();
             return;
         }
+
         if (confirmPassword.isEmpty()) {
             confirmPasswordTextInput.setError("Please confirm your password");
             confirmPasswordInput.requestFocus();
@@ -140,51 +308,42 @@ public class SignUpFragment extends Fragment {
         }
 
         checkUsernameExistsAndCreateUser(username, email, password);
-        Toast.makeText(requireContext(), "Sign Up clicked", Toast.LENGTH_SHORT).show();
     }
 
-    private void checkUsernameExistsAndCreateUser(String username , String email , String password){
+    private void checkUsernameExistsAndCreateUser(String username, String email, String password) {
         showLoading();
         CollectionReference usersRef = db.collection("users");
         Query usernameQuery = usersRef.whereEqualTo("username", username).limit(1);
-        usernameQuery.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-        public void onSuccess(QuerySnapshot querySnapshot) {
+
+        usernameQuery.get().addOnSuccessListener(querySnapshot -> {
             if (!querySnapshot.isEmpty()) {
+                hideLoading();
                 Toast.makeText(requireContext(),
                         "Username already taken",
                         Toast.LENGTH_SHORT).show();
             } else {
                 createFirebaseUser(username, email, password);
             }
-        }
-
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(requireContext(),
-                        "Error checking username: " + e.getMessage(),
-                        Toast.LENGTH_LONG).show();
-            }
+        }).addOnFailureListener(e -> {
+            hideLoading();
+            Toast.makeText(requireContext(),
+                    "Error checking username: " + e.getMessage(),
+                    Toast.LENGTH_LONG).show();
         });
-
     }
-    private void createFirebaseUser(String username, String email, String password){
+
+    private void createFirebaseUser(String username, String email, String password) {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
                         if (firebaseUser != null) {
-
                             User user = new User(username, email);
                             saveUserToFirestore(firebaseUser.getUid(), user);
-                        }
-                        else {
+                        } else {
                             hideLoading();
                         }
-                        Toast.makeText(requireContext(),
-                                "Sign up successful ",
-                                Toast.LENGTH_SHORT).show();
                     } else {
                         hideLoading();
                         Toast.makeText(requireContext(),
@@ -198,22 +357,19 @@ public class SignUpFragment extends Fragment {
         db.collection("users")
                 .document(uid)
                 .set(user)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        hideLoading();
-                        Toast.makeText(requireContext(), "Account created ", Toast.LENGTH_SHORT).show();
-                        Navigation.findNavController(requireView()).navigate(R.id.action_authFragment_to_startFragment);
-                    }
+                .addOnSuccessListener(aVoid -> {
+                    hideLoading();
+                    Toast.makeText(requireContext(),
+                            "Account created successfully!",
+                            Toast.LENGTH_SHORT).show();
+                    Navigation.findNavController(requireView())
+                            .navigate(R.id.action_authFragment_to_startFragment);
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        hideLoading();
-                        Toast.makeText(requireContext(),
-                                "Error saving user: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
-                    }
+                .addOnFailureListener(e -> {
+                    hideLoading();
+                    Toast.makeText(requireContext(),
+                            "Error saving user: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
                 });
     }
 }

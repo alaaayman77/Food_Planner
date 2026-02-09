@@ -14,12 +14,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.foodplanner.R;
+import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.recipe_details.IngredientWithMeasure;
 import com.example.foodplanner.data.model.recipe_details.InstructionStep;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
+import com.example.foodplanner.presentation.home.view.MealPlanBottomSheet;
 import com.example.foodplanner.presentation.recipe_details.presenter.RecipeDetailsPresenter;
 import com.example.foodplanner.presentation.recipe_details.presenter.RecipeDetailsPresenterImp;
 import com.google.android.material.button.MaterialButton;
@@ -43,6 +46,10 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
     private InstructionsAdapter instructionsAdapter;
     private RecipeDetailsPresenter recipeDetailsPresenter;
     private MaterialButton backBtn;
+    private MaterialButton addToMealPlanButton;
+
+    // Store the current recipe details
+    private RecipeDetails currentRecipeDetails;
 
     public RecipeDetailsFragment() {
         // Required empty public constructor
@@ -72,10 +79,19 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
 
         recipeDetailsPresenter = new RecipeDetailsPresenterImp(this, requireContext());
         recipeDetailsPresenter.getRecipeDetails(idMeal);
+
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Navigation.findNavController(v).navigateUp();
+            }
+        });
+
+        addToMealPlanButton.setOnClickListener(v -> {
+            if (currentRecipeDetails != null) {
+                showAddMealPlanDialog(currentRecipeDetails);
+            } else {
+                Toast.makeText(getContext(), "No meal available", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -86,13 +102,13 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         mealArea = view.findViewById(R.id.tag1);
         mealType = view.findViewById(R.id.tag2);
         backBtn = view.findViewById(R.id.back_button);
+        addToMealPlanButton = view.findViewById(R.id.addToMealPlanButton);
         itemCountTextView = view.findViewById(R.id.itemCountTextView);
         ingredientsRecyclerView = view.findViewById(R.id.ingredientsRecyclerView);
         instructionsRecyclerView = view.findViewById(R.id.instructionsRecyclerView);
     }
 
     private void setupRecyclerViews() {
-
         ingredientsAdapter = new IngredientsAdapter(requireContext());
         ingredientsRecyclerView.setAdapter(ingredientsAdapter);
         LinearLayoutManager instructionsLayoutManager = new LinearLayoutManager(requireContext());
@@ -103,9 +119,10 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
 
     @Override
     public void setRecipeDetails(RecipeDetails recipeDetails) {
+        // Store the current recipe details
+        this.currentRecipeDetails = recipeDetails;
 
         mealTitle.setText(recipeDetails.getMealName());
-
 
         if (recipeDetails.getMealArea() != null) {
             mealArea.setText(recipeDetails.getMealArea().toUpperCase());
@@ -113,7 +130,6 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         if (recipeDetails.getMealCategory() != null) {
             mealType.setText(recipeDetails.getMealCategory().toUpperCase());
         }
-
 
         if (recipeDetails.getStrMealThumbnail() != null && !recipeDetails.getStrMealThumbnail().isEmpty()) {
             Glide.with(this)
@@ -123,7 +139,6 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
                     .centerCrop()
                     .into(mealImage);
         }
-
 
         List<IngredientWithMeasure> ingredients = recipeDetails.getIngredientsWithMeasures();
         if (ingredients != null && !ingredients.isEmpty()) {
@@ -142,7 +157,6 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
             return steps;
         }
 
-
         String[] sentences = instructionsText.split("(?<=\\.) (?=[A-Z])|\r?\n");
 
         int stepNumber = 1;
@@ -154,9 +168,6 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
             }
 
             if (!sentence.isEmpty() && sentence.length() > 15) {
-
-
-
                 steps.add(new InstructionStep(stepNumber, sentence + "."));
                 stepNumber++;
             }
@@ -165,11 +176,41 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         return steps;
     }
 
-
     @Override
     public void showError(String errorMessage) {
-        // Handle error
+        Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void onMealPlanAddedSuccess() {
+        Toast.makeText(getContext(),
+                "Meal added to your plan! 📅",
+                Toast.LENGTH_SHORT).show();
+    }
 
+    @Override
+    public void onMealPlanAddedFailure(String error) {
+        Toast.makeText(getContext(),
+                "Failed to add meal: " + error,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private void showAddMealPlanDialog(RecipeDetails recipeDetails) {
+        MealPlanBottomSheet bottomSheet = MealPlanBottomSheet.newInstance(recipeDetails.getIdMeal());
+        bottomSheet.setOnMealPlanSelectedListener((selectedMealId, day, mealType) -> {
+            // Create MealPlan from RecipeDetails
+            MealPlan mealPlan = new MealPlan(
+                    recipeDetails.getIdMeal(),
+                    mealType,
+                    day,
+                    recipeDetails.getMealName(),
+                    recipeDetails.getStrMealThumbnail(),
+                    recipeDetails.getMealCategory(),
+                    recipeDetails.getMealArea(),
+                    recipeDetails.getMealInstructions()
+            );
+            recipeDetailsPresenter.addMealToPlan(mealPlan);
+        });
+        bottomSheet.show(getParentFragmentManager(), "AddMealPlanBottomSheet");
+    }
 }

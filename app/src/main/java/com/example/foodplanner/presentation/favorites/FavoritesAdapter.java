@@ -1,6 +1,5 @@
 package com.example.foodplanner.presentation.favorites;
 
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +33,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Favo
     }
 
     public void setFavorites(List<FavoriteMeal> favorites) {
-        this.favoritesList = favorites;
+        this.favoritesList = favorites != null ? favorites : new ArrayList<>();
         notifyDataSetChanged();
     }
 
@@ -66,6 +65,8 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Favo
                 .centerCrop()
                 .into(holder.mealImage);
 
+        holder.removeFavoriteIcon.setImageResource(R.drawable.icon_heart_filled);
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onFavoriteClick(favorite);
@@ -86,6 +87,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Favo
 
     static class FavoriteViewHolder extends RecyclerView.ViewHolder {
         ImageView mealImage;
+        ImageView removeFavoriteIcon;
         TextView mealTitle;
         TextView mealCategory;
         MaterialCardView removeFavoriteCard;
@@ -96,6 +98,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Favo
             mealTitle = itemView.findViewById(R.id.favMealTitle);
             mealCategory = itemView.findViewById(R.id.favMealCategory);
             removeFavoriteCard = itemView.findViewById(R.id.removeFavoriteCard);
+            removeFavoriteIcon = itemView.findViewById(R.id.removeFavoriteIcon);
         }
     }
 }

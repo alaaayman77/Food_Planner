@@ -126,7 +126,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <!-- ADD TO PLAN BUTTON (Calendar Icon) -->
+
                 <ImageView
                     android:id="@+id/btnAddToPlan"
                     android:layout_width="48dp"
@@ -138,9 +138,27 @@
                     android:elevation="4dp"
                     android:contentDescription="Add to meal plan"
                     app:tint="@color/white"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/favoriteCard"
                     app:layout_constraintTop_toTopOf="parent" />
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/favoriteCard"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_margin="20dp"
+                    android:layout_marginEnd="@dimen/spacing_very_large"
+                    app:cardBackgroundColor="#80FFFFFF"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+                <ImageView
+                    android:id="@+id/favoriteIcon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/icon_heart" />
 
+                </com.google.android.material.card.MaterialCardView>
                 <TextView
                     android:id="@+id/mealTitle"
                     android:layout_width="0dp"

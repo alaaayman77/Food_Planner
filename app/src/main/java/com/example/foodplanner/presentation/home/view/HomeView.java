@@ -14,4 +14,8 @@ public interface HomeView {
     public void showLoading();
     public void hideLoading();
     public void onMealPlanAddedFailure(String error);
+    public void onFavAddedSuccess();
+    public void onFavAddedFailure(String error);
+    public void onFavRemovedSuccess();
+    void updateFavoriteIcon(boolean isFavorite);
 }

@@ -1,14 +1,16 @@
 package com.example.foodplanner.data.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "favorites")
 public class FavoriteMeal {
 
-    @PrimaryKey(autoGenerate = true)
-    private int id;
 
+
+    @PrimaryKey
+    @NonNull
     private String mealId;
     private String mealName;
     private String mealCategory;
@@ -133,14 +135,7 @@ public class FavoriteMeal {
         this.mealImageSource = mealImageSource;
     }
 
-    // Getters and Setters
-    public int getId() {
-        return id;
-    }
 
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getMealId() {
         return mealId;

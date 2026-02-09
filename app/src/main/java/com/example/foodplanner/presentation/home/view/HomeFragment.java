@@ -1,9 +1,10 @@
-
 package com.example.foodplanner.presentation.home.view;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -33,11 +34,11 @@ import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView {
+public class HomeFragment extends Fragment implements OnCategoryClick, HomeView {
     private ImageView mealImage;
     private TextView mealTitle;
     private TextView tag1;
-    private  TextView tag2;
+    private TextView tag2;
     private MaterialCardView randomMealCard;
 
     private RecyclerView categoriesRecyclerView;
@@ -49,8 +50,11 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
     private ImageView btnAddToPlan;
     private TextView categoriesHeader;
     private TextView categoriesSubtitle;
+    private MaterialCardView favoriteCard;
+    private ImageView favoriteIcon;
 
     private static final String TAG = "HomeFragment";
+
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -58,7 +62,6 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -71,6 +74,25 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Initialize views
+        initViews(view);
+
+        // Initialize presenter with LifecycleOwner
+        homePresenter = new HomePresenterImp(this, requireContext(), getViewLifecycleOwner());
+
+        // Setup click listeners
+        setupClickListeners();
+
+        // Setup RecyclerView
+        setupRecyclerView();
+
+        // Load data
+        homePresenter.getRandomMeal();
+        homePresenter.getCategory();
+    }
+
+    private void initViews(View view) {
         mealImage = view.findViewById(R.id.mealImage);
         mealTitle = view.findViewById(R.id.mealTitle);
         tag1 = view.findViewById(R.id.tag1);
@@ -78,17 +100,29 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
         randomMealCard = view.findViewById(R.id.random_meal);
         categoriesRecyclerView = view.findViewById(R.id.categories_recycler_view);
         btnAddToPlan = view.findViewById(R.id.btnAddToPlan);
-        categoriesHeader= view.findViewById(R.id.categoriesHeader);
+        categoriesHeader = view.findViewById(R.id.categoriesHeader);
         categoriesSubtitle = view.findViewById(R.id.categoriesSubtitle);
+        favoriteCard = view.findViewById(R.id.favoriteCard);
+        favoriteIcon = view.findViewById(R.id.favoriteIcon);
+    }
+
+    private void setupRecyclerView() {
         categoryList = new ArrayList<>();
         categoryAdapter = new CategoryAdapter(this);
         categoriesRecyclerView.setAdapter(categoryAdapter);
+    }
+
+    private void setupClickListeners() {
+        // Random meal card click
         randomMealCard.setOnClickListener(v -> {
-            HomeFragmentDirections.ActionHomeFragmentToRecipeDetailsFragment action =
-                    HomeFragmentDirections.actionHomeFragmentToRecipeDetailsFragment(currentMeal.getMealId());
-            Navigation.findNavController(requireView()).navigate(action);
+            if (currentMeal != null) {
+                HomeFragmentDirections.ActionHomeFragmentToRecipeDetailsFragment action =
+                        HomeFragmentDirections.actionHomeFragmentToRecipeDetailsFragment(currentMeal.getMealId());
+                Navigation.findNavController(requireView()).navigate(action);
+            }
         });
 
+        // Add to plan button click
         btnAddToPlan.setOnClickListener(v -> {
             if (currentMeal != null) {
                 showAddMealPlanDialog(currentMeal);
@@ -96,13 +130,17 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
                 Toast.makeText(getContext(), "No meal available", Toast.LENGTH_SHORT).show();
             }
         });
-        homePresenter = new HomePresenterImp(this , requireContext());
-        homePresenter.getRandomMeal();
-        homePresenter.getCategory();
 
-
-
+        // Favorite button click
+        favoriteCard.setOnClickListener(v -> {
+            if (currentMeal != null) {
+                homePresenter.onFavoriteClick(currentMeal);
+            } else {
+                Toast.makeText(getContext(), "No meal available", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
     private void showAddMealPlanDialog(RandomMeal meal) {
         MealPlanBottomSheet bottomSheet = MealPlanBottomSheet.newInstance(meal.getMealId());
         bottomSheet.setOnMealPlanSelectedListener((selectedMealId, day, mealType) -> {
@@ -125,7 +163,7 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
     @Override
     public void setOnCategoryClick(Category category) {
         HomeFragmentDirections.ActionHomeFragmentToMealsByCategoryFragment action =
-            HomeFragmentDirections.actionHomeFragmentToMealsByCategoryFragment(category.getCategoryName());
+                HomeFragmentDirections.actionHomeFragmentToMealsByCategoryFragment(category.getCategoryName());
         Navigation.findNavController(requireView()).navigate(action);
         homePresenter.onCategoryClick(category);
     }
@@ -145,8 +183,7 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
     @Override
     public void displayMeal(RandomMeal meal) {
         currentMeal = meal;
-                mealTitle.setText(meal.getMealName());
-
+        mealTitle.setText(meal.getMealName());
 
         if (meal.getMealCategory() != null) {
             tag1.setText(meal.getMealCategory().toUpperCase());
@@ -155,15 +192,12 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
             tag1.setVisibility(GONE);
         }
 
-
         if (meal.getStrArea() != null) {
             tag2.setText(meal.getStrArea().toUpperCase());
             tag2.setVisibility(VISIBLE);
         } else {
             tag2.setVisibility(GONE);
         }
-
-
 
         if (meal.getMealThumbnail() != null && !meal.getMealThumbnail().isEmpty()) {
             Glide.with(this)
@@ -175,7 +209,6 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
         }
 
         Log.d(TAG, "Meal displayed: " + meal.getMealName());
-
     }
 
     @Override
@@ -183,8 +216,6 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
         Toast.makeText(getContext(),
                 "Selected: " + category.getCategoryName(),
                 Toast.LENGTH_SHORT).show();
-
-
     }
 
     @Override
@@ -221,5 +252,64 @@ public class HomeFragment extends Fragment  implements OnCategoryClick, HomeView
         Toast.makeText(getContext(),
                 "Failed to add meal: " + error,
                 Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onFavAddedSuccess() {
+        Toast.makeText(getContext(),
+                "Added to favorites! ❤️",
+                Toast.LENGTH_SHORT).show();
+        // Animate the heart
+        animateHeart(favoriteIcon);
+    }
+
+    @Override
+    public void onFavRemovedSuccess() {
+        Toast.makeText(getContext(),
+                "Removed from favorites",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onFavAddedFailure(String error) {
+        Toast.makeText(getContext(),
+                "Failed to add to favorites: " + error,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void updateFavoriteIcon(boolean isFavorite) {
+        if (favoriteIcon != null) {
+            if (isFavorite) {
+                // Show filled heart
+                favoriteIcon.setImageResource(R.drawable.icon_heart_filled);
+            } else {
+                // Show outline heart
+                favoriteIcon.setImageResource(R.drawable.icon_heart);
+            }
+        }
+    }
+
+    private void animateHeart(ImageView heartIcon) {
+        ObjectAnimator scaleUpX = ObjectAnimator.ofFloat(heartIcon, "scaleX", 1f, 1.3f);
+        ObjectAnimator scaleUpY = ObjectAnimator.ofFloat(heartIcon, "scaleY", 1f, 1.3f);
+
+        ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(heartIcon, "scaleX", 1.3f, 1f);
+        ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(heartIcon, "scaleY", 1.3f, 1f);
+
+        scaleUpX.setDuration(150);
+        scaleUpY.setDuration(150);
+        scaleDownX.setDuration(150);
+        scaleDownY.setDuration(150);
+
+        AnimatorSet scaleUp = new AnimatorSet();
+        scaleUp.playTogether(scaleUpX, scaleUpY);
+
+        AnimatorSet scaleDown = new AnimatorSet();
+        scaleDown.playTogether(scaleDownX, scaleDownY);
+
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.play(scaleUp).before(scaleDown);
+        animatorSet.start();
     }
 }
