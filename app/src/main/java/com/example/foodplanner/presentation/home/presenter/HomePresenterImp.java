@@ -19,6 +19,8 @@ import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
+import com.example.foodplanner.data.model.search.area.Area;
+import com.example.foodplanner.data.model.search.area.AreaResponse;
 import com.example.foodplanner.presentation.home.view.HomeView;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -162,7 +164,33 @@ public class HomePresenterImp implements HomePresenter {
         );
     }
 
+    @Override
+    public void getArea() {
+        compositeDisposable.add(
+                mealsRepository.getArea()
+                        .subscribeOn(Schedulers.io())
+                        .map(AreaResponse::getAreasList)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                item->{
+                                    List<Area> areaList= item;
+                                    homeView.setArea(areaList);
+                                },
+                                error -> {
 
+
+                                    if (error instanceof IOException) {
+                                        homeView.showError("Network error: " + error.getMessage());
+                                    } else if (error instanceof HttpException) {
+                                        HttpException httpException = (HttpException) error;
+                                        homeView.showError("Server error: " + error.getMessage());
+                                    } else {
+                                        homeView.showError(error.getMessage());
+                                    }
+                                }
+                        )
+        );
+    }
 //    @Override
 //    public void getCategory() {
 //        mealsRepository.getCategory(new CategoryNetworkResponse() {
@@ -186,6 +214,11 @@ public class HomePresenterImp implements HomePresenter {
     @Override
     public void onCategoryClick(Category category) {
         homeView.OnCategoryClickSuccess(category);
+    }
+
+    @Override
+    public void onAreaClick(Area area) {
+        homeView.OnAreaClickSuccess(area);
     }
 
     @Override

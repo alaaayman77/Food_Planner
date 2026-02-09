@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:paddingBottom="300dp"
+    android:paddingBottom="230dp"
     android:clipToPadding="false">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -138,27 +138,21 @@
                     android:elevation="4dp"
                     android:contentDescription="Add to meal plan"
                     app:tint="@color/white"
-                    app:layout_constraintEnd_toStartOf="@id/favoriteCard"
+                    app:layout_constraintEnd_toStartOf="@id/favoriteIcon"
                     app:layout_constraintTop_toTopOf="parent" />
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/favoriteCard"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_margin="20dp"
-                    android:layout_marginEnd="@dimen/spacing_very_large"
-                    app:cardBackgroundColor="#80FFFFFF"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
+
                 <ImageView
                     android:id="@+id/favoriteIcon"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/icon_heart" />
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                   android:layout_margin="20dp"
+                    android:padding="12dp"
+                    android:src="@drawable/icon_heart"
+                    android:background="@drawable/fav_button_bg"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
 
-                </com.google.android.material.card.MaterialCardView>
+
                 <TextView
                     android:id="@+id/mealTitle"
                     android:layout_width="0dp"
@@ -264,6 +258,51 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/categoriesSubtitle"
             tools:listitem="@layout/item_category" />
+
+        <TextView
+            android:id="@+id/countriesHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/poppins_bold"
+            android:text="Countries"
+            android:textColor="@color/primaryColor"
+            android:textSize="20sp"
+            android:letterSpacing="-0.01"
+            app:layout_constraintStart_toStartOf="@id/guideline_start"
+            app:layout_constraintTop_toBottomOf="@id/categories_recycler_view" />
+
+        <TextView
+            android:id="@+id/countriesSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="@font/poppins"
+            android:text="All Over the world"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            app:layout_constraintStart_toStartOf="@id/guideline_start"
+            app:layout_constraintTop_toBottomOf="@id/countriesHeader" />
+
+        <!-- Categories RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/countries_recycler_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginTop="16dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            android:paddingStart="30dp"
+            android:paddingEnd="30dp"
+            android:paddingBottom="24dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/countriesSubtitle"
+            tools:listitem="@layout/item_country" />
+
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

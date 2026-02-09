@@ -21,10 +21,12 @@ import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkRespon
 import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
+import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMealsResponse;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
 import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
+import com.example.foodplanner.data.model.search.area.AreaResponse;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
@@ -57,12 +59,12 @@ public class MealsRepository {
         return mealsRemoteDataSource.getMealsByCategory(category);
     }
 
-    public void getArea( AreaNetworkResponse response){
-        mealsRemoteDataSource.getArea(response);
+    public Observable<AreaResponse> getArea(){
+        return mealsRemoteDataSource.getAreas();
     }
 
-    public void getAreaFilteredMeals(String area, AreaFilteredMealsNetworkResponse response){
-        mealsRemoteDataSource.getFilteredMealsByArea(area,response);
+    public Observable<AreaFilteredMealsResponse> getAreaFilteredMeals(String area){
+        return mealsRemoteDataSource.getFilteredMealsByArea(area);
     }
 
     public void getIngredients(IngredientsNetworkResponse response){

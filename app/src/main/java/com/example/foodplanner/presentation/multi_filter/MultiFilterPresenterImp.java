@@ -129,30 +129,62 @@ public class MultiFilterPresenterImp implements MultiFilterPresenter {
 //            });
 //        }
 
-        private void fetchMealsByArea(String area) {
-            mealsRepository.getAreaFilteredMeals(area, new AreaFilteredMealsNetworkResponse() {
-                @Override
-                public void onSuccess(List<AreaFilteredMeals> areaFilteredMealsList) {
-                    for (AreaFilteredMeals meal : areaFilteredMealsList) {
-                        areaMealIds.add(meal.getIdMeal());
-                    }
-                    completedRequests++;
-                    checkAndShowResults();
-                }
+    private void fetchMealsByArea(String area) {
+        Disposable disposable = mealsRepository.getAreaFilteredMeals(area)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        response -> {
+                            // Success
+                            List<AreaFilteredMeals> meals = response.getMealsFilteredByArea();
+                            if (meals != null) {
+                                for (AreaFilteredMeals meal : meals) {
+                                    areaMealIds.add(meal.getIdMeal());
+                                }
+                            }
+                            completedRequests++;
+                            checkAndShowResults();
+                        },
+                        error -> {
+                            // Error
+                            multiFilterView.hideLoading();
+                            if (error instanceof IOException) {
+                                multiFilterView.showError("Network error fetching category meals");
+                            } else if (error instanceof HttpException) {
+                                multiFilterView.showError("Server error: " + ((HttpException) error).getMessage());
+                            } else {
+                                multiFilterView.showError("Error fetching category meals: " + error.getMessage());
+                            }
+                        }
+                );
 
-                @Override
-                public void onFailure(String errorMessage) {
-                    multiFilterView.hideLoading();
-                    multiFilterView.showError("Error fetching area meals: " + errorMessage);
-                }
+        compositeDisposable.add(disposable);
+    }
 
-                @Override
-                public void onServerError(String errorMessage) {
-                    multiFilterView.hideLoading();
-                    multiFilterView.showError("Server error: " + errorMessage);
-                }
-            });
-        }
+//        private void fetchMealsByArea(String area) {
+//            mealsRepository.getAreaFilteredMeals(area, new AreaFilteredMealsNetworkResponse() {
+//                @Override
+//                public void onSuccess(List<AreaFilteredMeals> areaFilteredMealsList) {
+//                    for (AreaFilteredMeals meal : areaFilteredMealsList) {
+//                        areaMealIds.add(meal.getIdMeal());
+//                    }
+//                    completedRequests++;
+//                    checkAndShowResults();
+//                }
+//
+//                @Override
+//                public void onFailure(String errorMessage) {
+//                    multiFilterView.hideLoading();
+//                    multiFilterView.showError("Error fetching area meals: " + errorMessage);
+//                }
+//
+//                @Override
+//                public void onServerError(String errorMessage) {
+//                    multiFilterView.hideLoading();
+//                    multiFilterView.showError("Server error: " + errorMessage);
+//                }
+//            });
+//        }
 
         private void fetchMealsByIngredient(String ingredient){
             mealsRepository.getIngredientFilteredMeals(ingredient, new IngredientFilteredMealsNetworkResponse() {

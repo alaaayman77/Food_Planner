@@ -30,7 +30,7 @@ public interface MealsService {
     Observable<MealsByCategoryResponse> getMealsByCategory(@Query("c") String category);
 
     @GET("filter.php")
-    Call<AreaFilteredMealsResponse> getFilteredMealsByArea(@Query("a") String area);
+    Observable<AreaFilteredMealsResponse> getFilteredMealsByArea(@Query("a") String area);
     @GET("filter.php")
     Call<IngredientFilteredMealsResponse> getFilteredMealsByIngredient(@Query("i") String ingredient);
 
@@ -39,7 +39,7 @@ public interface MealsService {
 
 
     @GET("list.php?a=list")
-    Call<AreaResponse> getArea();
+    Observable<AreaResponse> getArea();
 
     @GET("lookup.php")
     Call<RecipeDetailsResponse> getRecipeDetails(@Query("i") String id);
