@@ -66,7 +66,8 @@ public class SearchFragment extends Fragment implements
         IngredientsView,
         SearchIngredientsAdapter.OnIngredientClickListener,
         SearchView,
-        SearchResultsAdapter.OnMealClickListener {
+        SearchResultsAdapter.OnMealClickListener,
+        SearchResultsAdapter.OnLoadMoreClickListener {
 
     private EditText searchEditText;
     private ImageView clearSearchButton;
@@ -95,7 +96,7 @@ public class SearchFragment extends Fragment implements
     private PaginationManager<Ingredients> ingredientsPaginationManager;
     private static final int INGREDIENTS_PAGE_SIZE = 15;
 
-
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -126,11 +127,13 @@ public class SearchFragment extends Fragment implements
         viewAllCountries = view.findViewById(R.id.viewAllCountries);
         searchByIngredientTitle = view.findViewById(R.id.ingredientTitle);
 
-
         searchCategoryAdapter = new SearchCategoryAdapter(requireContext(), this);
         searchIngredientsAdapter = new SearchIngredientsAdapter(requireContext(), this);
         countryChipAdapter = new CountryChipAdapter(requireContext(), areaChipGroup, this);
         searchResultsAdapter = new SearchResultsAdapter(requireContext(), this);
+
+
+        searchResultsAdapter.setOnLoadMoreClickListener(this);
 
         searchCategoryAdapter.setLoading(true);
         searchIngredientsAdapter.setLoading(true);
@@ -145,6 +148,7 @@ public class SearchFragment extends Fragment implements
         searchResultsRecyclerView.setLayoutManager(searchResultsLayoutManager);
         searchResultsRecyclerView.setAdapter(searchResultsAdapter);
         searchResultsRecyclerView.setNestedScrollingEnabled(false);
+
         searchCategoryAdapter.setLoading(true);
         searchIngredientsAdapter.setLoading(true);
         searchIngredientsAdapter.setOnSeeMoreClickListener(() -> {
@@ -164,11 +168,11 @@ public class SearchFragment extends Fragment implements
             }
         });
 
-        categoryPresenter = new CategoryPresenterImp(this , requireContext());
+        categoryPresenter = new CategoryPresenterImp(this, requireContext());
         areaPresenter = new AreaPresenterImp(this, requireContext());
-        ingredientsPresenter = new IngredientsPresenterImp(this , requireContext());
-        multiFilterPresenter = new MultiFilterPresenterImp(this , requireContext());
-        searchPresenter = new SearchPresenterImp(this , requireContext());
+        ingredientsPresenter = new IngredientsPresenterImp(this, requireContext());
+        multiFilterPresenter = new MultiFilterPresenterImp(this, requireContext());
+        searchPresenter = new SearchPresenterImp(this, requireContext());
 
         areaPresenter.getArea();
         categoryPresenter.getCategory();
@@ -196,10 +200,7 @@ public class SearchFragment extends Fragment implements
             }
 
             multiFilterPresenter.searchWithFilters(categoryNames, areaNames, ingredientNames);
-
-
         });
-
 
         Observable<String> searchObservable = Observable.create(emitter -> {
             searchEditText.addTextChangedListener(new TextWatcher() {
@@ -232,12 +233,11 @@ public class SearchFragment extends Fragment implements
             });
         });
 
-        searchObservable
+        Disposable searchDisposable = searchObservable
                 .debounce(1, TimeUnit.SECONDS)
                 .filter(query -> query.length() > 0)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(query -> {
-
                     browseByCategoryTitle.setVisibility(View.GONE);
                     categoryRecyclerView.setVisibility(View.GONE);
                     exploreByCountryTitle.setVisibility(View.GONE);
@@ -248,17 +248,14 @@ public class SearchFragment extends Fragment implements
                     ingredientsRecyclerView.setVisibility(View.GONE);
                     searchButton.setVisibility(View.GONE);
 
-
                     searchResultsRecyclerView.setVisibility(View.VISIBLE);
-
 
                     searchPresenter.searchMealsByName(query);
                 }, error -> {
                     Log.e("SearchFragment", "Error in search observable", error);
                 });
 
-
-
+        compositeDisposable.add(searchDisposable);
 
         clearSearchButton.setOnClickListener(v -> {
             searchEditText.setText("");
@@ -308,7 +305,7 @@ public class SearchFragment extends Fragment implements
 
     @Override
     public void showFilteredResults(List<String> mealIds) {
-         this.mealsIds = mealIds.toArray(new String[0]);
+        this.mealsIds = mealIds.toArray(new String[0]);
 
         StringBuilder message = new StringBuilder();
         message.append("Found ").append(mealIds.size()).append(" meals!\n\n");
@@ -370,7 +367,19 @@ public class SearchFragment extends Fragment implements
     @Override
     public void showSearchResults(List<MealsByCategory> meals) {
         searchResultsAdapter.setMeals(meals);
-        Toast.makeText(getContext(), "Found " + meals.size() + " meals", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void appendSearchResults(List<MealsByCategory> meals) {
+        searchResultsAdapter.addMeals(meals);
+    }
+
+    @Override
+    public void updateSearchInfo(int loaded, int total, boolean hasMore) {
+        searchResultsAdapter.setLoadMoreVisible(hasMore, total);
+        if (loaded > 0) {
+            Toast.makeText(getContext(), "Showing " + loaded + " of " + total + " results", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -382,8 +391,13 @@ public class SearchFragment extends Fragment implements
     }
 
     @Override
+    public void onLoadMoreClicked() {
+        searchPresenter.loadMoreResults();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
-
+        compositeDisposable.clear();
     }
 }

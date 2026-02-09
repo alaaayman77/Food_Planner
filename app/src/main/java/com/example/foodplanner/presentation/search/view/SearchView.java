@@ -11,5 +11,7 @@ public interface SearchView {
     void showSearchLoading();
     void hideSearchLoading();
     void showSearchResults(List<MealsByCategory> meals);
+    void appendSearchResults(List<MealsByCategory> meals);
+    void updateSearchInfo(int loaded, int total, boolean hasMore);
 
 }

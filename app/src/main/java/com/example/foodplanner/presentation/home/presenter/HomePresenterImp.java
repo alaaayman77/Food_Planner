@@ -1,6 +1,7 @@
 package com.example.foodplanner.presentation.home.presenter;
 
 import android.content.Context;
+import android.net.http.HttpException;
 import android.util.Log;
 
 import androidx.lifecycle.LifecycleOwner;
@@ -12,16 +13,23 @@ import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkRe
 import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.category.Category;
+import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
+import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.home.view.HomeView;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class HomePresenterImp implements HomePresenter {
 
@@ -32,6 +40,7 @@ public class HomePresenterImp implements HomePresenter {
     private Set<String> favoriteMealIds = new HashSet<>();
 
     private static final String TAG = "HomePresenterImp";
+    CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public HomePresenterImp(HomeView homeView, Context context, LifecycleOwner owner) {
         this.homeView = homeView;
@@ -57,57 +66,122 @@ public class HomePresenterImp implements HomePresenter {
         return mAuth.getCurrentUser() != null;
     }
 
+//    @Override
+//    public void getRandomMeal() {
+//        homeView.showLoading();
+//        mealsRepository.getRandomMeal(new MealNetworkResponse() {
+//            @Override
+//            public void onSuccess(List<RandomMeal> randomMeals) {
+//                if (randomMeals != null && !randomMeals.isEmpty()) {
+//                    RandomMeal meal = randomMeals.get(0);
+//                    homeView.displayMeal(meal);
+//                    homeView.hideLoading();
+//
+//                    checkIfMealIsFavorite(meal.getMealId());
+//                } else {
+//                    homeView.hideLoading();
+//                    homeView.showError("No meal found");
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(String errorMessage) {
+//                homeView.hideLoading();
+//                homeView.showError(errorMessage);
+//            }
+//
+//            @Override
+//            public void onServerError(String errorMessage) {
+//                homeView.hideLoading();
+//                homeView.showError(errorMessage);
+//            }
+//        });
+//    }
+
     @Override
     public void getRandomMeal() {
         homeView.showLoading();
-        mealsRepository.getRandomMeal(new MealNetworkResponse() {
-            @Override
-            public void onSuccess(List<RandomMeal> randomMeals) {
-                if (randomMeals != null && !randomMeals.isEmpty()) {
-                    RandomMeal meal = randomMeals.get(0);
-                    homeView.displayMeal(meal);
-                    homeView.hideLoading();
+        compositeDisposable.add(
+                mealsRepository.getRandomMeal()
+                        .subscribeOn(Schedulers.io())
+                        .map(response -> {
+                            List<RandomMeal> meals = response.getRandomMeal();
+                            if (meals == null || meals.isEmpty()) {
+                                throw new Exception("No meal found");
+                            }
+                            return meals.get(0);
+                        })
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                meal -> {
+                                    homeView.hideLoading();
+                                    homeView.displayMeal(meal);
+                                    checkIfMealIsFavorite(meal.getMealId());
+                                },
+                                error -> {
+                                    homeView.hideLoading();
 
-                    checkIfMealIsFavorite(meal.getMealId());
-                } else {
-                    homeView.hideLoading();
-                    homeView.showError("No meal found");
-                }
-            }
 
-            @Override
-            public void onFailure(String errorMessage) {
-                homeView.hideLoading();
-                homeView.showError(errorMessage);
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                homeView.hideLoading();
-                homeView.showError(errorMessage);
-            }
-        });
+                                    if (error instanceof IOException) {
+                                        homeView.showError("Network error: " + error.getMessage());
+                                    } else if (error instanceof HttpException) {
+                                        HttpException httpException = (HttpException) error;
+                                        homeView.showError("Server error: " + error.getMessage());
+                                    } else {
+                                        homeView.showError(error.getMessage());
+                                    }
+                                }
+                        )
+        );
     }
 
     @Override
     public void getCategory() {
-        mealsRepository.getCategory(new CategoryNetworkResponse() {
-            @Override
-            public void onSuccess(List<Category> categoryList) {
-                homeView.setCategoryList(categoryList);
-            }
+        compositeDisposable.add(
+                mealsRepository.getCategory()
+                        .subscribeOn(Schedulers.io())
+                        .map(CategoryResponse::getCategories)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                item->{
+                                    List<Category> categoriesList= item;
+                                    homeView.setCategoryList(categoriesList);
+                                },
+                                error -> {
 
-            @Override
-            public void onFailure(String errorMessage) {
-                homeView.showError(errorMessage);
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                homeView.showError(errorMessage);
-            }
-        });
+                                    if (error instanceof IOException) {
+                                        homeView.showError("Network error: " + error.getMessage());
+                                    } else if (error instanceof HttpException) {
+                                        HttpException httpException = (HttpException) error;
+                                        homeView.showError("Server error: " + error.getMessage());
+                                    } else {
+                                        homeView.showError(error.getMessage());
+                                    }
+                                }
+                        )
+        );
     }
+
+
+//    @Override
+//    public void getCategory() {
+//        mealsRepository.getCategory(new CategoryNetworkResponse() {
+//            @Override
+//            public void onSuccess(List<Category> categoryList) {
+//                homeView.setCategoryList(categoryList);
+//            }
+//
+//            @Override
+//            public void onFailure(String errorMessage) {
+//                homeView.showError(errorMessage);
+//            }
+//
+//            @Override
+//            public void onServerError(String errorMessage) {
+//                homeView.showError(errorMessage);
+//            }
+//        });
+//    }
 
     @Override
     public void onCategoryClick(Category category) {

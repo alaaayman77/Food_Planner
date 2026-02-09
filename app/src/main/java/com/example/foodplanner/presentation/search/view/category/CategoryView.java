@@ -7,4 +7,6 @@ import java.util.List;
 public interface CategoryView {
     public void setCategory(List<Category> categoryList);
     public void showError(String errorMessage);
+    void  hideLoading();
+    void showLoading();
 }

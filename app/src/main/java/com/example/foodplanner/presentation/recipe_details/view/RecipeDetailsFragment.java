@@ -122,7 +122,6 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
 
     @Override
     public void setRecipeDetails(RecipeDetails recipeDetails) {
-        // Store the current recipe details
         this.currentRecipeDetails = recipeDetails;
 
         mealTitle.setText(recipeDetails.getMealName());
@@ -230,7 +229,7 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
     private void showAddMealPlanDialog(RecipeDetails recipeDetails) {
         MealPlanBottomSheet bottomSheet = MealPlanBottomSheet.newInstance(recipeDetails.getIdMeal());
         bottomSheet.setOnMealPlanSelectedListener((selectedMealId, day, mealType) -> {
-            // Create MealPlan from RecipeDetails
+
             MealPlan mealPlan = new MealPlan(
                     recipeDetails.getIdMeal(),
                     mealType,

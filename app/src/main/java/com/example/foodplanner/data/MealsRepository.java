@@ -19,12 +19,19 @@ import com.example.foodplanner.data.datasource.remote.MealsByCategoryNetworkResp
 import com.example.foodplanner.data.datasource.remote.MealsRemoteDataSource;
 import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.category.CategoryResponse;
+import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
+import com.example.foodplanner.data.model.random_meals.RandomMeal;
+import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
 import java.util.function.Consumer;
+
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 
 public class MealsRepository {
 
@@ -39,15 +46,15 @@ public class MealsRepository {
         mealPlanFirestoreDatasource = new MealPlanFirestoreDatasource();
         mAuth = FirebaseAuth.getInstance();
     }
-    public void getRandomMeal(MealNetworkResponse response) {
-        mealsRemoteDataSource.getRandomMeal(response);
+    public Single<RandomMealResponse> getRandomMeal() {
+         return mealsRemoteDataSource.getRandomMeal();
     }
 
-    public void getCategory(CategoryNetworkResponse response){
-        mealsRemoteDataSource.getCategory(response);
+    public Observable<CategoryResponse> getCategory(){
+        return mealsRemoteDataSource.getCategory();
     }
-    public void getMealsByCategory( String category ,MealsByCategoryNetworkResponse response){
-        mealsRemoteDataSource.getMealsByCategory(category ,response);
+    public Observable<MealsByCategoryResponse> getMealsByCategory(String category){
+        return mealsRemoteDataSource.getMealsByCategory(category);
     }
 
     public void getArea( AreaNetworkResponse response){

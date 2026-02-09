@@ -3,25 +3,30 @@ package com.example.foodplanner.presentation.search.presenter.search;
 import android.content.Context;
 
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.remote.CategoryNetworkResponse;
-import com.example.foodplanner.data.datasource.remote.MealsByCategoryNetworkResponse;
-import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.category.MealsByCategory;
+import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
+import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.presentation.search.view.SearchView;
-
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class SearchPresenterImp implements SearchPresenter {
     private SearchView searchView;
     private MealsRepository mealsRepository;
 
     private List<MealsByCategory> allMeals = new ArrayList<>();
-    private int completedCategoryRequests = 0;
-    private int totalCategories = 0;
+    private static final int PAGE_SIZE = 20;
+    private int currentPage = 0;
 
-    public SearchPresenterImp(SearchView searchView , Context context) {
+    CompositeDisposable compositeDisposable = new CompositeDisposable();
+
+    public SearchPresenterImp(SearchView searchView, Context context) {
         this.searchView = searchView;
         this.mealsRepository = new MealsRepository(context);
     }
@@ -33,82 +38,76 @@ public class SearchPresenterImp implements SearchPresenter {
             return;
         }
 
-        searchView.showSearchLoading();
+        // Reset for new search
+        currentPage = 0;
         allMeals.clear();
-        completedCategoryRequests = 0;
+        searchView.showSearchLoading();
 
-        // First, fetch all categories
-        mealsRepository.getCategory(new CategoryNetworkResponse() {
-            @Override
-            public void onSuccess(List<Category> categoryList) {
-                if (categoryList.isEmpty()) {
-                    searchView.hideSearchLoading();
-                    searchView.showError("No categories available");
-                    return;
-                }
+        String searchQuery = mealName.trim().toLowerCase();
 
-                totalCategories = categoryList.size();
+        Disposable disposable = mealsRepository.getCategory()
+                .subscribeOn(Schedulers.io())
+                .map(CategoryResponse::getCategories)
+                .flatMapIterable(categories -> categories)
+                .flatMap(category ->
+                        mealsRepository.getMealsByCategory(category.getCategoryName())
+                                .onErrorReturn(error -> new MealsByCategoryResponse())
+                )
+                .flatMapIterable(response -> {
+                    List<MealsByCategory> meals = response.getMealsByCategories();
+                    return meals != null ? meals : new ArrayList<>();
+                })
+                .filter(meal ->
+                        meal.getMealName() != null &&
+                                meal.getMealName().toLowerCase().contains(searchQuery)
+                )
+                .toList()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        filteredMeals -> {
+                            searchView.hideSearchLoading();
+                            allMeals.addAll(filteredMeals);
 
-                // Fetch meals from each category
-                for (Category category : categoryList) {
-                    fetchMealsFromCategory(category.getCategoryName(), mealName.trim().toLowerCase());
-                }
-            }
+                            if (filteredMeals.isEmpty()) {
+                                searchView.showError("No meals found matching '" + mealName + "'");
+                            } else {
+                                // Show first page
+                                showCurrentPage();
+                            }
+                        },
+                        error -> {
+                            searchView.hideSearchLoading();
+                            searchView.showError(error.getMessage());
+                        }
+                );
 
-            @Override
-            public void onFailure(String errorMessage) {
-                searchView.hideSearchLoading();
-                searchView.showError("Error loading categories: " + errorMessage);
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                searchView.hideSearchLoading();
-                searchView.showError("Server error: " + errorMessage);
-            }
-        });
+        compositeDisposable.add(disposable);
     }
 
-    private void fetchMealsFromCategory(String categoryName, String searchQuery) {
-        mealsRepository.getMealsByCategory(categoryName, new MealsByCategoryNetworkResponse() {
-            @Override
-            public void onSuccess(List<MealsByCategory> mealsByCategoryList) {
-                // Filter meals by name
-                for (MealsByCategory meal : mealsByCategoryList) {
-                    if (meal.getMealName().toLowerCase().contains(searchQuery)) {
-                        allMeals.add(meal);
-                    }
-                }
-
-                completedCategoryRequests++;
-                checkAndShowSearchResults();
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                completedCategoryRequests++;
-                checkAndShowSearchResults();
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                completedCategoryRequests++;
-                checkAndShowSearchResults();
-            }
-        });
-    }
-
-    private void checkAndShowSearchResults() {
-        if (completedCategoryRequests < totalCategories) {
-            return; // Wait for all requests to complete
+    @Override
+    public void loadMoreResults() {
+        if (hasMoreResults()) {
+            currentPage++;
+            showCurrentPage();
         }
+    }
 
-        searchView.hideSearchLoading();
+    private void showCurrentPage() {
+        int startIndex = currentPage * PAGE_SIZE;
+        int endIndex = Math.min(startIndex + PAGE_SIZE, allMeals.size());
 
-        if (allMeals.isEmpty()) {
-            searchView.showError("No meals found matching your search");
+        List<MealsByCategory> pageResults = allMeals.subList(startIndex, endIndex);
+
+        if (currentPage == 0) {
+            searchView.showSearchResults(pageResults);
         } else {
-            searchView.showSearchResults(allMeals);
+            searchView.appendSearchResults(pageResults);
         }
+
+        searchView.updateSearchInfo(endIndex, allMeals.size(), hasMoreResults());
+    }
+
+    private boolean hasMoreResults() {
+        return (currentPage + 1) * PAGE_SIZE < allMeals.size();
     }
 }

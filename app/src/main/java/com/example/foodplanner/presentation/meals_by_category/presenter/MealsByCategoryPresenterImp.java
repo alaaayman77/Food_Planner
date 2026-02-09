@@ -1,6 +1,7 @@
 package com.example.foodplanner.presentation.meals_by_category.presenter;
 
 import android.content.Context;
+import android.net.http.HttpException;
 import android.util.Log;
 
 import com.example.foodplanner.data.MealsRepository;
@@ -9,13 +10,19 @@ import com.example.foodplanner.data.datasource.remote.MealsByCategoryNetworkResp
 import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.category.MealsByCategory;
+import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryView;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.io.IOException;
 import java.util.List;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
 
@@ -23,6 +30,7 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
     private MealsRepository mealsRepository;
     private FirebaseAuth mAuth;
     private static final String TAG = "MealsByCategoryPresenter";
+    CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public MealsByCategoryPresenterImp(MealsByCategoryView mealsByCategoryView, Context context) {
         this.mealsByCategoryView = mealsByCategoryView;
@@ -33,33 +41,67 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
     private boolean isUserSignedIn() {
         return mAuth.getCurrentUser() != null;
     }
-
     @Override
-    public void getMealsByCategory(String category) {
+    public void getMealsByCategory(String category){
         mealsByCategoryView.showLoading();
 
-        mealsRepository.getMealsByCategory(category, new MealsByCategoryNetworkResponse() {
-            @Override
-            public void onSuccess(List<MealsByCategory> mealsByCategoryList) {
-                if (!mealsByCategoryList.isEmpty()) {
-                    mealsByCategoryView.setMealByCategoryList(mealsByCategoryList);
-                } else {
-                    mealsByCategoryView.hideLoading();
-                    mealsByCategoryView.showError("No meals found for " + category);
-                }
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                mealsByCategoryView.showError(errorMessage);
-            }
-
-            @Override
-            public void onServerError(String errorMessage) {
-                mealsByCategoryView.showError(errorMessage);
-            }
-        });
+        compositeDisposable.add(
+                mealsRepository.getMealsByCategory(category)
+                        .subscribeOn(Schedulers.io())
+                        .map(MealsByCategoryResponse::getMealsByCategories)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                mealsByCategoryList -> {
+                                    mealsByCategoryView.hideLoading();
+                                    if (!mealsByCategoryList.isEmpty()) {
+                                        mealsByCategoryView.setMealByCategoryList(mealsByCategoryList);
+                                    } else {
+                                        mealsByCategoryView.showError("No meals found for " + category);
+                                    }
+                                },
+                                error -> {
+                                    mealsByCategoryView.hideLoading();
+                                    if (error instanceof IOException) {
+                                        mealsByCategoryView.showError("Network error: " + error.getMessage());
+                                    } else if (error instanceof HttpException) {
+                                        mealsByCategoryView.showError("Server error: " + error.getMessage());
+                                    } else {
+                                        mealsByCategoryView.showError("Unknown error occurred");
+                                    }
+                                }
+                        )
+        );
     }
+
+
+//    @Override
+//    public void getMealsByCategory(String category) {
+//        mealsByCategoryView.showLoading();
+//
+//        mealsRepository.getMealsByCategory(category, new MealsByCategoryNetworkResponse() {
+//            @Override
+//            public void onSuccess(List<MealsByCategory> mealsByCategoryList) {
+//                if (!mealsByCategoryList.isEmpty()) {
+//                    mealsByCategoryView.setMealByCategoryList(mealsByCategoryList);
+//                } else {
+//                    mealsByCategoryView.hideLoading();
+//                    mealsByCategoryView.showError("No meals found for " + category);
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(String errorMessage) {
+//                mealsByCategoryView.showError(errorMessage);
+//            }
+//
+//            @Override
+//            public void onServerError(String errorMessage) {
+//                mealsByCategoryView.showError(errorMessage);
+//            }
+//        });
+//    }
+
+
 
     @Override
     public void addMealToPlan(MealPlan mealPlan) {

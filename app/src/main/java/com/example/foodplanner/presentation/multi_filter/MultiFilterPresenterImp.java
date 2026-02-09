@@ -1,6 +1,7 @@
 package com.example.foodplanner.presentation.multi_filter;
 
 import android.content.Context;
+import android.net.http.HttpException;
 
 import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.datasource.remote.AreaFilteredMealsNetworkResponse;
@@ -10,19 +11,26 @@ import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMeals;
 import com.example.foodplanner.data.model.filtered_meals.IngredientFilteredMeals;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
-    public class MultiFilterPresenterImp implements MultiFilterPresenter {
+
+public class MultiFilterPresenterImp implements MultiFilterPresenter {
         private MultiFilterView multiFilterView;
         private MealsRepository mealsRepository;
 
         private List<String> categoryMealIds = new ArrayList<>();
         private List<String> areaMealIds = new ArrayList<>();
         private List<String> ingredientsMealIds = new ArrayList<>();
+        CompositeDisposable compositeDisposable = new CompositeDisposable();
         private int completedRequests = 0;
         private int totalRequests = 0;
 
@@ -63,33 +71,63 @@ import java.util.Set;
                 fetchMealsByIngredient(ingredient);
             }
         }
+    private void fetchMealsByCategory(String category) {
+        Disposable disposable = mealsRepository.getMealsByCategory(category)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        response -> {
+                            // Success
+                            List<MealsByCategory> meals = response.getMealsByCategories();
+                            if (meals != null) {
+                                for (MealsByCategory meal : meals) {
+                                    categoryMealIds.add(meal.getMealId());
+                                }
+                            }
+                            completedRequests++;
+                            checkAndShowResults();
+                        },
+                        error -> {
+                            // Error
+                            multiFilterView.hideLoading();
+                            if (error instanceof IOException) {
+                                multiFilterView.showError("Network error fetching category meals");
+                            } else if (error instanceof HttpException) {
+                                multiFilterView.showError("Server error: " + ((HttpException) error).getMessage());
+                            } else {
+                                multiFilterView.showError("Error fetching category meals: " + error.getMessage());
+                            }
+                        }
+                );
 
+        compositeDisposable.add(disposable);
+    }
 
-        private void fetchMealsByCategory(String category) {
-            mealsRepository.getMealsByCategory(category, new MealsByCategoryNetworkResponse() {
-                @Override
-                public void onSuccess(List<MealsByCategory> mealsByCategoryList) {
-                    for (MealsByCategory meal : mealsByCategoryList) {
-                        categoryMealIds.add(meal.getMealId());
-                    }
-                    completedRequests++;
-
-                   checkAndShowResults();
-                }
-
-                @Override
-                public void onFailure(String errorMessage) {
-                    multiFilterView.hideLoading();
-                    multiFilterView.showError("Error fetching category meals: " + errorMessage);
-                }
-
-                @Override
-                public void onServerError(String errorMessage) {
-                    multiFilterView.hideLoading();
-                    multiFilterView.showError("Server error: " + errorMessage);
-                }
-            });
-        }
+//        private void fetchMealsByCategory(String category) {
+//            mealsRepository.getMealsByCategory(category, new MealsByCategoryNetworkResponse() {
+//                @Override
+//                public void onSuccess(List<MealsByCategory> mealsByCategoryList) {
+//                    for (MealsByCategory meal : mealsByCategoryList) {
+//                        categoryMealIds.add(meal.getMealId());
+//                    }
+//                    completedRequests++;
+//
+//                   checkAndShowResults();
+//                }
+//
+//                @Override
+//                public void onFailure(String errorMessage) {
+//                    multiFilterView.hideLoading();
+//                    multiFilterView.showError("Error fetching category meals: " + errorMessage);
+//                }
+//
+//                @Override
+//                public void onServerError(String errorMessage) {
+//                    multiFilterView.hideLoading();
+//                    multiFilterView.showError("Server error: " + errorMessage);
+//                }
+//            });
+//        }
 
         private void fetchMealsByArea(String area) {
             mealsRepository.getAreaFilteredMeals(area, new AreaFilteredMealsNetworkResponse() {
