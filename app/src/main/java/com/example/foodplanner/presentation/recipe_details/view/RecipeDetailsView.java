@@ -10,4 +10,6 @@ public interface RecipeDetailsView {
     void showSignInPrompt(String featureName, String message);
     void hideLoading();
     void showLoading();
+    void showCachedDataNotice();
+    void showOfflineNoCache();
 }

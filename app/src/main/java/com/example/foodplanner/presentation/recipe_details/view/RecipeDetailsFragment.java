@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -14,6 +15,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,11 +34,13 @@ import com.example.foodplanner.presentation.auth.SignInPromptDialog;
 import com.example.foodplanner.presentation.home.view.MealPlanBottomSheet;
 import com.example.foodplanner.presentation.recipe_details.presenter.RecipeDetailsPresenter;
 import com.example.foodplanner.presentation.recipe_details.presenter.RecipeDetailsPresenterImp;
+
+import com.example.foodplanner.utility.NetworkUtils;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer;
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener;
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,18 +55,25 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
     private TextView itemCountTextView;
     private RecyclerView ingredientsRecyclerView;
     private RecyclerView instructionsRecyclerView;
+    private MaterialCardView cachedDataBanner;
+    private TextView cachedDataText;
 
     private IngredientsAdapter ingredientsAdapter;
     private InstructionsAdapter instructionsAdapter;
-    private RecipeDetailsPresenter recipeDetailsPresenter;
+    private RecipeDetailsPresenterImp recipeDetailsPresenter;
     private MaterialButton backBtn;
     private MaterialButton addToMealPlanButton;
     private YouTubePlayerView youTubePlayerView;
 
+    // Offline state views
+    private ConstraintLayout offlineStateContainer;
+    private MaterialButton retryButton;
+    private TextView offlineMessage;
+
     private RecipeDetails currentRecipeDetails;
+    private static final String TAG = "RecipeDetailsFragment";
 
     public RecipeDetailsFragment() {
-        // Required empty public constructor
     }
 
     @Override
@@ -87,23 +98,26 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         initializeViews(view);
         setupRecyclerViews();
 
-        recipeDetailsPresenter = new RecipeDetailsPresenterImp(this, requireContext());
+        recipeDetailsPresenter = new RecipeDetailsPresenterImp(this, requireContext(), getViewLifecycleOwner());
         recipeDetailsPresenter.getRecipeDetails(idMeal);
 
-        backBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v).navigateUp();
-            }
-        });
+        backBtn.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
 
         addToMealPlanButton.setOnClickListener(v -> {
             if (currentRecipeDetails != null) {
                 showAddMealPlanDialog(currentRecipeDetails);
             } else {
-                Toast.makeText(getContext(), "No meal available", Toast.LENGTH_SHORT).show();
+                safeShowToast("No meal available");
             }
         });
+
+        // Retry button for offline state
+        if (retryButton != null) {
+            retryButton.setOnClickListener(v -> {
+                animateRetryButton();
+                retryConnection();
+            });
+        }
     }
 
     private void initializeViews(View view) {
@@ -117,16 +131,64 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         ingredientsRecyclerView = view.findViewById(R.id.ingredientsRecyclerView);
         instructionsRecyclerView = view.findViewById(R.id.instructionsRecyclerView);
         youTubePlayerView = view.findViewById(R.id.youtube_player_view);
+        cachedDataBanner = view.findViewById(R.id.cachedDataBanner);
+        cachedDataText = view.findViewById(R.id.cachedDataText);
+
+        // Offline state views
+        offlineStateContainer = view.findViewById(R.id.offlineStateContainer);
+        retryButton = view.findViewById(R.id.retryButton);
+        offlineMessage = view.findViewById(R.id.offlineMessage);
+
         getLifecycle().addObserver(youTubePlayerView);
     }
 
     private void setupRecyclerViews() {
         ingredientsAdapter = new IngredientsAdapter(requireContext());
         ingredientsRecyclerView.setAdapter(ingredientsAdapter);
+
         LinearLayoutManager instructionsLayoutManager = new LinearLayoutManager(requireContext());
         instructionsRecyclerView.setLayoutManager(instructionsLayoutManager);
         instructionsAdapter = new InstructionsAdapter();
         instructionsRecyclerView.setAdapter(instructionsAdapter);
+    }
+
+    private void retryConnection() {
+        boolean hasNetwork = NetworkUtils.isNetworkAvailable(requireContext());
+        Log.d(TAG, "Retry - Network available: " + hasNetwork);
+
+        if (hasNetwork) {
+            hideOfflineState();
+            showLoading();
+            recipeDetailsPresenter.getRecipeDetails(idMeal);
+        } else {
+            safeShowToast("Still offline. Showing cached data if available.");
+        }
+    }
+
+    private void hideOfflineState() {
+        if (offlineStateContainer != null) {
+            offlineStateContainer.setVisibility(GONE);
+        }
+    }
+
+    private void animateRetryButton() {
+        if (retryButton != null) {
+            retryButton.setEnabled(false);
+
+            android.animation.ObjectAnimator rotation =
+                    android.animation.ObjectAnimator.ofFloat(retryButton, "rotation", 0f, 360f);
+            rotation.setDuration(500);
+            rotation.addListener(new android.animation.AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(android.animation.Animator animation) {
+                    if (retryButton != null) {
+                        retryButton.setEnabled(true);
+                        retryButton.setRotation(0f);
+                    }
+                }
+            });
+            rotation.start();
+        }
     }
 
     @Override
@@ -137,38 +199,69 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
 
         if (recipeDetails.getMealArea() != null) {
             mealArea.setText(recipeDetails.getMealArea().toUpperCase());
+            mealArea.setVisibility(VISIBLE);
+        } else {
+            mealArea.setVisibility(GONE);
         }
+
         if (recipeDetails.getMealCategory() != null) {
             mealType.setText(recipeDetails.getMealCategory().toUpperCase());
+            mealType.setVisibility(VISIBLE);
+        } else {
+            mealType.setVisibility(GONE);
         }
 
         if (recipeDetails.getStrMealThumbnail() != null && !recipeDetails.getStrMealThumbnail().isEmpty()) {
-            Glide.with(this)
-                    .load(recipeDetails.getStrMealThumbnail())
-                    .placeholder(R.drawable.splash_bg)
-                    .error(R.drawable.splash_bg)
-                    .centerCrop()
-                    .into(mealImage);
+            if (isAdded() && getContext() != null) {
+                Glide.with(this)
+                        .load(recipeDetails.getStrMealThumbnail())
+                        .placeholder(R.drawable.splash_bg)
+                        .error(R.drawable.splash_bg)
+                        .centerCrop()
+                        .into(mealImage);
+            }
         }
 
         List<IngredientWithMeasure> ingredients = recipeDetails.getIngredientsWithMeasures();
         if (ingredients != null && !ingredients.isEmpty()) {
             itemCountTextView.setText(ingredients.size() + " Items");
+            itemCountTextView.setVisibility(VISIBLE);
             ingredientsAdapter.setIngredients(ingredients);
+        } else {
+            // No ingredients available (from meal plan cache)
+            itemCountTextView.setVisibility(GONE);
         }
 
         List<InstructionStep> instructions = parseInstructions(recipeDetails.getMealInstructions());
-        instructionsAdapter.setInstructions(instructions);
-
+        if (instructions != null && !instructions.isEmpty()) {
+            instructionsAdapter.setInstructions(instructions);
+        }
 
         setupYouTubePlayer(recipeDetails.getStrYoutube());
     }
 
-  /**
-     * - https://www.youtube.com/watch?v=VIDEO_ID
-     * - https://youtu.be/VIDEO_ID
-     * - https://m.youtube.com/watch?v=VIDEO_ID
-     */
+    @Override
+    public void showCachedDataNotice() {
+        Log.d(TAG, "Showing cached data notice");
+        if (cachedDataBanner != null && cachedDataText != null) {
+            cachedDataBanner.setVisibility(VISIBLE);
+            cachedDataText.setText("📡 Offline - Showing saved data");
+        }
+    }
+
+    @Override
+    public void showOfflineNoCache() {
+        Log.d(TAG, "Showing offline - no cache available");
+        hideLoading();
+
+        if (offlineStateContainer != null && offlineMessage != null) {
+            offlineStateContainer.setVisibility(VISIBLE);
+            offlineMessage.setText("This recipe is not available offline");
+        }
+
+        safeShowToast("No internet connection and recipe not cached");
+    }
+
     private void setupYouTubePlayer(String youtubeUrl) {
         if (youtubeUrl == null || youtubeUrl.isEmpty()) {
             youTubePlayerView.setVisibility(GONE);
@@ -187,10 +280,8 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
             });
         } else {
             youTubePlayerView.setVisibility(GONE);
-            Toast.makeText(getContext(), "Invalid YouTube URL", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     private String extractVideoIdFromUrl(String url) {
         if (url == null || url.isEmpty()) {
@@ -200,38 +291,21 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         String videoId = null;
 
         try {
-            // Format: https://www.youtube.com/watch?v=VIDEO_ID
             if (url.contains("youtube.com/watch?v=")) {
                 int startIndex = url.indexOf("v=") + 2;
                 int endIndex = url.indexOf("&", startIndex);
-                if (endIndex == -1) {
-                    videoId = url.substring(startIndex);
-                } else {
-                    videoId = url.substring(startIndex, endIndex);
-                }
-            }
-            // Format: https://youtu.be/VIDEO_ID
-            else if (url.contains("youtu.be/")) {
+                videoId = (endIndex == -1) ? url.substring(startIndex) : url.substring(startIndex, endIndex);
+            } else if (url.contains("youtu.be/")) {
                 int startIndex = url.indexOf("youtu.be/") + 9;
                 int endIndex = url.indexOf("?", startIndex);
-                if (endIndex == -1) {
-                    videoId = url.substring(startIndex);
-                } else {
-                    videoId = url.substring(startIndex, endIndex);
-                }
-            }
-            // Format: https://m.youtube.com/watch?v=VIDEO_ID
-            else if (url.contains("m.youtube.com/watch?v=")) {
+                videoId = (endIndex == -1) ? url.substring(startIndex) : url.substring(startIndex, endIndex);
+            } else if (url.contains("m.youtube.com/watch?v=")) {
                 int startIndex = url.indexOf("v=") + 2;
                 int endIndex = url.indexOf("&", startIndex);
-                if (endIndex == -1) {
-                    videoId = url.substring(startIndex);
-                } else {
-                    videoId = url.substring(startIndex, endIndex);
-                }
+                videoId = (endIndex == -1) ? url.substring(startIndex) : url.substring(startIndex, endIndex);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error extracting video ID", e);
             return null;
         }
 
@@ -266,29 +340,28 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
 
     @Override
     public void showError(String errorMessage) {
-        Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+        safeShowToast(errorMessage);
     }
 
     @Override
     public void onMealPlanAddedSuccess() {
-        Toast.makeText(getContext(),
-                "Meal added to your plan! 📅",
-                Toast.LENGTH_SHORT).show();
+        safeShowToast("Meal added to your plan! 📅");
     }
 
     @Override
     public void onMealPlanAddedFailure(String error) {
-        Toast.makeText(getContext(),
-                "Failed to add meal: " + error,
-                Toast.LENGTH_SHORT).show();
+        safeShowToast("Failed to add meal: " + error);
     }
 
     @Override
     public void showSignInPrompt(String featureName, String message) {
+        if (!isAdded()) return;
+
         SignInPromptDialog dialog = SignInPromptDialog.newInstance(featureName, message);
         dialog.setListener(new SignInPromptDialog.SignInPromptListener() {
             @Override
             public void onSignInClicked() {
+                if (!isAdded()) return;
 
                 NavController navController =
                         NavHostFragment.findNavController(
@@ -296,16 +369,12 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
                                         .getSupportFragmentManager()
                                         .findFragmentById(R.id.nav_host_fragment_main)
                         );
-
                 navController.navigate(R.id.authFragment);
             }
 
             @Override
             public void onContinueAsGuestClicked() {
-
-                Toast.makeText(getContext(),
-                        "Continuing as guest. Your data won't be saved.",
-                        Toast.LENGTH_SHORT).show();
+                safeShowToast("Continuing as guest. Your data won't be saved.");
             }
         });
         dialog.show(getParentFragmentManager(), "SignInPromptDialog");
@@ -318,7 +387,6 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         }
         mealImage.setVisibility(VISIBLE);
         mealTitle.setVisibility(VISIBLE);
-
     }
 
     @Override
@@ -328,13 +396,16 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
         }
         mealImage.setVisibility(GONE);
         mealTitle.setVisibility(GONE);
-    }
 
+        // Hide cached data banner while loading
+        if (cachedDataBanner != null) {
+            cachedDataBanner.setVisibility(GONE);
+        }
+    }
 
     private void showAddMealPlanDialog(RecipeDetails recipeDetails) {
         MealPlanBottomSheet bottomSheet = MealPlanBottomSheet.newInstance(recipeDetails.getIdMeal());
         bottomSheet.setOnMealPlanSelectedListener((selectedMealId, day, mealType) -> {
-
             MealPlan mealPlan = new MealPlan(
                     recipeDetails.getIdMeal(),
                     mealType,
@@ -348,5 +419,28 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
             recipeDetailsPresenter.addMealToPlan(mealPlan);
         });
         bottomSheet.show(getParentFragmentManager(), "AddMealPlanBottomSheet");
+    }
+
+    /**
+     * Safely show toast - only if fragment is attached
+     */
+    private void safeShowToast(String message) {
+        if (isAdded() && getContext() != null) {
+            try {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to show toast: " + e.getMessage());
+            }
+        } else {
+            Log.w(TAG, "Cannot show toast - fragment not attached: " + message);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (recipeDetailsPresenter != null) {
+            recipeDetailsPresenter.onDestroy();
+        }
     }
 }

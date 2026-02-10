@@ -4,10 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.example.foodplanner.data.model.recipe_details.IngredientWithMeasure;
+
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity(tableName = "favorites")
 public class FavoriteMeal {
-
-
 
     @PrimaryKey
     @NonNull
@@ -135,8 +138,7 @@ public class FavoriteMeal {
         this.mealImageSource = mealImageSource;
     }
 
-
-
+    // Getters and Setters
     public String getMealId() {
         return mealId;
     }
@@ -194,6 +196,11 @@ public class FavoriteMeal {
     }
 
     public String getMealYoutube() {
+        return mealYoutube;
+    }
+
+    // Helper method to get YouTube URL (for RecipeDetails conversion)
+    public String getYoutubeUrl() {
         return mealYoutube;
     }
 
@@ -591,5 +598,40 @@ public class FavoriteMeal {
                 recipe.getStrSource(),
                 recipe.getStrImageSource()
         );
+    }
+
+    /**
+     * Parse ingredients and measures into IngredientWithMeasure list
+     * Used when loading FavoriteMeal from database for display
+     */
+    public List<IngredientWithMeasure> getIngredientsWithMeasures() {
+        List<IngredientWithMeasure> result = new ArrayList<>();
+
+        String[] ingredients = {
+                ingredient1, ingredient2, ingredient3, ingredient4, ingredient5,
+                ingredient6, ingredient7, ingredient8, ingredient9, ingredient10,
+                ingredient11, ingredient12, ingredient13, ingredient14, ingredient15,
+                ingredient16, ingredient17, ingredient18, ingredient19, ingredient20
+        };
+
+        String[] measures = {
+                measure1, measure2, measure3, measure4, measure5,
+                measure6, measure7, measure8, measure9, measure10,
+                measure11, measure12, measure13, measure14, measure15,
+                measure16, measure17, measure18, measure19, measure20
+        };
+
+        for (int i = 0; i < ingredients.length; i++) {
+            String ingredient = ingredients[i];
+            String measure = measures[i];
+
+            if (ingredient != null && !ingredient.trim().isEmpty()) {
+                String imageUrl = "https://www.themealdb.com/images/ingredients/"
+                        + ingredient.trim() + ".png";
+                result.add(new IngredientWithMeasure(ingredient, measure, imageUrl));
+            }
+        }
+
+        return result;
     }
 }

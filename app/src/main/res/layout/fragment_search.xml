@@ -1,294 +1,300 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".presentation.search.view.SearchFragment">
+    android:layout_height="match_parent">
 
+    <!-- Main Content -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/mainContentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".presentation.search.view.SearchFragment">
 
-    <FrameLayout
-        android:id="@+id/headerCard"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/blue_gradient_header"
-        android:elevation="@dimen/elevation_8"
-        android:paddingBottom="@dimen/spacing_very_large"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
+        <FrameLayout
+            android:id="@+id/headerCard"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/spacing_medium"
-            android:layout_marginEnd="@dimen/spacing_medium"
-            android:orientation="vertical">
+            android:background="@drawable/blue_gradient_header"
+            android:elevation="@dimen/elevation_8"
+            android:paddingBottom="@dimen/spacing_very_large"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline_start"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_begin="@dimen/spacing_small"/>
-
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline_end"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_end="@dimen/spacing_small"/>
-
-            <TextView
-                android:id="@+id/categoryTitle_tv"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/spacing_large"
-                android:layout_marginTop="@dimen/spacing_large"
-                android:fontFamily="@font/poppins_bold"
-                android:text="@string/search"
-                android:textColor="@color/white"
-                android:textSize="32sp"
-                app:layout_constraintStart_toStartOf="@id/guideline_start"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_marginStart="@dimen/spacing_medium"
+                android:layout_marginEnd="@dimen/spacing_medium"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/categorySubtitle"
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline_start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_begin="@dimen/spacing_small"/>
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline_end"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_end="@dimen/spacing_small"/>
+
+                <TextView
+                    android:id="@+id/categoryTitle_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_large"
+                    android:layout_marginTop="@dimen/spacing_large"
+                    android:fontFamily="@font/poppins_bold"
+                    android:text="@string/search"
+                    android:textColor="@color/white"
+                    android:textSize="32sp"
+                    app:layout_constraintStart_toStartOf="@id/guideline_start"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/categorySubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_very_small"
+                    android:layout_marginStart="@dimen/spacing_large"
+                    android:fontFamily="@font/poppins"
+                    android:text="Discover delicious recipes"
+                    android:textColor="@color/white"
+                    app:layout_constraintTop_toBottomOf="@id/categoryTitle_tv"
+                    app:layout_constraintStart_toStartOf="@id/guideline_start"
+                    android:textSize="16sp" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </FrameLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/searchCard"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="-28dp"
+            android:layout_marginEnd="24dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/headerCard">
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_very_small"
-                android:layout_marginStart="@dimen/spacing_large"
-                android:fontFamily="@font/poppins"
-                android:text="Discover delicious recipes"
-                android:textColor="@color/white"
-                app:layout_constraintTop_toBottomOf="@id/categoryTitle_tv"
-                app:layout_constraintStart_toStartOf="@id/guideline_start"
-                android:textSize="16sp" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </FrameLayout>
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/searchCard"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="-28dp"
-        android:layout_marginEnd="24dp"
-        app:cardBackgroundColor="#FFFFFF"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerCard">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp">
-
-            <ImageView
-                android:id="@+id/searchIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/icon_search"
-                app:tint="#1976D2" />
-
-            <EditText
-                android:id="@+id/searchEditText"
-                android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:background="@null"
-                android:fontFamily="@font/poppins"
-                android:hint="Search recipes..."
-                android:inputType="text"
-                android:textColor="#424242"
-                android:textColorHint="#BDBDBD"
-                android:textSize="16sp"
-                android:imeOptions="actionSearch"
-                android:maxLines="1" />
-
-            <ImageView
-                android:id="@+id/clearSearchButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/icon_close"
-                android:visibility="gone"
-                app:tint="#BDBDBD" />
-
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Apply Filters Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/filterButton"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="24dp"
-        android:fontFamily="@font/poppins_semibold"
-        android:text="Apply Filters"
-        android:textAllCaps="false"
-        android:textColor="@android:color/white"
-        android:textSize="15sp"
-        app:backgroundTint="#1976D2"
-        app:cornerRadius="24dp"
-        app:icon="@drawable/icon_filter"
-        app:iconGravity="textStart"
-        app:iconTint="@android:color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-
-        app:layout_constraintTop_toBottomOf="@id/searchCard" />
-
-    <!-- Scrollable Content -->
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:clipToPadding="false"
-        android:paddingBottom="80dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/filterButton">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="16dp">
-
-            <!-- Search Results Section (Initially Hidden) -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/searchResultsRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="16dp"
-                android:clipToPadding="false"
-                android:visibility="gone"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_search_result" />
-
-            <!-- Browse by Category Section -->
-            <TextView
-                android:id="@+id/browseByCategoryTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="16dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:text="Browse by Category"
-                android:textColor="#212121"
-                android:textSize="18sp" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/categoryRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:clipToPadding="false"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/search_category_card"/>
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp">
 
-            <!-- Explore by Country Section -->
+                <ImageView
+                    android:id="@+id/searchIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/icon_search"
+                    app:tint="#1976D2" />
+
+                <EditText
+                    android:id="@+id/searchEditText"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:fontFamily="@font/poppins"
+                    android:hint="Search recipes..."
+                    android:inputType="text"
+                    android:textColor="#424242"
+                    android:textColorHint="#BDBDBD"
+                    android:textSize="16sp"
+                    android:imeOptions="actionSearch"
+                    android:maxLines="1" />
+
+                <ImageView
+                    android:id="@+id/clearSearchButton"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/icon_close"
+                    android:visibility="gone"
+                    app:tint="#BDBDBD" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/filterButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="24dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="Apply Filters"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            app:backgroundTint="#1976D2"
+            app:cornerRadius="24dp"
+            app:icon="@drawable/icon_filter"
+            app:iconGravity="textStart"
+            app:iconTint="@android:color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/searchCard" />
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scrollView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:clipToPadding="false"
+            android:paddingBottom="80dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/filterButton">
+
             <LinearLayout
-                android:id="@+id/exploreByCountryTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginEnd="24dp"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:paddingBottom="16dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/searchResultsRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="16dp"
+                    android:clipToPadding="false"
+                    android:visibility="gone"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_search_result" />
 
                 <TextView
-                    android:id="@+id/countryTitle"
-                    android:layout_width="0dp"
+                    android:id="@+id/browseByCategoryTitle"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="16dp"
                     android:fontFamily="@font/poppins_semibold"
-                    android:text="Explore by Country"
+                    android:text="Browse by Category"
                     android:textColor="#212121"
                     android:textSize="18sp" />
 
-                <TextView
-                    android:id="@+id/viewAllCountries"
-                    android:layout_width="wrap_content"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/categoryRecyclerView"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="View All"
-                    android:textColor="#1976D2"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="12dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/search_category_card"/>
+
+                <LinearLayout
+                    android:id="@+id/exploreByCountryTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/countryTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:text="Explore by Country"
+                        android:textColor="#212121"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/viewAllCountries"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:text="View All"
+                        android:textColor="#1976D2"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/countryChipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="24dp"
+                    app:chipSpacingHorizontal="8dp"
+                    app:chipSpacingVertical="8dp"
+                    app:selectionRequired="false"
+                    app:singleSelection="false" />
+
+                <LinearLayout
+                    android:id="@+id/searchByIngredientTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/ingredientTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:text="Search by Ingredient"
+                        android:textColor="#212121"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/seeAllIngredients"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:text="Loading..."
+                        android:textColor="#1976D2"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/ingredientRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:layout_marginBottom="@dimen/spacing_very_large"
+                    android:nestedScrollingEnabled="false"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/search_ingredient_card"/>
+
             </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/countryChipGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="24dp"
-                app:chipSpacingHorizontal="8dp"
-                app:chipSpacingVertical="8dp"
-                app:selectionRequired="false"
-                app:singleSelection="false" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Search by Ingredient Section -->
-            <LinearLayout
-                android:id="@+id/searchByIngredientTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginEnd="24dp"
-                android:orientation="horizontal">
+    <!-- Offline State -->
+    <include
+        android:id="@+id/offlineStateContainer"
+        layout="@layout/layout_offline_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-                <TextView
-                    android:id="@+id/ingredientTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="Search by Ingredient"
-                    android:textColor="#212121"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/seeAllIngredients"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="Loading..."
-                    android:textColor="#1976D2"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/ingredientRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginBottom="@dimen/spacing_very_large"
-                android:nestedScrollingEnabled="false"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/search_ingredient_card"/>
-
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

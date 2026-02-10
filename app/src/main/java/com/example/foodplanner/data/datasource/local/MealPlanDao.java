@@ -21,8 +21,8 @@ public interface MealPlanDao {
         @Insert(onConflict = OnConflictStrategy.REPLACE)
         Completable insertMealPlan(MealPlan mealPlan);
 
-//        @Query("SELECT * FROM meal_plan")
-//        LiveData<List<MealPlan>> getAllMealPlans();
+        @Query("SELECT * FROM meal_plan")
+        LiveData<List<MealPlan>> getAllMealPlans();
 
         @Query("SELECT * FROM meal_plan WHERE dayOfWeek = :day")
         Observable<List<MealPlan>> getMealPlansByDay(String day);

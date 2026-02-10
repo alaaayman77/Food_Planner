@@ -60,6 +60,8 @@
         android:paddingEnd="32dp"
         android:text="Retry"
         android:textSize="16sp"
+        app:backgroundTint="@color/primaryColor"
+
         app:cornerRadius="30dp"
         app:icon="@drawable/icon_refresh"
         app:iconGravity="textStart"

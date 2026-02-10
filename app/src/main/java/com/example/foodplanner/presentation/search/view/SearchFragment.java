@@ -15,6 +15,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,8 +27,6 @@ import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.data.model.search.area.Area;
 import com.example.foodplanner.data.model.search.ingredients.Ingredients;
-
-import com.example.foodplanner.presentation.filter_results.view.FilterResultsFragmentDirections;
 import com.example.foodplanner.presentation.multi_filter.MultiFilterPresenter;
 import com.example.foodplanner.presentation.multi_filter.MultiFilterPresenterImp;
 import com.example.foodplanner.presentation.multi_filter.MultiFilterView;
@@ -45,7 +45,8 @@ import com.example.foodplanner.presentation.search.view.category.SearchCategoryA
 import com.example.foodplanner.presentation.search.view.ingredients.IngredientsView;
 import com.example.foodplanner.presentation.search.view.ingredients.PaginationManager;
 import com.example.foodplanner.presentation.search.view.ingredients.SearchIngredientsAdapter;
-
+import com.example.foodplanner.utility.NetworkUtils;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.ChipGroup;
 
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
+
 public class SearchFragment extends Fragment implements
         SearchCategoryAdapter.OnCategoryClickListener,
         AreaView,
@@ -68,6 +70,7 @@ public class SearchFragment extends Fragment implements
         SearchResultsAdapter.OnMealClickListener,
         SearchResultsAdapter.OnLoadMoreClickListener {
 
+    // UI Components
     private EditText searchEditText;
     private ImageView clearSearchButton;
     private Button searchButton;
@@ -80,26 +83,31 @@ public class SearchFragment extends Fragment implements
     private TextView exploreByCountryTitle;
     private TextView viewAllCountries;
     private TextView searchByIngredientTitle;
+    private NestedScrollView mainContent;
 
+    // Offline state views
+    private ConstraintLayout offlineStateContainer;
+    private MaterialButton retryButton;
+
+    // Adapters
     private SearchCategoryAdapter searchCategoryAdapter;
     private SearchIngredientsAdapter searchIngredientsAdapter;
     private CountryChipAdapter countryChipAdapter;
     private SearchResultsAdapter searchResultsAdapter;
 
+    // Presenters
     private AreaPresenter areaPresenter;
     private CategoryPresenter categoryPresenter;
     private IngredientsPresenter ingredientsPresenter;
     private MultiFilterPresenter multiFilterPresenter;
     private SearchPresenter searchPresenter;
+
     private String[] mealsIds;
     private PaginationManager<Ingredients> ingredientsPaginationManager;
     private static final int INGREDIENTS_PAGE_SIZE = 15;
 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
-
-    // Add filter mode flag
     private boolean isFilterMode = false;
-
     private static final String TAG = "SearchFragment";
 
     @Override
@@ -123,11 +131,7 @@ public class SearchFragment extends Fragment implements
         setupPresenters();
         setupSearchObservable();
         setupClickListeners();
-
-        // Load initial data
-        areaPresenter.getArea();
-        categoryPresenter.getCategory();
-        ingredientsPresenter.getIngredients();
+        checkNetworkAndLoadData();
     }
 
     private void initViews(View view) {
@@ -143,6 +147,28 @@ public class SearchFragment extends Fragment implements
         exploreByCountryTitle = view.findViewById(R.id.countryTitle);
         viewAllCountries = view.findViewById(R.id.viewAllCountries);
         searchByIngredientTitle = view.findViewById(R.id.ingredientTitle);
+        mainContent = view.findViewById(R.id.scrollView);
+
+
+        offlineStateContainer = view.findViewById(R.id.offlineStateContainer);
+        retryButton = view.findViewById(R.id.retryButton);
+    }
+
+    private void checkNetworkAndLoadData() {
+        if (!NetworkUtils.isNetworkAvailable(requireContext())) {
+            Log.d(TAG, "No network - showing offline state");
+            showOfflineState();
+        } else {
+            Log.d(TAG, "Network available - loading data");
+            hideOfflineState();
+            loadInitialData();
+        }
+    }
+
+    private void loadInitialData() {
+        areaPresenter.getArea();
+        categoryPresenter.getCategory();
+        ingredientsPresenter.getIngredients();
     }
 
     private void setupAdapters() {
@@ -202,7 +228,6 @@ public class SearchFragment extends Fragment implements
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    // Don't process text changes if in filter mode
                     if (isFilterMode) {
                         return;
                     }
@@ -226,6 +251,11 @@ public class SearchFragment extends Fragment implements
                 .filter(query -> !isFilterMode && query.length() > 0)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(query -> {
+                    if (!NetworkUtils.isNetworkAvailable(requireContext())) {
+                        safeShowToast("No internet connection. Please check your network.");
+                        return;
+                    }
+
                     hideFilterUI();
                     searchResultsRecyclerView.setVisibility(View.VISIBLE);
                     searchPresenter.searchMealsByName(query);
@@ -239,13 +269,18 @@ public class SearchFragment extends Fragment implements
     private void setupClickListeners() {
         // Apply Filters Button
         searchButton.setOnClickListener(v -> {
+            // Check network before filtering
+            if (!NetworkUtils.isNetworkAvailable(requireContext())) {
+                safeShowToast("No internet connection. Please check your network.");
+                return;
+            }
+
             List<Category> selectedCategories = searchCategoryAdapter.getSelectedCategories();
             List<Area> selectedAreas = countryChipAdapter.getSelectedAreas();
             List<Ingredients> selectedIngredients = searchIngredientsAdapter.getSelectedIngredients();
 
-            // Check if any filters are selected
             if (selectedCategories.isEmpty() && selectedAreas.isEmpty() && selectedIngredients.isEmpty()) {
-                Toast.makeText(getContext(), "Please select at least one filter", Toast.LENGTH_SHORT).show();
+                safeShowToast("Please select at least one filter");
                 return;
             }
 
@@ -272,17 +307,72 @@ public class SearchFragment extends Fragment implements
             searchEditText.setText("");
             searchResultsAdapter.clearMeals();
 
-            // Reset filter mode
             isFilterMode = false;
             clearAllFilters();
             enableSearch();
             showFilterUI();
         });
+
+        // Retry Button (Offline State)
+        if (retryButton != null) {
+            retryButton.setOnClickListener(v -> {
+                Log.d(TAG, "Retry button clicked");
+                animateRetryButton();
+                retryConnection();
+            });
+        }
     }
 
-    /**
-     * Check if any filters are currently selected
-     */
+    private void retryConnection() {
+        boolean hasNetwork = NetworkUtils.isNetworkAvailable(requireContext());
+        Log.d(TAG, "Retry - Network available: " + hasNetwork);
+
+        if (hasNetwork) {
+            hideOfflineState();
+            loadInitialData();
+        } else {
+            safeShowToast("Still offline. Please check your connection.");
+        }
+    }
+
+    private void showOfflineState() {
+        if (mainContent != null) {
+            mainContent.setVisibility(View.GONE);
+        }
+        if (offlineStateContainer != null) {
+            offlineStateContainer.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideOfflineState() {
+        if (mainContent != null) {
+            mainContent.setVisibility(View.VISIBLE);
+        }
+        if (offlineStateContainer != null) {
+            offlineStateContainer.setVisibility(View.GONE);
+        }
+    }
+
+    private void animateRetryButton() {
+        if (retryButton != null) {
+            retryButton.setEnabled(false);
+
+            android.animation.ObjectAnimator rotation =
+                    android.animation.ObjectAnimator.ofFloat(retryButton, "rotation", 0f, 360f);
+            rotation.setDuration(500);
+            rotation.addListener(new android.animation.AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(android.animation.Animator animation) {
+                    if (retryButton != null) {
+                        retryButton.setEnabled(true);
+                        retryButton.setRotation(0f);
+                    }
+                }
+            });
+            rotation.start();
+        }
+    }
+
     private boolean hasAnyFiltersSelected() {
         List<Category> selectedCategories = searchCategoryAdapter.getSelectedCategories();
         List<Area> selectedAreas = countryChipAdapter.getSelectedAreas();
@@ -291,50 +381,35 @@ public class SearchFragment extends Fragment implements
         return !selectedCategories.isEmpty() || !selectedAreas.isEmpty() || !selectedIngredients.isEmpty();
     }
 
-    /**
-     * Update filter mode based on current selections
-     */
     private void updateFilterMode() {
         boolean hasFilters = hasAnyFiltersSelected();
 
         if (hasFilters && !isFilterMode) {
-            // Filters just got selected - disable search
             isFilterMode = true;
             disableSearch();
-            // Clear any text search
             if (searchEditText.getText().length() > 0) {
                 searchEditText.setText("");
             }
             Log.d(TAG, "Filter selected - search disabled");
         } else if (!hasFilters && isFilterMode) {
-            // All filters cleared - enable search
             isFilterMode = false;
             enableSearch();
             Log.d(TAG, "No filters selected - search enabled");
         }
     }
 
-    /**
-     * Disable search input when filters are active
-     */
     private void disableSearch() {
         searchEditText.setEnabled(false);
         searchEditText.setAlpha(0.5f);
         searchEditText.setHint("Filters active - clear filters to search by name");
     }
 
-    /**
-     * Enable search input
-     */
     private void enableSearch() {
         searchEditText.setEnabled(true);
         searchEditText.setAlpha(1.0f);
         searchEditText.setHint("Search recipes...");
     }
 
-    /**
-     * Hide filter UI elements (when searching by text)
-     */
     private void hideFilterUI() {
         browseByCategoryTitle.setVisibility(View.GONE);
         categoryRecyclerView.setVisibility(View.GONE);
@@ -347,9 +422,6 @@ public class SearchFragment extends Fragment implements
         searchButton.setVisibility(View.GONE);
     }
 
-    /**
-     * Show filter UI elements (default state)
-     */
     private void showFilterUI() {
         browseByCategoryTitle.setVisibility(View.VISIBLE);
         categoryRecyclerView.setVisibility(View.VISIBLE);
@@ -363,9 +435,6 @@ public class SearchFragment extends Fragment implements
         searchResultsRecyclerView.setVisibility(View.GONE);
     }
 
-    /**
-     * Clear all filter selections
-     */
     private void clearAllFilters() {
         if (searchCategoryAdapter != null) {
             searchCategoryAdapter.clearSelections();
@@ -375,6 +444,21 @@ public class SearchFragment extends Fragment implements
         }
         if (searchIngredientsAdapter != null) {
             searchIngredientsAdapter.clearSelections();
+        }
+    }
+
+    /**
+     * Safely show toast - only if fragment is attached
+     */
+    private void safeShowToast(String message) {
+        if (isAdded() && getContext() != null) {
+            try {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to show toast: " + e.getMessage());
+            }
+        } else {
+            Log.w(TAG, "Cannot show toast - fragment not attached: " + message);
         }
     }
 
@@ -425,11 +509,11 @@ public class SearchFragment extends Fragment implements
         this.mealsIds = mealIds.toArray(new String[0]);
 
         if (mealIds.isEmpty()) {
-            Toast.makeText(getContext(), "No meals found with selected filters", Toast.LENGTH_SHORT).show();
+            safeShowToast("No meals found with selected filters");
             return;
         }
 
-        Toast.makeText(getContext(), "Found " + mealIds.size() + " meals!", Toast.LENGTH_SHORT).show();
+        safeShowToast("Found " + mealIds.size() + " meals!");
 
         SearchFragmentDirections.ActionSearchFragmentToFilterResultsFragment action =
                 SearchFragmentDirections.actionSearchFragmentToFilterResultsFragment(mealsIds);
@@ -444,24 +528,21 @@ public class SearchFragment extends Fragment implements
 
     @Override
     public void showError(String errorMessage) {
-        Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+        safeShowToast(errorMessage);
     }
 
     @Override
     public void onCountryChipClicked(Area area, boolean isSelected) {
-        // Update filter mode immediately when chip is clicked
         updateFilterMode();
     }
 
     @Override
     public void onCategoryClicked(Category category, boolean isSelected) {
-        // Update filter mode immediately when category is clicked
         updateFilterMode();
     }
 
     @Override
     public void onIngredientClicked(Ingredients ingredient, boolean isSelected) {
-        // Update filter mode immediately when ingredient is clicked
         updateFilterMode();
     }
 
@@ -493,13 +574,13 @@ public class SearchFragment extends Fragment implements
     public void updateSearchInfo(int loaded, int total, boolean hasMore) {
         searchResultsAdapter.setLoadMoreVisible(hasMore, total);
         if (loaded > 0) {
-            Toast.makeText(getContext(), "Showing " + loaded + " of " + total + " results", Toast.LENGTH_SHORT).show();
+            safeShowToast("Showing " + loaded + " of " + total + " results");
         }
     }
 
     @Override
     public void onMealClicked(MealsByCategory meal) {
-        Toast.makeText(getContext(), "Clicked: " + meal.getMealName(), Toast.LENGTH_SHORT).show();
+        safeShowToast("Clicked: " + meal.getMealName());
         SearchFragmentDirections.ActionSearchFragmentToRecipeDetailsFragment action =
                 SearchFragmentDirections.actionSearchFragmentToRecipeDetailsFragment(meal.getMealId());
         Navigation.findNavController(requireView()).navigate(action);
@@ -511,8 +592,8 @@ public class SearchFragment extends Fragment implements
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
         compositeDisposable.clear();
     }
 }

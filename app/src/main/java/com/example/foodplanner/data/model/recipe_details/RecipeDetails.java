@@ -12,7 +12,6 @@ public class RecipeDetails {
     @SerializedName("strMeal")
     private String mealName;
 
-
     @SerializedName("strCategory")
     private String mealCategory;
 
@@ -154,9 +153,18 @@ public class RecipeDetails {
 
     @SerializedName("strSource")
     private String strSource;
+
     @SerializedName("strImageSource")
     private String strImageSource;
 
+    // Cache for ingredients list (not from API)
+    private List<IngredientWithMeasure> cachedIngredients;
+
+    // Empty constructor (needed for creating objects from cache)
+    public RecipeDetails() {
+    }
+
+    // Full constructor (existing)
     public RecipeDetails(String idMeal, String mealName, String mealCategory, String mealArea, String strMealThumbnail, String mealInstructions, String strTags,
                          String strYoutube, String strIngredient1, String strIngredient2, String strIngredient3, String strIngredient4, String strIngredient5,
                          String strIngredient6, String strIngredient7, String strIngredient8, String strIngredient9, String strIngredient10, String strIngredient11,
@@ -218,6 +226,7 @@ public class RecipeDetails {
         this.strImageSource = strImageSource;
     }
 
+    // Getters
     public String getIdMeal() {
         return idMeal;
     }
@@ -418,11 +427,51 @@ public class RecipeDetails {
         return strImageSource;
     }
 
+    // Setters (needed for cache conversion)
+    public void setIdMeal(String idMeal) {
+        this.idMeal = idMeal;
+    }
+
+    public void setMealName(String mealName) {
+        this.mealName = mealName;
+    }
+
+    public void setMealCategory(String mealCategory) {
+        this.mealCategory = mealCategory;
+    }
+
+    public void setMealArea(String mealArea) {
+        this.mealArea = mealArea;
+    }
+
+    public void setMealInstructions(String mealInstructions) {
+        this.mealInstructions = mealInstructions;
+    }
+
+    public void setStrMealThumbnail(String strMealThumbnail) {
+        this.strMealThumbnail = strMealThumbnail;
+    }
+
+    public void setStrYoutube(String strYoutube) {
+        this.strYoutube = strYoutube;
+    }
+
+    /**
+     * Set ingredients directly (used when loading from favorites cache)
+     */
+    public void setIngredientsWithMeasures(List<IngredientWithMeasure> ingredients) {
+        this.cachedIngredients = ingredients;
+    }
 
     public List<IngredientWithMeasure> getIngredientsWithMeasures() {
+        // If cached ingredients exist (from favorites), use them
+        if (cachedIngredients != null) {
+            return cachedIngredients;
+        }
+
+        // Otherwise, parse from individual ingredient fields (from API)
         List<IngredientWithMeasure> result = new ArrayList<>();
 
-        // Loop through ingredients 1-20
         String[] ingredients = {strIngredient1, strIngredient2, strIngredient3,
                 strIngredient4, strIngredient5, strIngredient6,
                 strIngredient7, strIngredient8, strIngredient9,

@@ -34,9 +34,9 @@ public class MealLocalDataSource {
 //        }).start();
 //    }
 
-//    public LiveData<List<MealPlan>> getAllMealPlans(){
-//        return mealPlanDao.getAllMealPlans();
-//    }
+    public LiveData<List<MealPlan>> getAllMealPlans(){
+        return mealPlanDao.getAllMealPlans();
+    }
 
     public Observable<List<MealPlan>> getMealPlansByDay(String day){
         return mealPlanDao.getMealPlansByDay(day);
