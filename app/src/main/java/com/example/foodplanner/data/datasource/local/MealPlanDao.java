@@ -13,6 +13,7 @@ import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import java.util.List;
 
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 
 @Dao
 public interface MealPlanDao {
@@ -20,11 +21,11 @@ public interface MealPlanDao {
         @Insert(onConflict = OnConflictStrategy.REPLACE)
         Completable insertMealPlan(MealPlan mealPlan);
 
-        @Query("SELECT * FROM meal_plan")
-        LiveData<List<MealPlan>> getAllMealPlans();
+//        @Query("SELECT * FROM meal_plan")
+//        LiveData<List<MealPlan>> getAllMealPlans();
 
         @Query("SELECT * FROM meal_plan WHERE dayOfWeek = :day")
-        LiveData<List<MealPlan>> getMealPlansByDay(String day);
+        Observable<List<MealPlan>> getMealPlansByDay(String day);
 
         @Query("DELETE FROM meal_plan")
         void deleteAllMealPlans();

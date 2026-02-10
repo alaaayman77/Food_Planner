@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 
 
 public class MealLocalDataSource {
@@ -33,11 +34,11 @@ public class MealLocalDataSource {
 //        }).start();
 //    }
 
-    public LiveData<List<MealPlan>> getAllMealPlans(){
-        return mealPlanDao.getAllMealPlans();
-    }
+//    public LiveData<List<MealPlan>> getAllMealPlans(){
+//        return mealPlanDao.getAllMealPlans();
+//    }
 
-    public LiveData<List<MealPlan>> getMealPlansByDay(String day){
+    public Observable<List<MealPlan>> getMealPlansByDay(String day){
         return mealPlanDao.getMealPlansByDay(day);
     }
 

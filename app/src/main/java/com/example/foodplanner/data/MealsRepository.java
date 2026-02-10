@@ -88,11 +88,11 @@ public class MealsRepository {
     }
 
 
-    public LiveData<List<MealPlan>> getAllMealPlans(){
-        return mealLocalDataSource.getAllMealPlans();
-    }
+//    public LiveData<List<MealPlan>> getAllMealPlans(){
+//        return mealLocalDataSource.getAllMealPlans();
+//    }
 
-    public LiveData<List<MealPlan>> getMealPlansByDay(String day){
+    public Observable<List<MealPlan>> getMealPlansByDay(String day){
         return  mealLocalDataSource.getMealPlansByDay(day);
     }
 

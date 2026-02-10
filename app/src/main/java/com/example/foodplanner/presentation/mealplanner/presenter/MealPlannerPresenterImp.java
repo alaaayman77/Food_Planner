@@ -41,57 +41,66 @@ public class MealPlannerPresenterImp implements MealPlannerPresenter {
 
     @Override
     public void loadMealPlansForDay(String dayOfWeek) {
-        repository.getMealPlansByDay(dayOfWeek).observe(lifecycleOwner, new Observer<List<MealPlan>>() {
-            @Override
-            public void onChanged(List<MealPlan> mealPlans) {
-                // Reset all meal displays first
-                view.hideBreakfastMeal();
-                view.hideLunchMeal();
-                view.hideDinnerMeal();
+        compositeDisposable.add(
+                repository.getMealPlansByDay(dayOfWeek)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                mealPlans -> {
+                                    // Reset all meal displays first
+                                    view.hideBreakfastMeal();
+                                    view.hideLunchMeal();
+                                    view.hideDinnerMeal();
 
-                if (mealPlans != null && !mealPlans.isEmpty()) {
-                    // Group meals by type
-                    List<MealPlan> breakfastMeals = new ArrayList<>();
-                    List<MealPlan> lunchMeals = new ArrayList<>();
-                    List<MealPlan> dinnerMeals = new ArrayList<>();
+                                    if (mealPlans != null && !mealPlans.isEmpty()) {
+                                        // Group meals by type
+                                        List<MealPlan> breakfastMeals = new ArrayList<>();
+                                        List<MealPlan> lunchMeals = new ArrayList<>();
+                                        List<MealPlan> dinnerMeals = new ArrayList<>();
 
-                    for (MealPlan mealPlan : mealPlans) {
-                        String mealType = mealPlan.getMealType();
-                        if (mealType != null) {
-                            switch (mealType.toUpperCase()) {
-                                case "BREAKFAST":
-                                    breakfastMeals.add(mealPlan);
-                                    break;
-                                case "LUNCH":
-                                    lunchMeals.add(mealPlan);
-                                    break;
-                                case "DINNER":
-                                    dinnerMeals.add(mealPlan);
-                                    break;
-                            }
-                        }
-                    }
+                                        for (MealPlan mealPlan : mealPlans) {
+                                            String mealType = mealPlan.getMealType();
+                                            if (mealType != null) {
+                                                switch (mealType.toUpperCase()) {
+                                                    case "BREAKFAST":
+                                                        breakfastMeals.add(mealPlan);
+                                                        break;
+                                                    case "LUNCH":
+                                                        lunchMeals.add(mealPlan);
+                                                        break;
+                                                    case "DINNER":
+                                                        dinnerMeals.add(mealPlan);
+                                                        break;
+                                                }
+                                            }
+                                        }
 
-                    // Show meals for each type
-                    if (!breakfastMeals.isEmpty()) {
-                        view.showBreakfastMeals(breakfastMeals);
-                    }
+                                        // Show meals for each type
+                                        if (!breakfastMeals.isEmpty()) {
+                                            view.showBreakfastMeals(breakfastMeals);
+                                        }
 
-                    if (!lunchMeals.isEmpty()) {
-                        view.showLunchMeals(lunchMeals);
-                    }
+                                        if (!lunchMeals.isEmpty()) {
+                                            view.showLunchMeals(lunchMeals);
+                                        }
 
-                    if (!dinnerMeals.isEmpty()) {
-                        view.showDinnerMeals(dinnerMeals);
-                    }
+                                        if (!dinnerMeals.isEmpty()) {
+                                            view.showDinnerMeals(dinnerMeals);
+                                        }
 
-                    view.displayMealPlans(mealPlans);
-                } else {
-                    // Empty state will be shown
-                    view.displayMealPlans(new ArrayList<>());
-                }
-            }
-        });
+                                        view.displayMealPlans(mealPlans);
+                                    } else {
+                                        // Empty state will be shown
+                                        view.displayMealPlans(new ArrayList<>());
+                                    }
+                                },
+                                error -> {
+                                    Log.e(TAG, "Error loading meal plans for day: " + dayOfWeek, error);
+                                    view.showError("Failed to load meal plans");
+                                    view.displayMealPlans(new ArrayList<>());
+                                }
+                        )
+        );
     }
 
     @Override
