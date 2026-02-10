@@ -37,8 +37,8 @@ public class CountryChipAdapter {
 
     private void initCountryFlags() {
         countryFlags = new HashMap<>();
+        countryFlags.put("Algerian", "🇩🇿");
         countryFlags.put("American", "🇺🇸");
-        countryFlags.put("Algerian", "dz");
         countryFlags.put("British", "🇬🇧");
         countryFlags.put("Canadian", "🇨🇦");
         countryFlags.put("Chinese", "🇨🇳");

@@ -7,7 +7,7 @@ import android.util.Patterns;
 
 import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkResponse;
-import com.example.foodplanner.data.model.User;
+import com.example.foodplanner.data.model.user.User;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;

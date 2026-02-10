@@ -6,17 +6,12 @@ import android.util.Log;
 
 import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkResponse;
-import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
-import com.example.foodplanner.data.model.FavoriteMeal;
-import com.example.foodplanner.data.model.category.MealsByCategoryResponse;
-import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMeals;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
 import com.example.foodplanner.data.model.filtered_meals.AreaFilteredMealsResponse;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
-import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryView;
 import com.example.foodplanner.presentation.meals_by_countries.view.MealsByCountryView;
-import com.example.foodplanner.utility.NetworkUtils;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;

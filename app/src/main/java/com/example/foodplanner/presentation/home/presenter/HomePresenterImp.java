@@ -6,7 +6,7 @@ import android.util.Log;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;

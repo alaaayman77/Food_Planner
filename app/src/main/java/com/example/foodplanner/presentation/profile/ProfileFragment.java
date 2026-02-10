@@ -42,7 +42,7 @@ public class ProfileFragment extends Fragment {
     private TextInputLayout passwordTextInput;
     private TextInputEditText emailEditText;
     private TextInputEditText passwordEditText;
-    private MaterialButton backButton;
+
     private MaterialButton saveChangesButton;
     private MaterialButton logoutButton;
     private SwitchMaterial darkModeSwitch;
@@ -95,7 +95,7 @@ public class ProfileFragment extends Fragment {
         passwordTextInput = view.findViewById(R.id.passwordTextInput);
         emailEditText = view.findViewById(R.id.emailEditText);
         passwordEditText = view.findViewById(R.id.passwordEditText);
-        backButton = view.findViewById(R.id.backButton);
+
         saveChangesButton = view.findViewById(R.id.saveChangesButton);
         logoutButton = view.findViewById(R.id.logoutButton);
         darkModeSwitch = view.findViewById(R.id.darkModeSwitch);
@@ -145,13 +145,13 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupClickListeners() {
-        backButton.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
+
 
         saveChangesButton.setOnClickListener(v -> saveChanges());
 
         logoutButton.setOnClickListener(v -> showLogoutConfirmation());
 
-        // Save preferences when switches change
+        // save preferences when switches change
         darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
                 savePreference("darkMode", isChecked));
     }

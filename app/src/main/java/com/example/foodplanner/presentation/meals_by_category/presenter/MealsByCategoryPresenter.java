@@ -1,6 +1,6 @@
 package com.example.foodplanner.presentation.meals_by_category.presenter;
 
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 
 public interface MealsByCategoryPresenter {

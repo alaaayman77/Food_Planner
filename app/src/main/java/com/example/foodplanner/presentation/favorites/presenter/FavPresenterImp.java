@@ -1,4 +1,4 @@
-package com.example.foodplanner.presentation.favorites;
+package com.example.foodplanner.presentation.favorites.presenter;
 
 
 import android.content.Context;
@@ -7,7 +7,8 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
+import com.example.foodplanner.presentation.favorites.view.FavView;
 
 import java.util.List;
 

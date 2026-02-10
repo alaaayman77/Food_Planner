@@ -18,7 +18,7 @@ import androidx.navigation.Navigation;
 
 import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
-import com.example.foodplanner.data.model.User;
+import com.example.foodplanner.data.model.user.User;
 import com.example.foodplanner.utility.UserPrefManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;

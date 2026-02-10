@@ -1,4 +1,4 @@
-package com.example.foodplanner.presentation.favorites;
+package com.example.foodplanner.presentation.favorites.view;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.foodplanner.R;
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;

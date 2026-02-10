@@ -21,7 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
 import com.example.foodplanner.data.model.category.MealsByCategory;
 import com.example.foodplanner.presentation.auth.SignInPromptDialog;
 import com.example.foodplanner.presentation.mealplanner.view.MealPlanHelper;

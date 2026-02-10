@@ -46,7 +46,7 @@
 
     <fragment
         android:id="@+id/favoritesFragment"
-        android:name="com.example.foodplanner.presentation.favorites.FavoritesFragment"
+        android:name="com.example.foodplanner.presentation.favorites.view.FavoritesFragment"
         android:label="fragment_favorites"
         tools:layout="@layout/fragment_favorites" />
 

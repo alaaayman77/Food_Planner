@@ -1,6 +1,5 @@
-package com.example.foodplanner.presentation.favorites;
+package com.example.foodplanner.presentation.favorites.view;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,7 +16,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.foodplanner.R;
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
+import com.example.foodplanner.presentation.favorites.presenter.FavPresenter;
+import com.example.foodplanner.presentation.favorites.presenter.FavPresenterImp;
 
 
 import java.util.List;

@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 
 import com.example.foodplanner.data.datasource.local.FavoriteDao;
 import com.example.foodplanner.data.datasource.local.MealPlanDao;
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 
 @Database(entities = {MealPlan.class , FavoriteMeal.class} , version = 1)

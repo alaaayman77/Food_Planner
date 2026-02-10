@@ -5,7 +5,7 @@ import android.content.Context;
 import androidx.lifecycle.LiveData;
 
 import com.example.foodplanner.data.db.AppDatabase;
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.example.foodplanner.data.model;
+package com.example.foodplanner.data.model.favoriteMeal;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;

@@ -1,8 +1,6 @@
 package com.example.foodplanner.presentation.home.presenter;
 
-import androidx.lifecycle.LifecycleOwner;
-
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;

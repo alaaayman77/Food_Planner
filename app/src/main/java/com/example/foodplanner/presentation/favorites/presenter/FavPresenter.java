@@ -1,6 +1,6 @@
-package com.example.foodplanner.presentation.favorites;
+package com.example.foodplanner.presentation.favorites.presenter;
 
-import com.example.foodplanner.data.model.FavoriteMeal;
+import com.example.foodplanner.data.model.favoriteMeal.FavoriteMeal;
 
 public interface FavPresenter {
     void loadFavorites();
