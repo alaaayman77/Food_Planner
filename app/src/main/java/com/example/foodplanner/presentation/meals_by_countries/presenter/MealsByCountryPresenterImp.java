@@ -16,6 +16,7 @@ import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryView;
 import com.example.foodplanner.presentation.meals_by_countries.view.MealsByCountryView;
+import com.example.foodplanner.utility.NetworkUtils;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
@@ -103,7 +104,6 @@ public class MealsByCountryPresenterImp implements MealsByCountryPresenter {
 //    }
 
 
-
     @Override
     public void addMealToPlan(MealPlan mealPlan) {
         if (!isUserSignedIn()) {
@@ -113,10 +113,29 @@ public class MealsByCountryPresenterImp implements MealsByCountryPresenter {
             );
             return;
         }
-        mealsRepository.insertMealToMealPlan(mealPlan);
-        mealsByCountryView.onMealPlanAddedSuccess();
 
-        saveMealPlanToFirestore(mealPlan);
+        compositeDisposable.add(
+                mealsRepository.insertMealToMealPlan(mealPlan)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                    Log.d(TAG, " Meal plan saved locally");
+                                    mealsByCountryView.onMealPlanAddedSuccess();
+
+//                                    if (NetworkUtils.isNetworkAvailable(context) && mAuth.getCurrentUser() != null) {
+                                        saveMealPlanToFirestore(mealPlan);
+
+                                        Log.d(TAG, "Offline: Meal plan saved locally only");
+
+                                },
+                                error -> {
+
+                                    Log.e(TAG, " Error saving meal plan locally", error);
+                                    mealsByCountryView.onMealPlanAddedFailure("Failed to save meal plan: " + error.getMessage());
+                                }
+                        )
+        );
     }
 
     @Override

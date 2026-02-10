@@ -109,7 +109,7 @@ public class LoginFragment extends Fragment implements LoginView {
 
     private void initializePresenter() {
         MealsRepository mealsRepository = new MealsRepository(requireContext());
-        presenter = new LoginPresenterImp(this, mealsRepository);
+        presenter = new LoginPresenterImp(this, mealsRepository, requireContext());
     }
 
     private void setupGoogleSignIn() {

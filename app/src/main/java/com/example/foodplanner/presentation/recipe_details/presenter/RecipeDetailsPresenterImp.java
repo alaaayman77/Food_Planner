@@ -99,23 +99,39 @@ public class RecipeDetailsPresenterImp implements RecipeDetailsPresenter {
 //            }
 //        });
 //    }
-
-    @Override
-    public void addMealToPlan(MealPlan mealPlan) {
-        if (!isUserSignedIn()) {
-            recipeDetailsView.showSignInPrompt(
-                    "Save Meal Plan",
-                    "Sign in to save your meal plans and access them from any device!"
-            );
-            return;
-        }
-        mealsRepository.insertMealToMealPlan(mealPlan);
-        recipeDetailsView.onMealPlanAddedSuccess();
-
-        if (mAuth.getCurrentUser() != null) {
-            saveMealPlanToFirestore(mealPlan);
-        }
+@Override
+public void addMealToPlan(MealPlan mealPlan) {
+    if (!isUserSignedIn()) {
+        recipeDetailsView.showSignInPrompt(
+                "Save Meal Plan",
+                "Sign in to save your meal plans and access them from any device!"
+        );
+        return;
     }
+
+    compositeDisposable.add(
+            mealsRepository.insertMealToMealPlan(mealPlan)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            () -> {
+                                // onComplete - successfully saved locally
+                                Log.d(TAG, " Meal plan saved to local database");
+                                recipeDetailsView.onMealPlanAddedSuccess();
+
+                                // Sync to Firestore if user is signed in
+                                if (mAuth.getCurrentUser() != null) {
+                                    saveMealPlanToFirestore(mealPlan);
+                                }
+                            },
+                            error -> {
+                                // onError - failed to save locally
+                                Log.e(TAG, " Error saving meal plan locally", error);
+                                recipeDetailsView.onMealPlanAddedFailure("Failed to save meal plan");
+                            }
+                    )
+    );
+}
 
     private void saveMealPlanToFirestore(MealPlan mealPlan) {
         MealPlanFirestore firestorePlan = MealPlanFirestore.fromMealPlan(mealPlan);

@@ -56,7 +56,6 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-
 public class SearchFragment extends Fragment implements
         SearchCategoryAdapter.OnCategoryClickListener,
         AreaView,
@@ -98,6 +97,11 @@ public class SearchFragment extends Fragment implements
 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
+    // Add filter mode flag
+    private boolean isFilterMode = false;
+
+    private static final String TAG = "SearchFragment";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,8 +116,21 @@ public class SearchFragment extends Fragment implements
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-
         super.onViewCreated(view, savedInstanceState);
+
+        initViews(view);
+        setupAdapters();
+        setupPresenters();
+        setupSearchObservable();
+        setupClickListeners();
+
+        // Load initial data
+        areaPresenter.getArea();
+        categoryPresenter.getCategory();
+        ingredientsPresenter.getIngredients();
+    }
+
+    private void initViews(View view) {
         searchEditText = view.findViewById(R.id.searchEditText);
         clearSearchButton = view.findViewById(R.id.clearSearchButton);
         searchButton = view.findViewById(R.id.filterButton);
@@ -126,17 +143,19 @@ public class SearchFragment extends Fragment implements
         exploreByCountryTitle = view.findViewById(R.id.countryTitle);
         viewAllCountries = view.findViewById(R.id.viewAllCountries);
         searchByIngredientTitle = view.findViewById(R.id.ingredientTitle);
+    }
 
+    private void setupAdapters() {
         searchCategoryAdapter = new SearchCategoryAdapter(requireContext(), this);
         searchIngredientsAdapter = new SearchIngredientsAdapter(requireContext(), this);
         countryChipAdapter = new CountryChipAdapter(requireContext(), areaChipGroup, this);
         searchResultsAdapter = new SearchResultsAdapter(requireContext(), this);
 
-
         searchResultsAdapter.setOnLoadMoreClickListener(this);
 
         searchCategoryAdapter.setLoading(true);
         searchIngredientsAdapter.setLoading(true);
+
         categoryRecyclerView.setAdapter(searchCategoryAdapter);
 
         LinearLayoutManager ingredientsLayoutManager = new LinearLayoutManager(requireContext());
@@ -149,8 +168,6 @@ public class SearchFragment extends Fragment implements
         searchResultsRecyclerView.setAdapter(searchResultsAdapter);
         searchResultsRecyclerView.setNestedScrollingEnabled(false);
 
-        searchCategoryAdapter.setLoading(true);
-        searchIngredientsAdapter.setLoading(true);
         searchIngredientsAdapter.setOnSeeMoreClickListener(() -> {
             List<Ingredients> nextPage = ingredientsPaginationManager.getNextPage();
             if (!nextPage.isEmpty()) {
@@ -167,22 +184,70 @@ public class SearchFragment extends Fragment implements
                 seeAllIngredients.setText(loaded + " of " + total);
             }
         });
+    }
 
+    private void setupPresenters() {
         categoryPresenter = new CategoryPresenterImp(this, requireContext());
         areaPresenter = new AreaPresenterImp(this, requireContext());
         ingredientsPresenter = new IngredientsPresenterImp(this, requireContext());
         multiFilterPresenter = new MultiFilterPresenterImp(this, requireContext());
         searchPresenter = new SearchPresenterImp(this, requireContext());
+    }
 
-        areaPresenter.getArea();
-        categoryPresenter.getCategory();
-        ingredientsPresenter.getIngredients();
+    private void setupSearchObservable() {
+        Observable<String> searchObservable = Observable.create(emitter -> {
+            searchEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        // search button click for filters
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    // Don't process text changes if in filter mode
+                    if (isFilterMode) {
+                        return;
+                    }
+
+                    if (s.length() > 0) {
+                        clearSearchButton.setVisibility(View.VISIBLE);
+                    } else {
+                        clearSearchButton.setVisibility(View.GONE);
+                        showFilterUI();
+                    }
+                    emitter.onNext(s.toString());
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            });
+        });
+
+        Disposable searchDisposable = searchObservable
+                .debounce(1, TimeUnit.SECONDS)
+                .filter(query -> !isFilterMode && query.length() > 0)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(query -> {
+                    hideFilterUI();
+                    searchResultsRecyclerView.setVisibility(View.VISIBLE);
+                    searchPresenter.searchMealsByName(query);
+                }, error -> {
+                    Log.e(TAG, "Error in search observable", error);
+                });
+
+        compositeDisposable.add(searchDisposable);
+    }
+
+    private void setupClickListeners() {
+        // Apply Filters Button
         searchButton.setOnClickListener(v -> {
             List<Category> selectedCategories = searchCategoryAdapter.getSelectedCategories();
             List<Area> selectedAreas = countryChipAdapter.getSelectedAreas();
             List<Ingredients> selectedIngredients = searchIngredientsAdapter.getSelectedIngredients();
+
+            // Check if any filters are selected
+            if (selectedCategories.isEmpty() && selectedAreas.isEmpty() && selectedIngredients.isEmpty()) {
+                Toast.makeText(getContext(), "Please select at least one filter", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             List<String> categoryNames = new ArrayList<>();
             for (Category category : selectedCategories) {
@@ -202,66 +267,118 @@ public class SearchFragment extends Fragment implements
             multiFilterPresenter.searchWithFilters(categoryNames, areaNames, ingredientNames);
         });
 
-        Observable<String> searchObservable = Observable.create(emitter -> {
-            searchEditText.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    if (s.length() > 0) {
-                        clearSearchButton.setVisibility(View.VISIBLE);
-                    } else {
-                        clearSearchButton.setVisibility(View.GONE);
-
-                        browseByCategoryTitle.setVisibility(View.VISIBLE);
-                        categoryRecyclerView.setVisibility(View.VISIBLE);
-                        exploreByCountryTitle.setVisibility(View.VISIBLE);
-                        viewAllCountries.setVisibility(View.VISIBLE);
-                        areaChipGroup.setVisibility(View.VISIBLE);
-                        searchByIngredientTitle.setVisibility(View.VISIBLE);
-                        seeAllIngredients.setVisibility(View.VISIBLE);
-                        ingredientsRecyclerView.setVisibility(View.VISIBLE);
-                        searchButton.setVisibility(View.VISIBLE);
-                        searchResultsRecyclerView.setVisibility(View.GONE);
-                    }
-                    emitter.onNext(s.toString());
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        });
-
-        Disposable searchDisposable = searchObservable
-                .debounce(1, TimeUnit.SECONDS)
-                .filter(query -> query.length() > 0)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(query -> {
-                    browseByCategoryTitle.setVisibility(View.GONE);
-                    categoryRecyclerView.setVisibility(View.GONE);
-                    exploreByCountryTitle.setVisibility(View.GONE);
-                    viewAllCountries.setVisibility(View.GONE);
-                    areaChipGroup.setVisibility(View.GONE);
-                    searchByIngredientTitle.setVisibility(View.GONE);
-                    seeAllIngredients.setVisibility(View.GONE);
-                    ingredientsRecyclerView.setVisibility(View.GONE);
-                    searchButton.setVisibility(View.GONE);
-
-                    searchResultsRecyclerView.setVisibility(View.VISIBLE);
-
-                    searchPresenter.searchMealsByName(query);
-                }, error -> {
-                    Log.e("SearchFragment", "Error in search observable", error);
-                });
-
-        compositeDisposable.add(searchDisposable);
-
+        // Clear Search Button
         clearSearchButton.setOnClickListener(v -> {
             searchEditText.setText("");
             searchResultsAdapter.clearMeals();
+
+            // Reset filter mode
+            isFilterMode = false;
+            clearAllFilters();
+            enableSearch();
+            showFilterUI();
         });
     }
+
+    /**
+     * Check if any filters are currently selected
+     */
+    private boolean hasAnyFiltersSelected() {
+        List<Category> selectedCategories = searchCategoryAdapter.getSelectedCategories();
+        List<Area> selectedAreas = countryChipAdapter.getSelectedAreas();
+        List<Ingredients> selectedIngredients = searchIngredientsAdapter.getSelectedIngredients();
+
+        return !selectedCategories.isEmpty() || !selectedAreas.isEmpty() || !selectedIngredients.isEmpty();
+    }
+
+    /**
+     * Update filter mode based on current selections
+     */
+    private void updateFilterMode() {
+        boolean hasFilters = hasAnyFiltersSelected();
+
+        if (hasFilters && !isFilterMode) {
+            // Filters just got selected - disable search
+            isFilterMode = true;
+            disableSearch();
+            // Clear any text search
+            if (searchEditText.getText().length() > 0) {
+                searchEditText.setText("");
+            }
+            Log.d(TAG, "Filter selected - search disabled");
+        } else if (!hasFilters && isFilterMode) {
+            // All filters cleared - enable search
+            isFilterMode = false;
+            enableSearch();
+            Log.d(TAG, "No filters selected - search enabled");
+        }
+    }
+
+    /**
+     * Disable search input when filters are active
+     */
+    private void disableSearch() {
+        searchEditText.setEnabled(false);
+        searchEditText.setAlpha(0.5f);
+        searchEditText.setHint("Filters active - clear filters to search by name");
+    }
+
+    /**
+     * Enable search input
+     */
+    private void enableSearch() {
+        searchEditText.setEnabled(true);
+        searchEditText.setAlpha(1.0f);
+        searchEditText.setHint("Search recipes...");
+    }
+
+    /**
+     * Hide filter UI elements (when searching by text)
+     */
+    private void hideFilterUI() {
+        browseByCategoryTitle.setVisibility(View.GONE);
+        categoryRecyclerView.setVisibility(View.GONE);
+        exploreByCountryTitle.setVisibility(View.GONE);
+        viewAllCountries.setVisibility(View.GONE);
+        areaChipGroup.setVisibility(View.GONE);
+        searchByIngredientTitle.setVisibility(View.GONE);
+        seeAllIngredients.setVisibility(View.GONE);
+        ingredientsRecyclerView.setVisibility(View.GONE);
+        searchButton.setVisibility(View.GONE);
+    }
+
+    /**
+     * Show filter UI elements (default state)
+     */
+    private void showFilterUI() {
+        browseByCategoryTitle.setVisibility(View.VISIBLE);
+        categoryRecyclerView.setVisibility(View.VISIBLE);
+        exploreByCountryTitle.setVisibility(View.VISIBLE);
+        viewAllCountries.setVisibility(View.VISIBLE);
+        areaChipGroup.setVisibility(View.VISIBLE);
+        searchByIngredientTitle.setVisibility(View.VISIBLE);
+        seeAllIngredients.setVisibility(View.VISIBLE);
+        ingredientsRecyclerView.setVisibility(View.VISIBLE);
+        searchButton.setVisibility(View.VISIBLE);
+        searchResultsRecyclerView.setVisibility(View.GONE);
+    }
+
+    /**
+     * Clear all filter selections
+     */
+    private void clearAllFilters() {
+        if (searchCategoryAdapter != null) {
+            searchCategoryAdapter.clearSelections();
+        }
+        if (countryChipAdapter != null) {
+            countryChipAdapter.clearSelections();
+        }
+        if (searchIngredientsAdapter != null) {
+            searchIngredientsAdapter.clearSelections();
+        }
+    }
+
+    // ==================== Interface Implementations ====================
 
     @Override
     public void setIngredients(List<Ingredients> ingredientsList) {
@@ -307,19 +424,12 @@ public class SearchFragment extends Fragment implements
     public void showFilteredResults(List<String> mealIds) {
         this.mealsIds = mealIds.toArray(new String[0]);
 
-        StringBuilder message = new StringBuilder();
-        message.append("Found ").append(mealIds.size()).append(" meals!\n\n");
-
-        int displayCount = Math.min(5, mealIds.size());
-        for (int i = 0; i < displayCount; i++) {
-            message.append("Meal ID: ").append(mealIds.get(i)).append("\n");
+        if (mealIds.isEmpty()) {
+            Toast.makeText(getContext(), "No meals found with selected filters", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        if (mealIds.size() > 5) {
-            message.append("... and ").append(mealIds.size() - 5).append(" more");
-        }
-
-        showError(message.toString());
+        Toast.makeText(getContext(), "Found " + mealIds.size() + " meals!", Toast.LENGTH_SHORT).show();
 
         SearchFragmentDirections.ActionSearchFragmentToFilterResultsFragment action =
                 SearchFragmentDirections.actionSearchFragmentToFilterResultsFragment(mealsIds);
@@ -339,17 +449,20 @@ public class SearchFragment extends Fragment implements
 
     @Override
     public void onCountryChipClicked(Area area, boolean isSelected) {
-
+        // Update filter mode immediately when chip is clicked
+        updateFilterMode();
     }
 
     @Override
     public void onCategoryClicked(Category category, boolean isSelected) {
-
+        // Update filter mode immediately when category is clicked
+        updateFilterMode();
     }
 
     @Override
     public void onIngredientClicked(Ingredients ingredient, boolean isSelected) {
-
+        // Update filter mode immediately when ingredient is clicked
+        updateFilterMode();
     }
 
     @Override
@@ -361,7 +474,9 @@ public class SearchFragment extends Fragment implements
     @Override
     public void hideSearchLoading() {
         searchButton.setEnabled(true);
-        searchEditText.setEnabled(true);
+        if (!isFilterMode) {
+            searchEditText.setEnabled(true);
+        }
     }
 
     @Override

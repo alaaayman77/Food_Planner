@@ -35,6 +35,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 
@@ -82,8 +83,8 @@ public class MealsRepository {
        return  mealsRemoteDataSource.getRecipeDetails(id);
     }
 
-    public void insertMealToMealPlan(MealPlan mealPlan){
-        mealLocalDataSource.insertMealPlan(mealPlan);
+    public Completable insertMealToMealPlan(MealPlan mealPlan){
+        return mealLocalDataSource.insertMealPlan(mealPlan);
     }
 
 

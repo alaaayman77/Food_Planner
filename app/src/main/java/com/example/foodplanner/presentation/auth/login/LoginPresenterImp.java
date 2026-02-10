@@ -1,17 +1,18 @@
 package com.example.foodplanner.presentation.auth.login;
 
 
-import android.net.http.HttpException;
+import android.content.Context;
 import android.util.Log;
 import android.util.Patterns;
 
 import com.example.foodplanner.data.MealsRepository;
 import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkResponse;
-import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.User;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
+import com.example.foodplanner.utility.UserPrefManager;
+
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,8 +23,8 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -36,12 +37,15 @@ public class LoginPresenterImp implements LoginPresenter {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private MealsRepository mealsRepository;
+    private UserPrefManager preferencesManager;
     CompositeDisposable compositeDisposable = new CompositeDisposable();
-    public LoginPresenterImp(LoginView view, MealsRepository mealsRepository) {
+
+    public LoginPresenterImp(LoginView view, MealsRepository mealsRepository, Context context) {
         this.view = view;
         this.mealsRepository = mealsRepository;
         this.mAuth = FirebaseAuth.getInstance();
         this.db = FirebaseFirestore.getInstance();
+        this.preferencesManager = new UserPrefManager(context);
     }
 
     @Override
@@ -154,6 +158,7 @@ public class LoginPresenterImp implements LoginPresenter {
 
     @Override
     public void onTwitterSignInError(Exception e) {
+        view.hideLoading();
         Log.e(TAG, "Twitter sign-in failed", e);
 
         String errorMessage;
@@ -179,6 +184,7 @@ public class LoginPresenterImp implements LoginPresenter {
 
     @Override
     public void onDestroy() {
+        compositeDisposable.clear();
         view = null;
     }
 
@@ -210,7 +216,22 @@ public class LoginPresenterImp implements LoginPresenter {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        syncMealPlans();
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+
+                            db.collection("users")
+                                    .document(user.getUid())
+                                    .get()
+                                    .addOnSuccessListener(documentSnapshot -> {
+                                        String username = documentSnapshot.getString("username");
+                                        saveUserLoginState(user, username);
+                                        syncMealPlans();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        saveUserLoginState(user, null);
+                                        syncMealPlans();
+                                    });
+                        }
                     } else {
                         view.hideLoading();
                         view.showError("Wrong password");
@@ -232,9 +253,30 @@ public class LoginPresenterImp implements LoginPresenter {
                         User user = new User(username, email);
                         db.collection("users")
                                 .document(firebaseUser.getUid())
-                                .set(user);
+                                .set(user)
+                                .addOnSuccessListener(aVoid -> {
+                                    // Save user login state
+                                    saveUserLoginState(firebaseUser, username);
+                                });
+                    } else {
+                        // user exists
+                        String username = documentSnapshot.getString("username");
+                        saveUserLoginState(firebaseUser, username);
                     }
                 });
+    }
+
+    private void saveUserLoginState(FirebaseUser firebaseUser, String username) {
+        String email = firebaseUser.getEmail();
+        String userId = firebaseUser.getUid();
+
+        if (username == null) {
+            username = email != null ? email.split("@")[0] : "User";
+        }
+
+        // save to SharedPreferences
+        preferencesManager.saveUserData(userId, email, username);
+        Log.d(TAG, "User login state saved: " + email);
     }
 
     private void syncMealPlans() {
@@ -246,17 +288,48 @@ public class LoginPresenterImp implements LoginPresenter {
             @Override
             public void onFetchSuccess(List<MealPlanFirestore> firestorePlans) {
                 if (firestorePlans.isEmpty()) {
+                    // No meal plans to sync, navigate immediately
                     view.hideLoading();
                     view.showSuccess("Login successful");
                     view.navigateToHome();
                     return;
                 }
 
+                Log.d(TAG, "Starting sync of " + firestorePlans.size() + " meal plans");
+
+                // Use AtomicInteger to track completed syncs
+                AtomicInteger completedCount = new AtomicInteger(0);
+                AtomicInteger errorCount = new AtomicInteger(0);
                 int totalPlans = firestorePlans.size();
-                final int[] syncedCount = {0};
 
                 for (MealPlanFirestore firestorePlan : firestorePlans) {
-                    fetchAndSaveMealPlan(firestorePlan);
+                    fetchAndSaveMealPlan(firestorePlan, new SyncCallback() {
+                        @Override
+                        public void onComplete(boolean success) {
+                            int completed = completedCount.incrementAndGet();
+
+                            if (!success) {
+                                errorCount.incrementAndGet();
+                            }
+
+                            Log.d(TAG, "Sync progress: " + completed + "/" + totalPlans);
+
+                            // Check if all syncs are complete
+                            if (completed == totalPlans) {
+                                view.hideLoading();
+
+                                if (errorCount.get() > 0) {
+                                    view.showSuccess("Login successful! " +
+                                            (totalPlans - errorCount.get()) + " of " + totalPlans +
+                                            " meals synced");
+                                } else {
+                                    view.showSuccess("Login successful! All meals synced");
+                                }
+
+                                view.navigateToHome();
+                            }
+                        }
+                    });
                 }
             }
 
@@ -267,98 +340,100 @@ public class LoginPresenterImp implements LoginPresenter {
             @Override
             public void onFailure(String error) {
                 view.hideLoading();
-                view.showError("Login successful but sync failed: " + error);
+                view.showSuccess("Login successful");
                 view.navigateToHome();
+                Log.e(TAG, "Sync failed: " + error);
             }
         });
     }
-
-
-    public void fetchAndSaveMealPlan(MealPlanFirestore firestorePlan) {
+    private void fetchAndSaveMealPlan(MealPlanFirestore firestorePlan, SyncCallback callback) {
         compositeDisposable.add(
-
                 mealsRepository.getRecipeDetails(firestorePlan.getMealId())
                         .subscribeOn(Schedulers.io())
                         .map(response -> {
                             List<RecipeDetails> recipeDetails = response.getRecipeDetails();
                             if (recipeDetails == null || recipeDetails.isEmpty()) {
-                                throw new Exception("No meal found");
+                                throw new Exception("No meal found for ID: " + firestorePlan.getMealId());
                             }
                             return recipeDetails.get(0);
                         })
-
+                        .map(mealDetails -> {
+                            // Map RecipeDetails to MealPlan
+                            MealPlan mealPlan = new MealPlan(
+                                    mealDetails.getIdMeal(),
+                                    firestorePlan.getMealType(),
+                                    firestorePlan.getDayOfWeek(),
+                                    mealDetails.getMealName(),
+                                    mealDetails.getStrMealThumbnail(),
+                                    mealDetails.getMealCategory(),
+                                    mealDetails.getMealArea(),
+                                    mealDetails.getMealInstructions()
+                            );
+                            mealPlan.setTimestamp(firestorePlan.getTimestamp());
+                            return mealPlan;
+                        })
+                        .flatMapCompletable(mealPlan ->
+                                mealsRepository.insertMealToMealPlan(mealPlan)
+                        )
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
-
-                                mealDetails->{
-
-                    MealPlan mealPlan = new MealPlan(
-                            mealDetails.getIdMeal(),
-                            firestorePlan.getMealType(),
-                            firestorePlan.getDayOfWeek(),
-                            mealDetails.getMealName(),
-                            mealDetails.getStrMealThumbnail(),
-                            mealDetails.getMealCategory(),
-                            mealDetails.getMealArea(),
-                            mealDetails.getMealInstructions()
-                    );
-                    mealPlan.setTimestamp(firestorePlan.getTimestamp());
-                    mealsRepository.insertMealToMealPlan(mealPlan);
+                                () -> {
+                                    // onComplete - successfully fetched and saved
+                                    Log.d(TAG, "Successfully synced meal: " + firestorePlan.getMealId());
+                                    callback.onComplete(true);
                                 },
                                 error -> {
+                                    // onError
+                                    Log.e(TAG, "Error syncing meal: " + firestorePlan.getMealId(), error);
 
-
-
-                                    if (error instanceof IOException) {
-                                        view.showError("Network error: " + error.getMessage());
-                                    } else if (error instanceof HttpException) {
-                                        HttpException httpException = (HttpException) error;
-                                        view.showError("Server error: " + error.getMessage());
-                                    } else {
-                                        view.showError(error.getMessage());
-                                    }
+                                    callback.onComplete(false);
                                 }
                         )
         );
     }
-
 //    private void fetchAndSaveMealPlan(MealPlanFirestore firestorePlan, SyncCallback callback) {
-//        mealsRepository.getRecipeDetails(firestorePlan.getMealId(), new RecipeDetailsNetworkResponse() {
-//            @Override
-//            public void onSuccess(List<RecipeDetails> recipeDetailsList) {
-//                if (!recipeDetailsList.isEmpty()) {
-//                    RecipeDetails details = recipeDetailsList.get(0);
+//        compositeDisposable.add(
+//                mealsRepository.getRecipeDetails(firestorePlan.getMealId())
+//                        .subscribeOn(Schedulers.io())
+//                        .map(response -> {
+//                            List<RecipeDetails> recipeDetails = response.getRecipeDetails();
+//                            if (recipeDetails == null || recipeDetails.isEmpty()) {
+//                                throw new Exception("No meal found for ID: " + firestorePlan.getMealId());
+//                            }
+//                            return recipeDetails.get(0);
+//                        })
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .subscribe(
+//                                mealDetails -> {
+//                                    MealPlan mealPlan = new MealPlan(
+//                                            mealDetails.getIdMeal(),
 //
-//                    MealPlan mealPlan = new MealPlan(
-//                            details.getIdMeal(),
-//                            firestorePlan.getMealType(),
-//                            firestorePlan.getDayOfWeek(),
-//                            details.getMealName(),
-//                            details.getStrMealThumbnail(),
-//                            details.getMealCategory(),
-//                            details.getMealArea(),
-//                            details.getMealInstructions()
-//                    );
-//                    mealPlan.setTimestamp(firestorePlan.getTimestamp());
+//                                            firestorePlan.getMealType(),
+//                                            firestorePlan.getDayOfWeek(),
+//                                            mealDetails.getMealName(),
+//                                            mealDetails.getStrMealThumbnail(),
+//                                            mealDetails.getMealCategory(),
+//                                            mealDetails.getMealArea(),
+//                                            mealDetails.getMealInstructions()
+//                                    );
+//                                    mealPlan.setTimestamp(firestorePlan.getTimestamp());
+//                                    mealsRepository.insertMealToMealPlan(mealPlan);
 //
-//                    mealsRepository.insertMealToMealPlan(mealPlan);
-//                }
-//                callback.onComplete();
-//            }
+//                                    Log.d(TAG, "Successfully synced meal: " + mealDetails.getMealName());
+//                                    callback.onComplete(true);
+//                                },
+//                                error -> {
+//                                    Log.e(TAG, "Error syncing meal: " + firestorePlan.getMealId(), error);
 //
-//            @Override
-//            public void onFailure(String errorMessage) {
-//                callback.onComplete();
-//            }
-//
-//            @Override
-//            public void onServerError(String errorMessage) {
-//                callback.onComplete();
-//            }
-//        });
+//                                    // Don't show individual errors to avoid spamming the user
+//                                    // Just log them and mark as complete so we can continue
+//                                    callback.onComplete(false);
+//                                }
+//                        )
+//        );
 //    }
 
     private interface SyncCallback {
-        void onComplete();
+        void onComplete(boolean success);
     }
 }

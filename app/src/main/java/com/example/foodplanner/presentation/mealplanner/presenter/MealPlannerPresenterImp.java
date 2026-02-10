@@ -189,43 +189,85 @@ public class MealPlannerPresenterImp implements MealPlannerPresenter {
                         .map(response -> {
                             List<RecipeDetails> recipeDetails = response.getRecipeDetails();
                             if (recipeDetails == null || recipeDetails.isEmpty()) {
-                                throw new Exception("No recipe details found");
+                                throw new Exception("No meal found for ID: " + firestorePlan.getMealId());
                             }
                             return recipeDetails.get(0);
                         })
+                        .map(mealDetails -> {
+                            // Map RecipeDetails to MealPlan
+                            MealPlan mealPlan = new MealPlan(
+                                    mealDetails.getIdMeal(),
+                                    firestorePlan.getMealType(),
+                                    firestorePlan.getDayOfWeek(),
+                                    mealDetails.getMealName(),
+                                    mealDetails.getStrMealThumbnail(),
+                                    mealDetails.getMealCategory(),
+                                    mealDetails.getMealArea(),
+                                    mealDetails.getMealInstructions()
+                            );
+                            mealPlan.setTimestamp(firestorePlan.getTimestamp());
+                            return mealPlan;
+                        })
+                        .flatMapCompletable(mealPlan ->
+                                repository.insertMealToMealPlan(mealPlan)
+                        )
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
-                                details -> {
-                                    MealPlan mealPlan = new MealPlan(
-                                            details.getIdMeal(),
-                                            firestorePlan.getMealType(),
-                                            firestorePlan.getDayOfWeek(),
-                                            details.getMealName(),
-                                            details.getStrMealThumbnail(),
-                                            details.getMealCategory(),
-                                            details.getMealArea(),
-                                            details.getMealInstructions()
-                                    );
-                                    mealPlan.setTimestamp(firestorePlan.getTimestamp());
+                                () -> {
+                                    Log.d(TAG, " Successfully synced meal: " + firestorePlan.getMealId());
 
-                                    repository.insertMealToMealPlan(mealPlan);
-                                    Log.d(TAG, "Meal plan synced to Room: " + details.getMealName());
                                 },
                                 error -> {
-                                    Log.e(TAG, "Failed to fetch meal details", error);
-                                    if (error instanceof IOException) {
-                                        view.showError("Network error: " + error.getMessage());
-                                    } else if (error instanceof HttpException) {
-                                        HttpException httpException = (HttpException) error;
-                                        view.showError("Server error: " + error.getMessage());
-                                    } else {
-                                        view.showError(error.getMessage());
-                                    }
 
+                                    Log.e(TAG, "Error syncing meal: " + firestorePlan.getMealId(), error);
                                 }
                         )
         );
     }
+//    private void fetchAndSaveMealPlan(MealPlanFirestore firestorePlan) {
+//        compositeDisposable.add(
+//                repository.getRecipeDetails(firestorePlan.getMealId())
+//                        .subscribeOn(Schedulers.io())
+//                        .map(response -> {
+//                            List<RecipeDetails> recipeDetails = response.getRecipeDetails();
+//                            if (recipeDetails == null || recipeDetails.isEmpty()) {
+//                                throw new Exception("No recipe details found");
+//                            }
+//                            return recipeDetails.get(0);
+//                        })
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .subscribe(
+//                                details -> {
+//                                    MealPlan mealPlan = new MealPlan(
+//                                            details.getIdMeal(),
+//                                            firestorePlan.getMealType(),
+//                                            firestorePlan.getDayOfWeek(),
+//                                            details.getMealName(),
+//                                            details.getStrMealThumbnail(),
+//                                            details.getMealCategory(),
+//                                            details.getMealArea(),
+//                                            details.getMealInstructions()
+//                                    );
+//                                    mealPlan.setTimestamp(firestorePlan.getTimestamp());
+//
+//                                    repository.insertMealToMealPlan(mealPlan);
+//                                    Log.d(TAG, "Meal plan synced to Room: " + details.getMealName());
+//                                },
+//                                error -> {
+//                                    Log.e(TAG, "Failed to fetch meal details", error);
+//                                    if (error instanceof IOException) {
+//                                        view.showError("Network error: " + error.getMessage());
+//                                    } else if (error instanceof HttpException) {
+//                                        HttpException httpException = (HttpException) error;
+//                                        view.showError("Server error: " + error.getMessage());
+//                                    } else {
+//                                        view.showError(error.getMessage());
+//                                    }
+//
+//                                }
+//                        )
+//        );
+//    }
 
 //    private void fetchAndSaveMealPlan(MealPlanFirestore firestorePlan) {
 //        repository.getRecipeDetails(firestorePlan.getMealId(), new RecipeDetailsNetworkResponse() {

@@ -1,6 +1,7 @@
 package com.example.foodplanner.presentation.meals_by_category.presenter;
 
 import android.content.Context;
+
 import android.net.http.HttpException;
 import android.util.Log;
 
@@ -15,6 +16,7 @@ import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.presentation.meals_by_category.view.MealsByCategoryView;
+import com.example.foodplanner.utility.NetworkUtils;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
@@ -103,6 +105,7 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
 
 
 
+
     @Override
     public void addMealToPlan(MealPlan mealPlan) {
         if (!isUserSignedIn()) {
@@ -112,10 +115,29 @@ public class MealsByCategoryPresenterImp implements MealsByCategoryPresenter {
             );
             return;
         }
-        mealsRepository.insertMealToMealPlan(mealPlan);
-        mealsByCategoryView.onMealPlanAddedSuccess();
 
-        saveMealPlanToFirestore(mealPlan);
+        compositeDisposable.add(
+                mealsRepository.insertMealToMealPlan(mealPlan)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                    Log.d(TAG, " Meal plan saved locally");
+                                    mealsByCategoryView.onMealPlanAddedSuccess();
+
+//                                    if (NetworkUtils.isNetworkAvailable(context) && mAuth.getCurrentUser() != null) {
+                                        saveMealPlanToFirestore(mealPlan);
+
+                                        Log.d(TAG, "Offline: Meal plan saved locally only");
+
+                                },
+                                error -> {
+
+                                    Log.e(TAG, " Error saving meal plan locally", error);
+                                    mealsByCategoryView.onMealPlanAddedFailure("Failed to save meal plan: " + error.getMessage());
+                                }
+                        )
+        );
     }
 
     @Override

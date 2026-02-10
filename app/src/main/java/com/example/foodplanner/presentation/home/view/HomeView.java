@@ -7,19 +7,24 @@ import com.example.foodplanner.data.model.search.area.Area;
 import java.util.List;
 
 public interface HomeView {
-    public void setCategoryList(List<Category> categoryList);
-    public void showError(String errorMessage);
-    public void displayMeal(RandomMeal meal);
-    public void OnCategoryClickSuccess(Category category);
-    public void onMealPlanAddedSuccess();
-    public void showLoading();
-    public void hideLoading();
-    public void onMealPlanAddedFailure(String error);
-    public void onFavAddedSuccess();
-    public void onFavAddedFailure(String error);
-    public void onFavRemovedSuccess();
+    void setCategoryList(List<Category> categoryList);
+    void showError(String errorMessage);
+    void displayMeal(RandomMeal meal);
+    void OnCategoryClickSuccess(Category category);
+    void onMealPlanAddedSuccess();
+    void showLoading();
+    void hideLoading();
+    void onMealPlanAddedFailure(String error);
+    void onFavAddedSuccess();
+    void onFavRemovedSuccess();
+    void onFavAddedFailure(String error);
     void updateFavoriteIcon(boolean isFavorite);
     void showSignInPrompt(String featureName, String message);
     void setArea(List<Area> areaList);
-    void  OnAreaClickSuccess(Area area);
+    void OnAreaClickSuccess(Area area);
+
+    // Offline mode methods
+    void showOfflineBanner();
+    void hideOfflineBanner();
+    void showOfflineMessage(String message);
 }

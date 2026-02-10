@@ -20,14 +20,19 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.TextView;
 
 import com.example.foodplanner.R;
+
+import com.example.foodplanner.utility.UserPrefManager;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 
 public class SplashFragment extends Fragment {
     private Typeface tf;
     private TextView slogan;
     private FirebaseAuth mAuth;
+    private UserPrefManager preferencesManager;
     private static final long SPLASH_DELAY = 3000;
+
     public SplashFragment() {
         // Required empty public constructor
     }
@@ -49,8 +54,7 @@ public class SplashFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
-
-
+        preferencesManager = new UserPrefManager(requireContext());
 
         View logo = view.findViewById(R.id.logo);
 
@@ -60,6 +64,7 @@ public class SplashFragment extends Fragment {
 
         startLogoAnimation(logo);
     }
+
     private void startLogoAnimation(View logo) {
         ObjectAnimator scaleX = ObjectAnimator.ofFloat(logo, "scaleX", 0.3f, 1.25f, 0.95f, 1f);
         ObjectAnimator scaleY = ObjectAnimator.ofFloat(logo, "scaleY", 0.3f, 1.25f, 0.95f, 1f);
@@ -89,6 +94,7 @@ public class SplashFragment extends Fragment {
             }
         });
     }
+
     private void startFloatingAnimation(View view) {
         ObjectAnimator animator =
                 ObjectAnimator.ofFloat(view, "translationY", 0f, -15f, 0f);
@@ -102,8 +108,24 @@ public class SplashFragment extends Fragment {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             if (getView() != null) {
                 NavController navController = Navigation.findNavController(getView());
-                navController.navigate(R.id.action_splashFragment_to_authFragment);
 
+                // Check both SharedPreferences and Firebase Auth
+                boolean isLoggedInPref = preferencesManager.isUserLoggedIn();
+                FirebaseUser currentUser = mAuth.getCurrentUser();
+
+                if (isLoggedInPref && currentUser != null) {
+                    // User is logged in, go to home
+                    navController.navigate(R.id.action_splashFragment_to_startFragment);
+                } else {
+                    // User is not logged in or session expired
+                    if (isLoggedInPref && currentUser == null) {
+                        // Session expired, clear preferences
+                        preferencesManager.clearUserData();
+                    }
+
+                    // Go to auth screen
+                    navController.navigate(R.id.action_splashFragment_to_authFragment);
+                }
             }
         }, SPLASH_DELAY);
     }

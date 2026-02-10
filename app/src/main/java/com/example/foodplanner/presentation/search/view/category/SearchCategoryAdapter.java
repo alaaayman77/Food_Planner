@@ -49,10 +49,16 @@ public class SearchCategoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         return selectedCategories;
     }
 
+    public void clearSelections() {
+        selectedCategories.clear();
+        notifyDataSetChanged();
+    }
+
     public void setLoading(boolean loading) {
         isLoading = loading;
         notifyDataSetChanged();
     }
+
 
     @Override
     public int getItemViewType(int position) {

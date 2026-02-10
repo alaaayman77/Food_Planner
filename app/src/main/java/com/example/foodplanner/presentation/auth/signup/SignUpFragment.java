@@ -19,6 +19,7 @@ import androidx.navigation.Navigation;
 import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.User;
+import com.example.foodplanner.utility.UserPrefManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -37,7 +38,6 @@ import com.google.firebase.auth.OAuthProvider;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 
 public class SignUpFragment extends Fragment {
 
@@ -57,6 +57,7 @@ public class SignUpFragment extends Fragment {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private GoogleSignInClient googleSignInClient;
+    private UserPrefManager preferencesManager;
     OAuthProvider.Builder provider;
 
     private ActivityResultLauncher<Intent> googleSignInLauncher;
@@ -99,6 +100,7 @@ public class SignUpFragment extends Fragment {
 
         initializeViews(view);
         initializeFirebase();
+        initializePreferences();
         setupGoogleSignIn();
         setupTwitterSignIn();
         setupClickListeners();
@@ -111,7 +113,7 @@ public class SignUpFragment extends Fragment {
         confirmPasswordTextInput = view.findViewById(R.id.confirm_password_text_input_signup);
         googleBtn = view.findViewById(R.id.googleBtn);
         guest_tv = view.findViewById(R.id.guest_mode);
-twitterBtn = view.findViewById(R.id.facebookBtn);
+        twitterBtn = view.findViewById(R.id.facebookBtn);
         usernameInput = (TextInputEditText) usernameTextInput.getEditText();
         emailInput = (TextInputEditText) emailTextInput.getEditText();
         passwordInput = (TextInputEditText) passwordTextInput.getEditText();
@@ -122,9 +124,15 @@ twitterBtn = view.findViewById(R.id.facebookBtn);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
     }
+
+    private void initializePreferences() {
+        preferencesManager = new UserPrefManager(requireContext());
+    }
+
     private void setupTwitterSignIn() {
         provider = OAuthProvider.newBuilder("twitter.com");
     }
+
     private void setupGoogleSignIn() {
         try {
             String webClientId = getString(R.string.client_id);
@@ -159,11 +167,13 @@ twitterBtn = view.findViewById(R.id.facebookBtn);
                 Navigation.findNavController(requireView())
                         .navigate(R.id.action_authFragment_to_startFragment)
         );
+
         twitterBtn.setOnClickListener(v -> {
             Log.d(TAG, "Twitter Sign-In button clicked");
             signInWithTwitter();
         });
     }
+
     private void signInWithTwitter() {
         showLoading();
         Log.d(TAG, "Starting Twitter Sign-In flow");
@@ -199,6 +209,7 @@ twitterBtn = view.findViewById(R.id.facebookBtn);
                     });
         }
     }
+
     private void handleTwitterAuthSuccess(AuthResult authResult) {
         FirebaseUser firebaseUser = authResult.getUser();
 
@@ -284,8 +295,21 @@ twitterBtn = view.findViewById(R.id.facebookBtn);
                 .document(firebaseUser.getUid())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
+                    String email = firebaseUser.getEmail();
+                    String username = firebaseUser.getDisplayName() != null
+                            ? firebaseUser.getDisplayName()
+                            : email.split("@")[0];
+
                     if (documentSnapshot.exists()) {
-                        // User already exists
+                        // User already exists, get existing username
+                        String existingUsername = documentSnapshot.getString("username");
+                        if (existingUsername != null) {
+                            username = existingUsername;
+                        }
+
+                        // Save login state to SharedPreferences
+                        preferencesManager.saveUserData(firebaseUser.getUid(), email, username);
+
                         hideLoading();
                         Toast.makeText(requireContext(),
                                 "Already signed in! Redirecting...",
@@ -293,12 +317,7 @@ twitterBtn = view.findViewById(R.id.facebookBtn);
                         Navigation.findNavController(requireView())
                                 .navigate(R.id.action_authFragment_to_startFragment);
                     } else {
-
-                        String email = firebaseUser.getEmail();
-                        String username = firebaseUser.getDisplayName() != null
-                                ? firebaseUser.getDisplayName()
-                                : email.split("@")[0];
-
+                        // New user, create account
                         User user = new User(username, email);
                         saveUserToFirestore(firebaseUser.getUid(), user);
                     }
@@ -416,6 +435,9 @@ twitterBtn = view.findViewById(R.id.facebookBtn);
                 .document(uid)
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
+                    // Save login state to SharedPreferences
+                    preferencesManager.saveUserData(uid, user.getEmail(), user.getUsername());
+
                     hideLoading();
                     Toast.makeText(requireContext(),
                             "Account created successfully!",

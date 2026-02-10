@@ -3,12 +3,12 @@ package com.example.foodplanner.presentation.home.view;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -19,8 +19,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,14 +32,13 @@ import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
 import com.example.foodplanner.data.model.search.area.Area;
 import com.example.foodplanner.presentation.auth.SignInPromptDialog;
-import com.example.foodplanner.presentation.home.presenter.HomePresenter;
 import com.example.foodplanner.presentation.home.presenter.HomePresenterImp;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class HomeFragment extends Fragment implements OnCategoryClick, HomeView , OnCountryClick {
+public class HomeFragment extends Fragment implements OnCategoryClick, HomeView, OnCountryClick {
     private ImageView mealImage;
     private TextView mealTitle;
     private TextView tag1;
@@ -50,22 +49,20 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
     private RecyclerView countriesRecyclerView;
     private CategoryAdapter categoryAdapter;
     private CountryAdapter countryAdapter;
-    private List<Category> categoryList;
 
     private RandomMeal currentMeal;
-    private HomePresenter homePresenter;
+    private HomePresenterImp homePresenter;
     private ImageView btnAddToPlan;
-    private TextView categoriesHeader;
-    private TextView categoriesSubtitle;
-    private TextView countriesHeader;
-    private TextView countriesSubtitle;
-
     private ImageView favoriteIcon;
+
+    // Main content and offline state containers
+    private ScrollView mainContent;
+    private ConstraintLayout offlineStateContainer;
+    private MaterialButton retryButton;
 
     private static final String TAG = "HomeFragment";
 
     public HomeFragment() {
-        // Required empty public constructor
     }
 
     @Override
@@ -76,7 +73,6 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
@@ -84,16 +80,9 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize views
         initViews(view);
-
-        // Initialize presenter with LifecycleOwner
         homePresenter = new HomePresenterImp(this, requireContext(), getViewLifecycleOwner());
-
-        // Setup click listeners
         setupClickListeners();
-
-        // Setup RecyclerView
         setupRecyclerView();
 
         // Load data
@@ -103,6 +92,8 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
     }
 
     private void initViews(View view) {
+        mainContent = view.findViewById(R.id.mainContent);
+
         mealImage = view.findViewById(R.id.mealImage);
         mealTitle = view.findViewById(R.id.mealTitle);
         tag1 = view.findViewById(R.id.tag1);
@@ -111,16 +102,13 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
         categoriesRecyclerView = view.findViewById(R.id.categories_recycler_view);
         countriesRecyclerView = view.findViewById(R.id.countries_recycler_view);
         btnAddToPlan = view.findViewById(R.id.btnAddToPlan);
-        categoriesHeader = view.findViewById(R.id.categoriesHeader);
-        categoriesSubtitle = view.findViewById(R.id.categoriesSubtitle);
-        countriesHeader = view.findViewById(R.id.countriesHeader);
-        countriesSubtitle = view.findViewById(R.id.countriesSubtitle);
-
         favoriteIcon = view.findViewById(R.id.favoriteIcon);
+
+        offlineStateContainer = view.findViewById(R.id.offlineStateContainer);
+        retryButton = view.findViewById(R.id.retryButton);
     }
 
     private void setupRecyclerView() {
-        categoryList = new ArrayList<>();
         categoryAdapter = new CategoryAdapter(this);
         categoriesRecyclerView.setAdapter(categoryAdapter);
         countryAdapter = new CountryAdapter(this);
@@ -128,7 +116,6 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
     }
 
     private void setupClickListeners() {
-
         randomMealCard.setOnClickListener(v -> {
             if (currentMeal != null) {
                 HomeFragmentDirections.ActionHomeFragmentToRecipeDetailsFragment action =
@@ -137,23 +124,29 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
             }
         });
 
-
         btnAddToPlan.setOnClickListener(v -> {
             if (currentMeal != null) {
                 showAddMealPlanDialog(currentMeal);
             } else {
-                Toast.makeText(getContext(), "No meal available", Toast.LENGTH_SHORT).show();
+                safeShowToast("No meal available");
             }
         });
-
 
         favoriteIcon.setOnClickListener(v -> {
             if (currentMeal != null) {
                 homePresenter.onFavoriteClick(currentMeal);
             } else {
-                Toast.makeText(getContext(), "No meal available", Toast.LENGTH_SHORT).show();
+                safeShowToast("No meal available");
             }
         });
+
+        if (retryButton != null) {
+            retryButton.setOnClickListener(v -> {
+                Log.d(TAG, "Retry button clicked");
+                animateRetryButton();
+                homePresenter.retryConnection();
+            });
+        }
     }
 
     private void showAddMealPlanDialog(RandomMeal meal) {
@@ -184,14 +177,16 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
 
     @Override
     public void setCategoryList(List<Category> categoryList) {
-        categoryAdapter.setCategories(categoryList);
+        if (categoryAdapter != null) {
+            categoryAdapter.setCategories(categoryList);
+        }
     }
+
+
 
     @Override
     public void showError(String errorMessage) {
-        if (getContext() != null) {
-            Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
-        }
+        safeShowToast(errorMessage);
     }
 
     @Override
@@ -214,12 +209,14 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
         }
 
         if (meal.getMealThumbnail() != null && !meal.getMealThumbnail().isEmpty()) {
-            Glide.with(this)
-                    .load(meal.getMealThumbnail())
-                    .placeholder(R.drawable.splash_bg)
-                    .error(R.drawable.splash_bg)
-                    .centerCrop()
-                    .into(mealImage);
+            if (isAdded() && getContext() != null) {
+                Glide.with(this)
+                        .load(meal.getMealThumbnail())
+                        .placeholder(R.drawable.splash_bg)
+                        .error(R.drawable.splash_bg)
+                        .centerCrop()
+                        .into(mealImage);
+            }
         }
 
         Log.d(TAG, "Meal displayed: " + meal.getMealName());
@@ -227,16 +224,12 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
 
     @Override
     public void OnCategoryClickSuccess(Category category) {
-        Toast.makeText(getContext(),
-                "Selected: " + category.getCategoryName(),
-                Toast.LENGTH_SHORT).show();
+        safeShowToast("Selected: " + category.getCategoryName());
     }
 
     @Override
     public void onMealPlanAddedSuccess() {
-        Toast.makeText(getContext(),
-                "Meal added to your plan! 📅",
-                Toast.LENGTH_SHORT).show();
+        safeShowToast("Meal added to your plan! 📅");
     }
 
     @Override
@@ -244,13 +237,6 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).showLoading();
         }
-        randomMealCard.setVisibility(GONE);
-        categoriesHeader.setVisibility(GONE);
-        categoriesSubtitle.setVisibility(GONE);
-        categoriesRecyclerView.setVisibility(GONE);
-        countriesHeader.setVisibility(GONE);
-        countriesSubtitle.setVisibility(GONE);
-        countriesRecyclerView.setVisibility(GONE);
     }
 
     @Override
@@ -258,53 +244,34 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).hideLoading();
         }
-        randomMealCard.setVisibility(VISIBLE);
-        categoriesHeader.setVisibility(VISIBLE);
-        categoriesSubtitle.setVisibility(VISIBLE);
-        categoriesRecyclerView.setVisibility(VISIBLE);
-        countriesHeader.setVisibility(VISIBLE);
-        countriesSubtitle.setVisibility(VISIBLE);
-        countriesRecyclerView.setVisibility(VISIBLE);
     }
 
     @Override
     public void onMealPlanAddedFailure(String error) {
-        Toast.makeText(getContext(),
-                "Failed to add meal: " + error,
-                Toast.LENGTH_SHORT).show();
+        safeShowToast("Failed to add meal: " + error);
     }
 
     @Override
     public void onFavAddedSuccess() {
-        Toast.makeText(getContext(),
-                "Added to favorites! ❤️",
-                Toast.LENGTH_SHORT).show();
-        // Animate the heart
-        animateHeart(favoriteIcon);
+        safeShowToast("Added to favorites! ❤️");
     }
 
     @Override
     public void onFavRemovedSuccess() {
-        Toast.makeText(getContext(),
-                "Removed from favorites",
-                Toast.LENGTH_SHORT).show();
+        safeShowToast("Removed from favorites");
     }
 
     @Override
     public void onFavAddedFailure(String error) {
-        Toast.makeText(getContext(),
-                "Failed to add to favorites: " + error,
-                Toast.LENGTH_SHORT).show();
+        safeShowToast("Failed to add to favorites: " + error);
     }
 
     @Override
     public void updateFavoriteIcon(boolean isFavorite) {
         if (favoriteIcon != null) {
             if (isFavorite) {
-                // Show filled heart
                 favoriteIcon.setImageResource(R.drawable.icon_heart_filled);
             } else {
-                // Show outline heart
                 favoriteIcon.setImageResource(R.drawable.icon_heart);
             }
         }
@@ -312,26 +279,26 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
 
     @Override
     public void showSignInPrompt(String featureName, String message) {
+        if (!isAdded()) return;
+
         SignInPromptDialog dialog = SignInPromptDialog.newInstance(featureName, message);
         dialog.setListener(new SignInPromptDialog.SignInPromptListener() {
             @Override
             public void onSignInClicked() {
+                if (!isAdded()) return;
+
                 NavController navController =
                         NavHostFragment.findNavController(
                                 requireActivity()
                                         .getSupportFragmentManager()
                                         .findFragmentById(R.id.nav_host_fragment_main)
                         );
-
                 navController.navigate(R.id.authFragment);
             }
 
             @Override
             public void onContinueAsGuestClicked() {
-
-                Toast.makeText(getContext(),
-                        "Continuing as guest. Your data won't be saved.",
-                        Toast.LENGTH_SHORT).show();
+                safeShowToast("Continuing as guest. Your data won't be saved.");
             }
         });
         dialog.show(getParentFragmentManager(), "SignInPromptDialog");
@@ -339,37 +306,75 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView 
 
     @Override
     public void setArea(List<Area> areaList) {
-countryAdapter.setCountries(areaList);
+        if (countryAdapter != null) {
+            countryAdapter.setCountries(areaList);
+        }
     }
 
     @Override
     public void OnAreaClickSuccess(Area area) {
-        Toast.makeText(getContext(),
-                "Selected: " + area.getStrArea(),
-                Toast.LENGTH_SHORT).show();
+        safeShowToast("Selected: " + area.getStrArea());
     }
 
-    private void animateHeart(ImageView heartIcon) {
-        ObjectAnimator scaleUpX = ObjectAnimator.ofFloat(heartIcon, "scaleX", 1f, 1.3f);
-        ObjectAnimator scaleUpY = ObjectAnimator.ofFloat(heartIcon, "scaleY", 1f, 1.3f);
+    @Override
+    public void showOfflineBanner() {
+        Log.d(TAG, "Showing offline state");
+        if (mainContent != null) {
+            mainContent.setVisibility(GONE);
+        }
+        if (offlineStateContainer != null) {
+            offlineStateContainer.setVisibility(VISIBLE);
+        }
+    }
 
-        ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(heartIcon, "scaleX", 1.3f, 1f);
-        ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(heartIcon, "scaleY", 1.3f, 1f);
+    @Override
+    public void hideOfflineBanner() {
+        Log.d(TAG, "Hiding offline state");
+        if (mainContent != null) {
+            mainContent.setVisibility(VISIBLE);
+        }
+        if (offlineStateContainer != null) {
+            offlineStateContainer.setVisibility(GONE);
+        }
+    }
 
-        scaleUpX.setDuration(150);
-        scaleUpY.setDuration(150);
-        scaleDownX.setDuration(150);
-        scaleDownY.setDuration(150);
+    @Override
+    public void showOfflineMessage(String message) {
+        safeShowToast(message);
+    }
 
-        AnimatorSet scaleUp = new AnimatorSet();
-        scaleUp.playTogether(scaleUpX, scaleUpY);
+    /**
+     * Safely show toast - only if fragment is attached to context
+     */
+    private void safeShowToast(String message) {
+        if (isAdded() && getContext() != null) {
+            try {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to show toast: " + e.getMessage());
+            }
+        } else {
+            Log.w(TAG, "Cannot show toast - fragment not attached: " + message);
+        }
+    }
 
-        AnimatorSet scaleDown = new AnimatorSet();
-        scaleDown.playTogether(scaleDownX, scaleDownY);
+    private void animateRetryButton() {
+        if (retryButton != null) {
+            retryButton.setEnabled(false);
 
-        AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.play(scaleUp).before(scaleDown);
-        animatorSet.start();
+            ObjectAnimator rotation = ObjectAnimator.ofFloat(retryButton, "rotation", 0f, 360f);
+            rotation.setDuration(500);
+            rotation.addListener(new android.animation.AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(android.animation.Animator animation) {
+                    if (retryButton != null) {
+                        retryButton.setEnabled(true);
+                        retryButton.setRotation(0f);
+                    }
+                }
+            });
+            rotation.start();
+        }
     }
 
     @Override
@@ -378,5 +383,13 @@ countryAdapter.setCountries(areaList);
                 HomeFragmentDirections.actionHomeFragmentToMealsByCountryFragment(area.getStrArea());
         Navigation.findNavController(requireView()).navigate(action);
         homePresenter.onAreaClick(area);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (homePresenter != null) {
+            homePresenter.onDestroy();
+        }
     }
 }

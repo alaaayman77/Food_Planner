@@ -69,7 +69,6 @@
 
     </FrameLayout>
 
-    <!-- Search Bar Card -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/searchCard"
         android:layout_width="0dp"
@@ -93,6 +92,7 @@
             android:paddingEnd="20dp">
 
             <ImageView
+                android:id="@+id/searchIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/icon_search"

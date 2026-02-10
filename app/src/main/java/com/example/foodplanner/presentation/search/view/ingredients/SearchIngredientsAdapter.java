@@ -52,6 +52,7 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
         this.seeMoreListener = listener;
     }
 
+
     public void clearIngredients() {
         displayedIngredients.clear();
         showSeeMoreButton = false;
@@ -77,6 +78,14 @@ public class SearchIngredientsAdapter extends RecyclerView.Adapter<RecyclerView.
 
     public List<Ingredients> getSelectedIngredients() {
         return selectedIngredients;
+    }
+
+    /**
+     * Clear all selected ingredients
+     */
+    public void clearSelections() {
+        selectedIngredients.clear();
+        notifyDataSetChanged();
     }
 
     public void setLoading(boolean loading) {

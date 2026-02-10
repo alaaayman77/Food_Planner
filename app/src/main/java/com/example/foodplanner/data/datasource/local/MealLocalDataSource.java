@@ -11,6 +11,8 @@ import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.reactivex.rxjava3.core.Completable;
+
 
 public class MealLocalDataSource {
     MealPlanDao mealPlanDao;
@@ -19,14 +21,17 @@ public class MealLocalDataSource {
         this.mealPlanDao = AppDatabase.getInstance(context).MealPlanDao();
         this.favoriteDao = AppDatabase.getInstance(context).FavoriteDao();
     }
-    public void insertMealPlan(MealPlan mealPlan){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mealPlanDao.insertMealPlan(mealPlan);
-            }
-        }).start();
+    public Completable insertMealPlan(MealPlan mealPlan){
+        return  mealPlanDao.insertMealPlan(mealPlan);
     }
+//    public void insertMealPlan(MealPlan mealPlan){
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                mealPlanDao.insertMealPlan(mealPlan);
+//            }
+//        }).start();
+//    }
 
     public LiveData<List<MealPlan>> getAllMealPlans(){
         return mealPlanDao.getAllMealPlans();

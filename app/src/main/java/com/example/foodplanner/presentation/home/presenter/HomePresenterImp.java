@@ -1,37 +1,38 @@
 package com.example.foodplanner.presentation.home.presenter;
 
 import android.content.Context;
-import android.net.http.HttpException;
 import android.util.Log;
 
 import androidx.lifecycle.LifecycleOwner;
 
 import com.example.foodplanner.data.MealsRepository;
-import com.example.foodplanner.data.datasource.remote.CategoryNetworkResponse;
-import com.example.foodplanner.data.datasource.remote.MealNetworkResponse;
-import com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkResponse;
-import com.example.foodplanner.data.datasource.remote.RecipeDetailsNetworkResponse;
 import com.example.foodplanner.data.model.FavoriteMeal;
 import com.example.foodplanner.data.model.category.Category;
 import com.example.foodplanner.data.model.category.CategoryResponse;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 import com.example.foodplanner.data.model.meal_plan.MealPlanFirestore;
 import com.example.foodplanner.data.model.random_meals.RandomMeal;
-import com.example.foodplanner.data.model.random_meals.RandomMealResponse;
 import com.example.foodplanner.data.model.recipe_details.RecipeDetails;
 import com.example.foodplanner.data.model.search.area.Area;
 import com.example.foodplanner.data.model.search.area.AreaResponse;
+import com.example.foodplanner.utility.NetworkUtils;
 import com.example.foodplanner.presentation.home.view.HomeView;
+
+import com.example.foodplanner.utility.UserPrefManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import retrofit2.HttpException;
 
 public class HomePresenterImp implements HomePresenter {
 
@@ -39,9 +40,11 @@ public class HomePresenterImp implements HomePresenter {
     private MealsRepository mealsRepository;
     private FirebaseAuth mAuth;
     private LifecycleOwner owner;
+    private Context context;
     private Set<String> favoriteMealIds = new HashSet<>();
-
+    private UserPrefManager userPrefManager;
     private static final String TAG = "HomePresenterImp";
+    private static final int TIMEOUT_SECONDS = 5; // Shorter timeout
     CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public HomePresenterImp(HomeView homeView, Context context, LifecycleOwner owner) {
@@ -49,7 +52,22 @@ public class HomePresenterImp implements HomePresenter {
         this.mealsRepository = new MealsRepository(context);
         this.mAuth = FirebaseAuth.getInstance();
         this.owner = owner;
+        this.context = context;
+        this.userPrefManager = new UserPrefManager(context);
+
+        Log.d(TAG, "Presenter initialized");
         loadFavorites();
+
+        // Check network status immediately
+        boolean hasNetwork = NetworkUtils.isNetworkAvailable(context);
+        Log.d(TAG, "Initial network check: " + hasNetwork);
+        Log.d(TAG, "Network type: " + NetworkUtils.getNetworkType(context));
+
+        if (!hasNetwork) {
+            Log.d(TAG, "No network detected - showing offline banner immediately");
+            homeView.hideLoading();
+            homeView.showOfflineBanner();
+        }
     }
 
     private void loadFavorites() {
@@ -63,48 +81,41 @@ public class HomePresenterImp implements HomePresenter {
         });
     }
 
-
     private boolean isUserSignedIn() {
         return mAuth.getCurrentUser() != null;
     }
 
-//    @Override
-//    public void getRandomMeal() {
-//        homeView.showLoading();
-//        mealsRepository.getRandomMeal(new MealNetworkResponse() {
-//            @Override
-//            public void onSuccess(List<RandomMeal> randomMeals) {
-//                if (randomMeals != null && !randomMeals.isEmpty()) {
-//                    RandomMeal meal = randomMeals.get(0);
-//                    homeView.displayMeal(meal);
-//                    homeView.hideLoading();
-//
-//                    checkIfMealIsFavorite(meal.getMealId());
-//                } else {
-//                    homeView.hideLoading();
-//                    homeView.showError("No meal found");
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(String errorMessage) {
-//                homeView.hideLoading();
-//                homeView.showError(errorMessage);
-//            }
-//
-//            @Override
-//            public void onServerError(String errorMessage) {
-//                homeView.hideLoading();
-//                homeView.showError(errorMessage);
-//            }
-//        });
-//    }
-
     @Override
     public void getRandomMeal() {
+        Log.d(TAG, "getRandomMeal() called");
+
+        // Check if we have a valid cached meal
+        RandomMeal cachedMeal = userPrefManager.getCachedMealOfTheDay();
+        if (cachedMeal != null) {
+            Log.d(TAG, "✅ Using cached meal of the day: " + cachedMeal.getMealName());
+            long timeRemaining = userPrefManager.getTimeUntilCacheExpires();
+            Log.d(TAG, "Cache expires in: " + (timeRemaining / (1000 * 60 * 60)) + " hours");
+
+            homeView.hideLoading();
+            homeView.displayMeal(cachedMeal);
+            checkIfMealIsFavorite(cachedMeal.getMealId());
+            return;
+        }
+
+        // No valid cache - fetch from network
+        if (!NetworkUtils.isNetworkAvailable(context)) {
+            Log.d(TAG, "No network available and no cache - aborting request");
+            homeView.hideLoading();
+            homeView.showOfflineBanner();
+            return;
+        }
+
+        Log.d(TAG, "No valid cache - fetching new meal from API");
         homeView.showLoading();
+
         compositeDisposable.add(
                 mealsRepository.getRandomMeal()
+                        .timeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                         .subscribeOn(Schedulers.io())
                         .map(response -> {
                             List<RandomMeal> meals = response.getRandomMeal();
@@ -116,48 +127,57 @@ public class HomePresenterImp implements HomePresenter {
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
                                 meal -> {
+                                    Log.d(TAG, "Random meal loaded: " + meal.getMealName());
+
+                                    // Cache the meal
+                                    userPrefManager.saveMealOfTheDay(meal);
+                                    Log.d(TAG, "Meal cached for 24 hours");
+
                                     homeView.hideLoading();
                                     homeView.displayMeal(meal);
                                     checkIfMealIsFavorite(meal.getMealId());
                                 },
                                 error -> {
+                                    Log.e(TAG, "Error loading random meal: " + error.getClass().getSimpleName());
                                     homeView.hideLoading();
 
-
-                                    if (error instanceof IOException) {
-                                        homeView.showError("Network error: " + error.getMessage());
-                                    } else if (error instanceof HttpException) {
-                                        HttpException httpException = (HttpException) error;
-                                        homeView.showError("Server error: " + error.getMessage());
+                                    if (isNetworkError(error)) {
+                                        Log.d(TAG, "Network error - showing offline banner");
+                                        homeView.showOfflineBanner();
                                     } else {
-                                        homeView.showError(error.getMessage());
+                                        Log.d(TAG, "Non-network error - showing error message");
+                                        safeShowError("Unable to load meal");
                                     }
                                 }
                         )
         );
     }
 
+
     @Override
     public void getCategory() {
+        Log.d(TAG, "getCategory() called");
+
+        if (!NetworkUtils.isNetworkAvailable(context)) {
+            Log.d(TAG, "No network - skipping category load");
+            return;
+        }
+
         compositeDisposable.add(
                 mealsRepository.getCategory()
+                        .timeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                         .subscribeOn(Schedulers.io())
                         .map(CategoryResponse::getCategories)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
-                                item->{
-                                    List<Category> categoriesList= item;
+                                categoriesList -> {
+                                    Log.d(TAG, "Categories loaded: " + categoriesList.size());
                                     homeView.setCategoryList(categoriesList);
                                 },
                                 error -> {
-
-                                    if (error instanceof IOException) {
-                                        homeView.showError("Network error: " + error.getMessage());
-                                    } else if (error instanceof HttpException) {
-                                        HttpException httpException = (HttpException) error;
-                                        homeView.showError("Server error: " + error.getMessage());
-                                    } else {
-                                        homeView.showError(error.getMessage());
+                                    Log.e(TAG, "Error loading categories: " + error.getMessage());
+                                    if (isNetworkError(error)) {
+                                        homeView.showOfflineBanner();
                                     }
                                 }
                         )
@@ -166,50 +186,33 @@ public class HomePresenterImp implements HomePresenter {
 
     @Override
     public void getArea() {
+        Log.d(TAG, "getArea() called");
+
+        if (!NetworkUtils.isNetworkAvailable(context)) {
+            Log.d(TAG, "No network - skipping area load");
+            return;
+        }
+
         compositeDisposable.add(
                 mealsRepository.getArea()
+                        .timeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                         .subscribeOn(Schedulers.io())
                         .map(AreaResponse::getAreasList)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
-                                item->{
-                                    List<Area> areaList= item;
+                                areaList -> {
+                                    Log.d(TAG, "Areas loaded: " + areaList.size());
                                     homeView.setArea(areaList);
                                 },
                                 error -> {
-
-
-                                    if (error instanceof IOException) {
-                                        homeView.showError("Network error: " + error.getMessage());
-                                    } else if (error instanceof HttpException) {
-                                        HttpException httpException = (HttpException) error;
-                                        homeView.showError("Server error: " + error.getMessage());
-                                    } else {
-                                        homeView.showError(error.getMessage());
+                                    Log.e(TAG, "Error loading areas: " + error.getMessage());
+                                    if (isNetworkError(error)) {
+                                        homeView.showOfflineBanner();
                                     }
                                 }
                         )
         );
     }
-//    @Override
-//    public void getCategory() {
-//        mealsRepository.getCategory(new CategoryNetworkResponse() {
-//            @Override
-//            public void onSuccess(List<Category> categoryList) {
-//                homeView.setCategoryList(categoryList);
-//            }
-//
-//            @Override
-//            public void onFailure(String errorMessage) {
-//                homeView.showError(errorMessage);
-//            }
-//
-//            @Override
-//            public void onServerError(String errorMessage) {
-//                homeView.showError(errorMessage);
-//            }
-//        });
-//    }
 
     @Override
     public void onCategoryClick(Category category) {
@@ -223,7 +226,6 @@ public class HomePresenterImp implements HomePresenter {
 
     @Override
     public void addMealToPlan(MealPlan mealPlan) {
-
         if (!isUserSignedIn()) {
             homeView.showSignInPrompt(
                     "Save Meal Plan",
@@ -232,12 +234,28 @@ public class HomePresenterImp implements HomePresenter {
             return;
         }
 
-        mealsRepository.insertMealToMealPlan(mealPlan);
-        homeView.onMealPlanAddedSuccess();
-        if (mAuth.getCurrentUser() != null) {
-            saveMealPlanToFirestore(mealPlan);
-        }
+        compositeDisposable.add(
+                mealsRepository.insertMealToMealPlan(mealPlan)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                    Log.d(TAG, " Meal plan saved locally");
+                                    homeView.onMealPlanAddedSuccess();
 
+                                    if (NetworkUtils.isNetworkAvailable(context) && mAuth.getCurrentUser() != null) {
+                                        saveMealPlanToFirestore(mealPlan);
+                                    } else {
+                                        Log.d(TAG, "Offline: Meal plan saved locally only");
+                                    }
+                                },
+                                error -> {
+
+                                    Log.e(TAG, " Error saving meal plan locally", error);
+                                    homeView.onMealPlanAddedFailure("Failed to save meal plan: " + error.getMessage());
+                                }
+                        )
+        );
     }
 
     @Override
@@ -254,7 +272,6 @@ public class HomePresenterImp implements HomePresenter {
 
     @Override
     public void onFavoriteClick(RandomMeal meal) {
-        // Check if user is signed in
         if (!isUserSignedIn()) {
             homeView.showSignInPrompt(
                     "Save to Favorites",
@@ -268,7 +285,11 @@ public class HomePresenterImp implements HomePresenter {
         if (isFavorite) {
             removeFromFav(meal.getMealId());
         } else {
-            fetchRecipeDetailsAndAddToFavorites(meal.getMealId());
+            if (NetworkUtils.isNetworkAvailable(context)) {
+                fetchRecipeDetailsAndAddToFavorites(meal.getMealId());
+            } else {
+                homeView.showOfflineMessage("Unable to add to favorites while offline");
+            }
         }
     }
 
@@ -287,9 +308,11 @@ public class HomePresenterImp implements HomePresenter {
             }
         });
     }
+
     public void fetchRecipeDetailsAndAddToFavorites(String mealId) {
         compositeDisposable.add(
                 mealsRepository.getRecipeDetails(mealId)
+                        .timeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                         .subscribeOn(Schedulers.io())
                         .map(response -> {
                             List<RecipeDetails> recipeDetails = response.getRecipeDetails();
@@ -306,69 +329,102 @@ public class HomePresenterImp implements HomePresenter {
                                 },
                                 error -> {
                                     Log.e(TAG, "Error fetching recipe details", error);
-
-                                    String errorMessage;
-                                    if (error instanceof IOException) {
-                                        errorMessage = "Network error: " + error.getMessage();
-                                    } else if (error instanceof HttpException) {
-                                        errorMessage = "Server error: " + error.getMessage();
+                                    if (isNetworkError(error)) {
+                                        homeView.showOfflineBanner();
+                                        homeView.onFavAddedFailure("No internet connection");
                                     } else {
-                                        errorMessage = error.getMessage();
+                                        homeView.onFavAddedFailure(error.getMessage());
                                     }
-
-                                    homeView.onFavAddedFailure(errorMessage);
                                 }
                         )
         );
     }
 
-//    public void fetchRecipeDetailsAndAddToFavorites(String mealId) {
-//        mealsRepository.getRecipeDetails(mealId, new RecipeDetailsNetworkResponse() {
-//            @Override
-//            public void onSuccess(List<RecipeDetails> recipeDetailsList) {
-//                if (recipeDetailsList != null && !recipeDetailsList.isEmpty()) {
-//                    RecipeDetails recipe = recipeDetailsList.get(0);
-//                    FavoriteMeal favoriteMeal = FavoriteMeal.fromRecipeDetails(recipe);
-//                    addToFav(favoriteMeal);
-//                } else {
-//                    homeView.onFavAddedFailure("Could not fetch recipe details");
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(String errorMessage) {
-//                homeView.onFavAddedFailure(errorMessage);
-//            }
-//
-//            @Override
-//            public void onServerError(String errorMessage) {
-//                homeView.onFavAddedFailure(errorMessage);
-//            }
-//        });
-//    }
-
     private void saveMealPlanToFirestore(MealPlan mealPlan) {
         MealPlanFirestore firestorePlan = MealPlanFirestore.fromMealPlan(mealPlan);
 
-        mealsRepository.saveMealPlanToFirestore(firestorePlan, new MealPlanFirestoreNetworkResponse() {
-            @Override
-            public void onSaveSuccess() {
-                Log.d(TAG, "Meal plan synced to Firestore");
-            }
+        mealsRepository.saveMealPlanToFirestore(firestorePlan,
+                new com.example.foodplanner.data.datasource.remote.MealPlanFirestoreNetworkResponse() {
+                    @Override
+                    public void onSaveSuccess() {
+                        Log.d(TAG, "Meal plan synced to Firestore");
+                    }
 
-            @Override
-            public void onFetchSuccess(List<MealPlanFirestore> mealPlans) {
-            }
+                    @Override
+                    public void onFetchSuccess(List<MealPlanFirestore> mealPlans) {
+                    }
 
-            @Override
-            public void onDeleteSuccess() {
-            }
+                    @Override
+                    public void onDeleteSuccess() {
+                    }
 
-            @Override
-            public void onFailure(String error) {
-                Log.e(TAG, "Failed to sync to Firestore: " + error);
-                homeView.onMealPlanAddedFailure(error);
-            }
-        });
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e(TAG, "Failed to sync to Firestore: " + error);
+                    }
+                });
+    }
+
+    public void retryConnection() {
+        Log.d(TAG, "Retry button clicked");
+
+        boolean hasNetwork = NetworkUtils.isNetworkAvailable(context);
+        Log.d(TAG, "Network status: " + hasNetwork);
+        Log.d(TAG, "Network type: " + NetworkUtils.getNetworkType(context));
+
+        if (hasNetwork) {
+            Log.d(TAG, "Connection restored - reloading content");
+            homeView.hideOfflineBanner();
+            homeView.showLoading();
+
+            getRandomMeal();
+            getCategory();
+            getArea();
+        } else {
+            Log.d(TAG, " Still offline");
+            homeView.showOfflineMessage("Still offline. Please check your connection.");
+        }
+    }
+
+    /**
+     * Check if error is network-related
+     */
+    private boolean isNetworkError(Throwable error) {
+        boolean isTimeout = error instanceof java.util.concurrent.TimeoutException;
+        boolean isSocketTimeout = error instanceof SocketTimeoutException;
+        boolean isIOError = error instanceof IOException;
+        boolean isUnknownHost = error instanceof UnknownHostException;
+        boolean isServerError = error instanceof HttpException &&
+                ((HttpException) error).code() >= 500;
+
+        boolean result = isTimeout || isSocketTimeout || isIOError ||
+                isUnknownHost || isServerError;
+
+        Log.d(TAG, "Error type check - Timeout: " + isTimeout +
+                ", SocketTimeout: " + isSocketTimeout +
+                ", IO: " + isIOError +
+                ", UnknownHost: " + isUnknownHost +
+                ", ServerError: " + isServerError +
+                " -> Network error: " + result);
+
+        return result;
+    }
+
+    /**
+     * Safely show error message
+     */
+    private void safeShowError(String message) {
+        try {
+            homeView.showError(message);
+        } catch (Exception e) {
+            Log.e(TAG, "Could not show error: " + e.getMessage());
+        }
+    }
+
+    public void onDestroy() {
+        Log.d(TAG, "Presenter destroyed - disposing subscriptions");
+        if (compositeDisposable != null && !compositeDisposable.isDisposed()) {
+            compositeDisposable.dispose();
+        }
     }
 }

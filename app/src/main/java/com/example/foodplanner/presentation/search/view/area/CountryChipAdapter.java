@@ -106,7 +106,7 @@ public class CountryChipAdapter {
         return selectedAreas;
     }
 
-    public void clearSelection() {
+    public void clearSelections() {  // Changed from clearSelection to clearSelections
         selectedAreas.clear();
         for (int i = 0; i < chipGroup.getChildCount(); i++) {
             if (chipGroup.getChildAt(i) instanceof Chip) {

@@ -11,11 +11,14 @@ import androidx.room.Update;
 import com.example.foodplanner.data.model.meal_plan.MealPlan;
 
 import java.util.List;
+
+import io.reactivex.rxjava3.core.Completable;
+
 @Dao
 public interface MealPlanDao {
 
         @Insert(onConflict = OnConflictStrategy.REPLACE)
-        void insertMealPlan(MealPlan mealPlan);
+        Completable insertMealPlan(MealPlan mealPlan);
 
         @Query("SELECT * FROM meal_plan")
         LiveData<List<MealPlan>> getAllMealPlans();
