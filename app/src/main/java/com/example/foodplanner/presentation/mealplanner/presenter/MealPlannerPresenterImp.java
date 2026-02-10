@@ -105,15 +105,28 @@ public class MealPlannerPresenterImp implements MealPlannerPresenter {
 
     @Override
     public void deleteMealPlanById(MealPlan mealPlan) {
-        // Delete from Room
-        repository.deleteMealPlanById(mealPlan.getId());
+        compositeDisposable.add(
+                    repository.deleteMealPlanById(mealPlan.getId())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    () -> {
 
-        // Delete from Firestore if user is authenticated
-        if (mAuth.getCurrentUser() != null) {
-            deleteMealPlanFromFirestore(mealPlan);
-        } else {
-            view.onMealPlanDeletedSuccess();
-        }
+                                        if (mAuth.getCurrentUser() != null) {
+                                            deleteMealPlanFromFirestore(mealPlan);
+                                        } else {
+                                            view.onMealPlanDeletedSuccess();
+                                        }
+
+                                    },
+                                    throwable -> {
+                                        view.showError(throwable.getMessage());
+                                    }
+                            )
+            );
+
+
+
     }
 
     private void deleteMealPlanFromFirestore(MealPlan mealPlan) {
@@ -124,12 +137,11 @@ public class MealPlannerPresenterImp implements MealPlannerPresenter {
                 new MealPlanFirestoreNetworkResponse() {
                     @Override
                     public void onSaveSuccess() {
-                        // Not used
                     }
 
                     @Override
                     public void onFetchSuccess(List<MealPlanFirestore> mealPlans) {
-                        // Not used
+
                     }
 
                     @Override

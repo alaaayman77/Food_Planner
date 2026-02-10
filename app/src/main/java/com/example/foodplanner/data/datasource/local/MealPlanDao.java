@@ -27,9 +27,9 @@ public interface MealPlanDao {
         @Query("SELECT * FROM meal_plan WHERE dayOfWeek = :day")
         Observable<List<MealPlan>> getMealPlansByDay(String day);
 
-        @Query("DELETE FROM meal_plan")
-        void deleteAllMealPlans();
+//        @Query("DELETE FROM meal_plan")
+//        void deleteAllMealPlans();
         @Query("DELETE FROM meal_plan WHERE id = :mealPlanId")
-        void deleteMealPlanById(int mealPlanId);
+        Completable deleteMealPlanById(int mealPlanId);
         }
 

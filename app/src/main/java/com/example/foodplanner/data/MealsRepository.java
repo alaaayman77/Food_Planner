@@ -97,11 +97,11 @@ public class MealsRepository {
     }
 
 
-    public void deleteAllMealPlans(){
-        mealLocalDataSource.deleteAllMealPlans();
-    }
-    public void deleteMealPlanById(int mealPlanId) {
-        mealLocalDataSource.deleteMealPlanById(mealPlanId);
+//    public void deleteAllMealPlans(){
+//        mealLocalDataSource.deleteAllMealPlans();
+//    }
+    public Completable deleteMealPlanById(int mealPlanId) {
+        return mealLocalDataSource.deleteMealPlanById(mealPlanId);
     }
 
     public void saveMealPlanToFirestore(MealPlanFirestore mealPlan, MealPlanFirestoreNetworkResponse callback) {

@@ -41,23 +41,26 @@ public class MealLocalDataSource {
     public Observable<List<MealPlan>> getMealPlansByDay(String day){
         return mealPlanDao.getMealPlansByDay(day);
     }
+    public Completable deleteMealPlanById(int mealPlanId){
+        return mealPlanDao.deleteMealPlanById(mealPlanId);
+    }
 
-    public  void deleteAllMealPlans(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mealPlanDao.deleteAllMealPlans();
-            }
-        }).start();
-    }
-    public void deleteMealPlanById(int mealPlanId) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mealPlanDao.deleteMealPlanById(mealPlanId);
-            }
-        }).start();
-    }
+//    public  void deleteAllMealPlans(){
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                mealPlanDao.deleteAllMealPlans();
+//            }
+//        }).start();
+//    }
+//    public void deleteMealPlanById(int mealPlanId) {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                mealPlanDao.deleteMealPlanById(mealPlanId);
+//            }
+//        }).start();
+//    }
 
     public void addToFav(FavoriteMeal favoriteMeal){
         new Thread(new Runnable() {
