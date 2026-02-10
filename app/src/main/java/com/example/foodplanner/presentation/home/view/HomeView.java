@@ -27,4 +27,5 @@ public interface HomeView {
     void showOfflineBanner();
     void hideOfflineBanner();
     void showOfflineMessage(String message);
+    void displayUserName(String userName);
 }

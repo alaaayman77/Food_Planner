@@ -44,7 +44,7 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView,
     private TextView tag1;
     private TextView tag2;
     private MaterialCardView randomMealCard;
-
+    private TextView userName;
     private RecyclerView categoriesRecyclerView;
     private RecyclerView countriesRecyclerView;
     private CategoryAdapter categoryAdapter;
@@ -55,7 +55,6 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView,
     private ImageView btnAddToPlan;
     private ImageView favoriteIcon;
 
-    // Main content and offline state containers
     private ScrollView mainContent;
     private ConstraintLayout offlineStateContainer;
     private MaterialButton retryButton;
@@ -103,7 +102,7 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView,
         countriesRecyclerView = view.findViewById(R.id.countries_recycler_view);
         btnAddToPlan = view.findViewById(R.id.btnAddToPlan);
         favoriteIcon = view.findViewById(R.id.favoriteIcon);
-
+        userName = view.findViewById(R.id.userName);
         offlineStateContainer = view.findViewById(R.id.offlineStateContainer);
         retryButton = view.findViewById(R.id.retryButton);
     }
@@ -181,7 +180,12 @@ public class HomeFragment extends Fragment implements OnCategoryClick, HomeView,
             categoryAdapter.setCategories(categoryList);
         }
     }
-
+    @Override
+    public void displayUserName(String name) {
+        if (userName != null) {
+            userName.setText(name + " ✨");
+        }
+    }
 
 
     @Override

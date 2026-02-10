@@ -56,6 +56,7 @@ public class HomePresenterImp implements HomePresenter {
         this.userPrefManager = new UserPrefManager(context);
 
         Log.d(TAG, "Presenter initialized");
+        loadUserName();
         loadFavorites();
 
         // Check network status immediately
@@ -69,7 +70,24 @@ public class HomePresenterImp implements HomePresenter {
             homeView.showOfflineBanner();
         }
     }
+    private void loadUserName() {
+        if (mAuth.getCurrentUser() != null) {
+            String displayName = mAuth.getCurrentUser().getDisplayName();
+            String email = mAuth.getCurrentUser().getEmail();
 
+            if (displayName != null && !displayName.isEmpty()) {
+                homeView.displayUserName(displayName);
+            } else if (email != null) {
+
+                String emailPrefix = email.split("@")[0];
+                homeView.displayUserName(emailPrefix);
+            } else {
+                homeView.displayUserName("Guest");
+            }
+        } else {
+            homeView.displayUserName("Guest");
+        }
+    }
     private void loadFavorites() {
         mealsRepository.getAllFav().observe(owner, favorites -> {
             favoriteMealIds.clear();
