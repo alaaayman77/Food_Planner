@@ -289,7 +289,7 @@
                             android:id="@+id/youtube_player_view"
                             android:layout_width="match_parent"
                             android:layout_height="220dp"
-                            app:videoId="S0Q4gqBUs7c"
+
                             app:autoPlay="false" />
 
                     </androidx.cardview.widget.CardView>

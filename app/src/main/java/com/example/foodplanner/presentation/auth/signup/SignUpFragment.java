@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.example.foodplanner.BuildConfig;
 import com.example.foodplanner.MainActivity;
 import com.example.foodplanner.R;
 import com.example.foodplanner.data.model.user.User;
@@ -135,7 +136,7 @@ public class SignUpFragment extends Fragment {
 
     private void setupGoogleSignIn() {
         try {
-            String webClientId = getString(R.string.client_id);
+            String webClientId = BuildConfig.GOOGLE_CLIENT_ID;
             Log.d(TAG, "Web Client ID loaded successfully");
 
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

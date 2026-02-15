@@ -45,7 +45,7 @@ public class ProfileFragment extends Fragment {
 
     private MaterialButton saveChangesButton;
     private MaterialButton logoutButton;
-    private SwitchMaterial darkModeSwitch;
+
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -98,7 +98,7 @@ public class ProfileFragment extends Fragment {
 
         saveChangesButton = view.findViewById(R.id.saveChangesButton);
         logoutButton = view.findViewById(R.id.logoutButton);
-        darkModeSwitch = view.findViewById(R.id.darkModeSwitch);
+
     }
 
     private void loadUserData() {
@@ -106,11 +106,10 @@ public class ProfileFragment extends Fragment {
             String email = currentUser.getEmail();
             String displayName = currentUser.getDisplayName();
 
-            // Set display name
             if (displayName != null && !displayName.isEmpty()) {
                 userNameText.setText(displayName);
             } else if (email != null) {
-                // Use email username if no display name
+
                 userNameText.setText(email.split("@")[0]);
             }
 
@@ -135,11 +134,8 @@ public class ProfileFragment extends Fragment {
         DocumentReference userDoc = db.collection("users").document(currentUser.getUid());
         userDoc.get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
-                // Load dark mode preference
-                Boolean darkMode = documentSnapshot.getBoolean("darkMode");
-                if (darkMode != null) {
-                    darkModeSwitch.setChecked(darkMode);
-                }
+
+
             }
         });
     }
@@ -151,9 +147,7 @@ public class ProfileFragment extends Fragment {
 
         logoutButton.setOnClickListener(v -> showLogoutConfirmation());
 
-        // save preferences when switches change
-        darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
-                savePreference("darkMode", isChecked));
+
     }
 
     private void saveChanges() {

@@ -129,9 +129,7 @@ public class UserPrefManager {
         editor.apply();
     }
 
-    /**
-     * Get time remaining until cache expires (in milliseconds)
-     */
+
     public long getTimeUntilCacheExpires() {
         long cacheTimestamp = sharedPreferences.getLong(KEY_MEAL_CACHE_TIMESTAMP, 0);
         if (cacheTimestamp == 0) {

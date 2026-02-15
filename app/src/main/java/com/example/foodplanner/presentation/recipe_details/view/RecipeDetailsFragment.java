@@ -270,17 +270,33 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
 
         String videoId = extractVideoIdFromUrl(youtubeUrl);
 
-        if (videoId != null && !videoId.isEmpty()) {
-            youTubePlayerView.setVisibility(VISIBLE);
-            youTubePlayerView.addYouTubePlayerListener(new AbstractYouTubePlayerListener() {
-                @Override
-                public void onReady(@NonNull YouTubePlayer youTubePlayer) {
-                    youTubePlayer.cueVideo(videoId, 0);
-                }
-            });
-        } else {
+        if (videoId == null || videoId.isEmpty()) {
+            Log.w(TAG, "Could not parse YouTube URL: " + youtubeUrl);
             youTubePlayerView.setVisibility(GONE);
+            return;
         }
+
+        Log.d(TAG, "Loading YouTube video ID: " + videoId);
+        youTubePlayerView.setVisibility(VISIBLE);
+
+        final String finalVideoId = videoId;
+
+        youTubePlayerView.addYouTubePlayerListener(new AbstractYouTubePlayerListener() {
+            @Override
+            public void onReady(@NonNull YouTubePlayer youTubePlayer) {
+                youTubePlayer.cueVideo(finalVideoId, 0);
+            }
+
+            @Override
+            public void onError(@NonNull YouTubePlayer youTubePlayer,
+                                @NonNull com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants.PlayerError error) {
+                Log.e(TAG, "YouTube player error: " + error.name());
+                if (isAdded()) {
+                    youTubePlayerView.setVisibility(GONE);
+                    safeShowToast("Video unavailable");
+                }
+            }
+        });
     }
 
     private String extractVideoIdFromUrl(String url) {
@@ -288,28 +304,102 @@ public class RecipeDetailsFragment extends Fragment implements RecipeDetailsView
             return null;
         }
 
-        String videoId = null;
+        url = url.trim();
 
-        try {
-            if (url.contains("youtube.com/watch?v=")) {
-                int startIndex = url.indexOf("v=") + 2;
-                int endIndex = url.indexOf("&", startIndex);
-                videoId = (endIndex == -1) ? url.substring(startIndex) : url.substring(startIndex, endIndex);
-            } else if (url.contains("youtu.be/")) {
-                int startIndex = url.indexOf("youtu.be/") + 9;
-                int endIndex = url.indexOf("?", startIndex);
-                videoId = (endIndex == -1) ? url.substring(startIndex) : url.substring(startIndex, endIndex);
-            } else if (url.contains("m.youtube.com/watch?v=")) {
-                int startIndex = url.indexOf("v=") + 2;
-                int endIndex = url.indexOf("&", startIndex);
-                videoId = (endIndex == -1) ? url.substring(startIndex) : url.substring(startIndex, endIndex);
+        // ── 1. youtu.be/VIDEO_ID ─────────────────────────────────────
+        // https://youtu.be/FJer_Cutb2I
+        // https://youtu.be/FJer_Cutb2I?si=abc123
+        if (url.contains("youtu.be/")) {
+            try {
+                int start = url.indexOf("youtu.be/") + 9;
+                String rest = url.substring(start);
+                // Remove any query params or fragments
+                rest = rest.split("[?&#]")[0].trim();
+                if (!rest.isEmpty()) return rest;
+            } catch (Exception e) {
+                Log.e(TAG, "youtu.be parse failed", e);
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Error extracting video ID", e);
-            return null;
         }
 
-        return videoId;
+        // ── 2. /embed/VIDEO_ID ───────────────────────────────────────
+        // https://www.youtube.com/embed/FJer_Cutb2I
+        // https://www.youtube-nocookie.com/embed/FJer_Cutb2I
+        if (url.contains("/embed/")) {
+            try {
+                int start = url.indexOf("/embed/") + 7;
+                String rest = url.substring(start);
+                rest = rest.split("[?&#]")[0].trim();
+                if (!rest.isEmpty()) return rest;
+            } catch (Exception e) {
+                Log.e(TAG, "/embed/ parse failed", e);
+            }
+        }
+
+        // ── 3. /v/VIDEO_ID ───────────────────────────────────────────
+        // https://www.youtube.com/v/FJer_Cutb2I
+        // https://www.youtube.com/v/FJer_Cutb2I?version=3
+        if (url.contains("/v/")) {
+            try {
+                int start = url.indexOf("/v/") + 3;
+                String rest = url.substring(start);
+                rest = rest.split("[?&#]")[0].trim();
+                if (!rest.isEmpty()) return rest;
+            } catch (Exception e) {
+                Log.e(TAG, "/v/ parse failed", e);
+            }
+        }
+
+        // ── 4. /shorts/VIDEO_ID ──────────────────────────────────────
+        // https://www.youtube.com/shorts/FJer_Cutb2I
+        if (url.contains("/shorts/")) {
+            try {
+                int start = url.indexOf("/shorts/") + 8;
+                String rest = url.substring(start);
+                rest = rest.split("[?&#]")[0].trim();
+                if (!rest.isEmpty()) return rest;
+            } catch (Exception e) {
+                Log.e(TAG, "/shorts/ parse failed", e);
+            }
+        }
+
+        // ── 5. /live/VIDEO_ID ────────────────────────────────────────
+        // https://www.youtube.com/live/FJer_Cutb2I
+        if (url.contains("/live/")) {
+            try {
+                int start = url.indexOf("/live/") + 6;
+                String rest = url.substring(start);
+                rest = rest.split("[?&#]")[0].trim();
+                if (!rest.isEmpty()) return rest;
+            } catch (Exception e) {
+                Log.e(TAG, "/live/ parse failed", e);
+            }
+        }
+
+        // ── 6. ?v=VIDEO_ID or &v=VIDEO_ID ───────────────────────────
+        // https://www.youtube.com/watch?v=FJer_Cutb2I
+        // https://m.youtube.com/watch?v=FJer_Cutb2I
+        // https://www.youtube.com/watch?feature=player_embedded&v=FJer_Cutb2I
+        // https://www.youtube.com/watch?v=FJer_Cutb2I&t=30s
+        if (url.contains("v=")) {
+            try {
+                int start = url.indexOf("v=") + 2;
+                String rest = url.substring(start);
+                rest = rest.split("[?&#]")[0].trim();
+                if (rest.length() == 11) return rest; // YouTube IDs are always 11 chars
+                if (!rest.isEmpty()) return rest;
+            } catch (Exception e) {
+                Log.e(TAG, "v= parse failed", e);
+            }
+        }
+
+        // ── 7. Bare video ID (11 chars, alphanumeric + _ + -) ────────
+        // Some databases store just the video ID directly
+        if (url.matches("[a-zA-Z0-9_\\-]{11}")) {
+            return url;
+        }
+
+        Log.w(TAG, "Could not extract YouTube video ID from: " + url);
+        return null;
     }
 
     private List<InstructionStep> parseInstructions(String instructionsText) {

@@ -1,3 +1,7 @@
+import java.util.Properties
+
+val localProps = Properties()
+localProps.load(rootProject.file("local.properties").inputStream())
 plugins {
     alias(libs.plugins.android.application)
 
@@ -11,6 +15,9 @@ android {
     compileSdk {
         version = release(36)
     }
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.foodplanner"
@@ -20,6 +27,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${localProps["GOOGLE_CLIENT_ID"]}\"")
+        buildConfigField("String", "TWITTER_CONSUMER_KEY", "\"${localProps["TWITTER_CONSUMER_KEY"]}\"")
+        buildConfigField("String", "TWITTER_CONSUMER_SECRET", "\"${localProps["TWITTER_CONSUMER_SECRET"]}\"")
     }
 
     buildTypes {
